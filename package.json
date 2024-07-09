@@ -1,0 +1,34 @@
+{
+  "name": "pcp-client-javascript-sdk",
+  "version": "0.0.1",
+  "description": "PCP client javascript SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:demo": "cd demo && npm install && npm run build",
+    "start:demo": "cd demo && npm start",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK.git"
+  },
+  "keywords": [
+    "payone",
+    "client",
+    "typescript",
+    "javascript",
+    "sdk"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  }
+}
