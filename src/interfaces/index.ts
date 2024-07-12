@@ -2251,3 +2251,204 @@ export enum UnscheduledCardOnFileSequenceIndicator {
   FIRST = 'first',
   SUBSEQUENT = 'subsequent',
 }
+
+interface BaseQueryParams {
+  /**
+   * @description The offset to load Items (Checkouts or Commerce-Cases, depending on the context) starting with 0.
+   * @example 0
+   */
+  offset?: number;
+  /**
+   * @description The number of Items (Checkouts or Commerce-Cases, depending on the context) loaded per page
+   * @example 10
+   */
+  size?: number;
+  /** @description Date and time in RFC3339 format after which Items (Checkouts or Commerce-Cases, depending on the context) should be included in the request.
+   *     Accepted formats are:
+   *     * YYYY-MM-DD'T'HH:mm:ss'Z'
+   *     * YYYY-MM-DD'T'HH:mm:ss+XX:XX
+   *     * YYYY-MM-DD'T'HH:mm:ss-XX:XX
+   *     * YYYY-MM-DD'T'HH:mm'Z'
+   *     * YYYY-MM-DD'T'HH:mm+XX:XX
+   *     * YYYY-MM-DD'T'HH:mm-XX:XX
+   *
+   *     All other formats may be ignored by the system.
+   *      */
+  fromDate?: string;
+  /** @description Date and time in RFC3339 format after which Items (Checkouts or Commerce-Cases, depending on the context) should be included in the request.
+   *     Accepted formats are:
+   *     * YYYY-MM-DD'T'HH:mm:ss'Z'
+   *     * YYYY-MM-DD'T'HH:mm:ss+XX:XX
+   *     * YYYY-MM-DD'T'HH:mm:ss-XX:XX
+   *     * YYYY-MM-DD'T'HH:mm'Z'
+   *     * YYYY-MM-DD'T'HH:mm+XX:XX
+   *     * YYYY-MM-DD'T'HH:mm-XX:XX
+   *     All other formats may be ignored by the system.
+   *      */
+  toDate?: string;
+}
+
+export interface GetCheckoutsQueryParams extends BaseQueryParams {
+  /**
+   * @description Minimum monetary value of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  fromCheckoutAmount?: number;
+  /**
+   * @description Maximum monetary value of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  toCheckoutAmount?: number;
+  /**
+   * @description Minimum open amount of the Checkouts that shall be included in the response. Amount in cents always having
+   *     2 decimals.
+   * @example 1000
+   */
+  fromOpenAmount?: number;
+  /**
+   * @description Maximum open amount of the Checkouts that shall be included in the response. Amount in cents always having 2
+   *     decimals.
+   * @example 1000
+   */
+  toOpenAmount?: number;
+  /**
+   * @description Minimum collected amount of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  fromCollectedAmount?: number;
+  /**
+   * @description Maximum collected amount of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  toCollectedAmount?: number;
+  /**
+   * @description Minimum cancelled amount of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  fromCancelledAmount?: number;
+  /**
+   * @description Maximum cancelled amount of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  toCancelledAmount?: number;
+  /**
+   * @description Minimum refunded amount of the Checkouts that shall be included in the response. Amount in cents always having
+   *     2 decimals.
+   * @example 1000
+   */
+  fromRefundAmount?: number;
+  /**
+   * @description Maximum refunded amount of the Checkouts that shall be included in the response. Amount in cents always having
+   *     2 decimals.
+   * @example 1000
+   */
+  toRefundAmount?: number;
+  /**
+   * @description Minimum chargeback amount of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  fromChargebackAmount?: number;
+  /**
+   * @description Maximum chargeback amount of the Checkouts that shall be included in the response. Amount in cents always
+   *     having 2 decimals.
+   * @example 1000
+   */
+  toChargebackAmount?: number;
+  /**
+   * @description Unique identifier of a Checkout
+   * @example 7a3444d3-f6ce-4b6e-b6c4-2486a160cf19
+   */
+  checkoutId?: string;
+  /**
+   * @description Unique reference of the Checkout that is also returned for reporting and reconciliation purposes.
+   * @example your-checkout-6372
+   */
+  merchantReference?: string;
+  /**
+   * @description Unique identifier for the customer.
+   * @example 1234
+   */
+  merchantCustomerId?: string;
+  /** @description Filter your results by payment product ID so that only Checkouts containing a Payment Execution with one of
+   *     the specified payment product IDs are returned. */
+  includePaymentProductId?: number[];
+  /** @description Filter your results by Checkout status so that only Checkouts with the specified statuses are returned. */
+  includeCheckoutStatus?: StatusCheckout[];
+  /** @description Filter your results by extended Checkout status so that only Checkouts with the specified statuses are returned. */
+  includeExtendedCheckoutStatus?: ExtendedCheckoutStatus[];
+  /** @description Filter your results by payment channel so that only Checkouts which reference transactions on the given
+   *     channels are returned. */
+  includePaymentChannel?: PaymentChannel[];
+  /**
+   * @description Filter your results by the merchantReference of the paymentExecution or paymentInformation.
+   * @example Reference-4172
+   */
+  paymentReference?: string;
+  /**
+   * @description Filter your results by the paymentExecutionId, paymentInformationId or the id of the payment.
+   * @example 664423132
+   */
+  paymentId?: string;
+  /**
+   * @description Filter your results by the customer first name. It is also possible to filter by the first name from the
+   *     shipping address.
+   * @example Sinclair
+   */
+  firstName?: string;
+  /**
+   * @description Filter your results by the customer surname. It is also possible to filter by the surname from the shipping
+   *     address.
+   * @example Müller
+   */
+  surname?: string;
+  /**
+   * @description Filter your results by the customer email address.
+   * @example Sinclair.Müller@example.com
+   */
+  email?: string;
+  /**
+   * @description Filter your results by the customer phone number.
+   * @example +1234567890
+   */
+  phoneNumber?: string;
+  /**
+   * @description Filter your results by the date of birth.
+   *     Format YYYYMMDD
+   * @example 20041101
+   */
+  dateOfBirth?: string;
+  /**
+   * @description Filter your results by the name of the company.
+   * @example Sinclair's company name
+   */
+  companyInformation?: string;
+}
+
+export interface GetCommerceCasesQueryParams extends BaseQueryParams {
+  /**
+   * @description Unique identifier of a Commerce Case.
+   * @example 7a3444d3-f6ce-4b6e-b6c4-2486a160cf19
+   */
+  commerceCaseId?: string;
+  /**
+   * @description Unique reference of the Checkout that is also returned for reporting and reconciliation purposes.
+   * @example your-checkout-6372
+   */
+  merchantReference?: string;
+  /**
+   * @description Unique identifier for the customer.
+   * @example 1234
+   */
+  merchantCustomerId?: string;
+  /** @description Filter your results by Checkout status so that only Checkouts with the specified statuses are returned. */
+  includeCheckoutStatus?: StatusCheckout[];
+  /** @description Filter your results by payment channel so that only Checkouts which reference transactions on the given channels are returned. */
+  includePaymentChannel?: PaymentChannel[];
+}
