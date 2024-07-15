@@ -46,7 +46,6 @@
   },
   "prettier": {
     "useTabs": false,
-    "arrowParens": "avoid",
     "bracketSameLine": true,
     "singleQuote": true,
     "trailingComma": "all",

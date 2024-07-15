@@ -4,3 +4,5 @@ export * from './lib/commerceCase';
 export * from './lib/orderManagementCheckoutActions';
 export * from './lib/paymentExecution';
 export * from './lib/paymentInformation';
+export * from './lib/PCPCreditCardCheck';
+export * from './lib/crypto';
