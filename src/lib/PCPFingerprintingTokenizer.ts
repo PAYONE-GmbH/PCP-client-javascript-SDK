@@ -8,6 +8,9 @@ declare global {
 export class PCPFingerprintingTokenizer {
   private environment: string;
   private snippetToken: string;
+
+  private paylaDcsT: unknown;
+
   constructor(
     selector: string,
     environment: string,
@@ -19,6 +22,14 @@ export class PCPFingerprintingTokenizer {
     const uniqueId = sessionId || this.guidv4();
     this.snippetToken = `${paylaPartnerId}_${partnerMerchantId}_${uniqueId}`;
     this.init(selector, paylaPartnerId, partnerMerchantId);
+  }
+
+  public async getFingerprintToken() {
+    if (!this.paylaDcsT) {
+      console.error('paylaDcsT is not initialized.');
+      return;
+    }
+    return this.paylaDcsT;
   }
 
   private guidv4() {
@@ -67,6 +78,7 @@ export class PCPFingerprintingTokenizer {
             this.environment,
             this.snippetToken,
           );
+          this.paylaDcsT = paylaDcsT;
           return resolve(paylaDcsT);
         } else {
           console.error(
