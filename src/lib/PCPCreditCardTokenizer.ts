@@ -55,7 +55,7 @@ export interface Config {
   error?: string;
 }
 
-export class PCPCreditCardCheck {
+export class PCPCreditCardTokenizer {
   private config: Config;
   private request: Request;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

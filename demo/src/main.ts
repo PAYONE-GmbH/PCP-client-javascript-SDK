@@ -1,6 +1,6 @@
 import {
   Config,
-  PCPCreditCardCheck,
+  PCPCreditCardTokenizer,
   Request,
   createHash,
 } from 'pcp-client-javascript-sdk';
@@ -108,7 +108,7 @@ const init = async () => {
     hash,
   };
 
-  new PCPCreditCardCheck(config, request, pmiPortalKey);
+  new PCPCreditCardTokenizer(config, request, pmiPortalKey);
 };
 
 init();
