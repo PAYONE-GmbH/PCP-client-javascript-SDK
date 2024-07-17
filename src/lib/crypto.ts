@@ -9,6 +9,7 @@ export interface Request {
   storecarddata: string;
   checktype?: string;
   hash: string;
+  api_version: string;
 }
 
 export const createHash = async (
@@ -17,6 +18,7 @@ export const createHash = async (
 ): Promise<string> => {
   const requestValues = [
     request.aid,
+    request.api_version,
     request.encoding,
     request.mid,
     request.mode,
