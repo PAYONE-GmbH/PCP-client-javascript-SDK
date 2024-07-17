@@ -68,10 +68,8 @@ export class PCPCreditCardTokenizer {
   }
 
   private async initialize(pmiPortalKey: string) {
-    // load the Payone script
     await this.loadPayoneScript();
     this.request.hash = await createHash(this.request, pmiPortalKey);
-    // TODO: How to get Payone global object?
     this.iframes = new window.Payone.ClientApi.HostedIFrames(
       this.config,
       this.request,
@@ -116,9 +114,14 @@ export class PCPCreditCardTokenizer {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private payCallback(response: any) {
-    console.debug(response);
+  private payCallback(response: {
+    [key: string]: string;
+    status: string;
+    pseudocardpan: string;
+    truncatedcardpan: string;
+    cardtype: string;
+    cardexpiredate: string;
+  }) {
     if (response.status === 'VALID') {
       (document.getElementById('pseudocardpan')! as HTMLInputElement).value =
         response.pseudocardpan;
