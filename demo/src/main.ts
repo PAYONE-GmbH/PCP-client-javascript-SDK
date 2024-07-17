@@ -1,12 +1,10 @@
 import {
   Config,
   PCPCreditCardTokenizer,
+  PCPFingerprintingTokenizer,
   Request,
   createHash,
 } from 'pcp-client-javascript-sdk';
-import './style.css';
-
-const pmiPortalKey = '';
 
 const inputStyle = `
           min-height: 38px;
@@ -96,9 +94,13 @@ const requestWithoutHash: Omit<Request, 'hash'> = {
   portalid: '', // your PortalId
   encoding: 'UTF-8', // desired encoding
   storecarddata: 'yes', // fixed value
+  api_version: '3.11', // fixed value
 };
 
 const init = async () => {
+  // Test for getting the token for credit card tokenization via the SDKs PCPCreditCardTokenizer
+  const pmiPortalKey = '';
+
   const hash = await createHash(requestWithoutHash, pmiPortalKey);
 
   console.log('hash: ', hash);
@@ -109,6 +111,35 @@ const init = async () => {
   };
 
   new PCPCreditCardTokenizer(config, request, pmiPortalKey);
+
+  // Test for getting the token for fingerprinting via the SDKs PCPFingerprintingTokenizer
+  const paylaPartnerTestId = 'e7yeryF2of8X';
+  const partnerMerchantTestId = 'test-1';
+
+  const fingerprintingTokenizer = new PCPFingerprintingTokenizer(
+    'body',
+    't',
+    paylaPartnerTestId,
+    partnerMerchantTestId,
+  );
+
+  const div = document.createElement('div');
+  div.style.width = '200px';
+  div.style.height = '100px';
+  div.style.backgroundColor = 'red';
+  div.style.color = 'white';
+  div.style.display = 'flex';
+  div.style.justifyContent = 'center';
+  div.style.alignItems = 'center';
+  div.style.cursor = 'pointer';
+  div.innerHTML = 'Get FP Token for BNPL!';
+  div.onclick = async () => {
+    console.log(
+      'fp token: ',
+      await fingerprintingTokenizer.getFingerprintToken(),
+    );
+  };
+  document.body.appendChild(div);
 };
 
 init();
