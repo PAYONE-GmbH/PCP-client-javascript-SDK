@@ -9,7 +9,7 @@ export class PCPFingerprintingTokenizer {
   private environment: string;
   private snippetToken: string;
 
-  private paylaDcsT: unknown;
+  private paylaDcsToken: unknown;
 
   constructor(
     selector: string,
@@ -25,11 +25,11 @@ export class PCPFingerprintingTokenizer {
   }
 
   public async getFingerprintToken() {
-    if (!this.paylaDcsT) {
-      console.error('paylaDcsT is not initialized.');
+    if (!this.paylaDcsToken) {
+      console.error('paylaDcsToken is not initialized.');
       return;
     }
-    return this.paylaDcsT;
+    return this.paylaDcsToken;
   }
 
   private guidv4() {
@@ -49,10 +49,12 @@ export class PCPFingerprintingTokenizer {
     partnerMerchantId: string,
   ) {
     // check if selector exists
-    if (!document.getElementById(selector)) {
+    if (!document.querySelector(selector)) {
       console.error(`Selector ${selector} does not exist.`);
       return;
     }
+
+    window.paylaDcs = window.paylaDcs || {};
     await this.loadScript(selector, paylaPartnerId, partnerMerchantId);
     await this.loadStylesheet(selector, paylaPartnerId, partnerMerchantId);
   }
@@ -62,7 +64,7 @@ export class PCPFingerprintingTokenizer {
     paylaPartnerId: string,
     partnerMerchantId: string,
   ) {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       if (document.getElementById('paylaDcs')) {
         resolve(); // Script already loaded
         return;
@@ -70,25 +72,20 @@ export class PCPFingerprintingTokenizer {
       const script = document.createElement('script');
       script.id = 'paylaDcs';
       script.type = 'text/javascript';
-      script.async = true;
       script.src = `https://d.payla.io/dcs/${paylaPartnerId}/${partnerMerchantId}/dcs.js`;
       script.onload = () => {
         if (typeof window.paylaDcs !== 'undefined' && window.paylaDcs.init) {
-          const paylaDcsT = window.paylaDcs.init(
+          this.paylaDcsToken = window.paylaDcs.init(
             this.environment,
             this.snippetToken,
           );
-          this.paylaDcsT = paylaDcsT;
-          return resolve(paylaDcsT);
         } else {
           console.error(
             'paylaDcs is not defined or does not have an init method.',
           );
-          reject();
         }
       };
-      script.onerror = reject;
-      document.getElementById(selector)!.appendChild(script);
+      document.querySelector(selector)!.appendChild(script);
     });
   }
 
@@ -107,7 +104,7 @@ export class PCPFingerprintingTokenizer {
       link.type = 'text/css';
       link.rel = 'stylesheet';
       link.href = `https://d.payla.io/dcs/dcs.css?st=${this.snippetToken}&pi=${paylaPartnerId}&psi=${partnerMerchantId}&e=${this.environment}`;
-      document.getElementById(selector)!.appendChild(link);
+      document.querySelector(selector)!.appendChild(link);
     });
   }
 }
