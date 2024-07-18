@@ -1,4 +1,4 @@
-import { Config } from '../interfaces/PCPCreditCardTokenizer.interfaces';
+import { Config } from '../interfaces';
 import type { Request } from './crypto';
 import { createHash } from './crypto';
 

@@ -1,4 +1,5 @@
 export * from './PCPCreditCardTokenizer.interfaces';
+export * from './PCPApplePay.interfaces';
 /** @description Object containing billing address details */
 export interface Address {
   /**

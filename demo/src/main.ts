@@ -1,5 +1,7 @@
 import {
+  ApplePayButton,
   Config,
+  PCPApplePay,
   PCPCreditCardTokenizer,
   PCPFingerprintingTokenizer,
   Request,
@@ -89,9 +91,9 @@ const requestWithoutHash: Omit<Request, 'hash'> = {
   request: 'creditcardcheck', // fixed value
   responsetype: 'JSON', // fixed value
   mode: 'test', // desired mode
-  mid: '', // your MID
-  aid: '', // your AID
-  portalid: '', // your PortalId
+  mid: '18352', // your MID
+  aid: '18353', // your AID
+  portalid: '2013244', // your PortalId
   encoding: 'UTF-8', // desired encoding
   storecarddata: 'yes', // fixed value
   api_version: '3.11', // fixed value
@@ -99,7 +101,7 @@ const requestWithoutHash: Omit<Request, 'hash'> = {
 
 const init = async () => {
   // Test for getting the token for credit card tokenization via the SDKs PCPCreditCardTokenizer
-  const pmiPortalKey = '';
+  const pmiPortalKey = 'FtRWy06i9F!%^42W$t&Z#t@qXArkZ!';
 
   const hash = await createHash(requestWithoutHash, pmiPortalKey);
 
@@ -140,6 +142,31 @@ const init = async () => {
     );
   };
   document.body.appendChild(div);
+
+  const applePayConfig: ApplePayJS.ApplePayPaymentRequest = {
+    countryCode: 'DE',
+    currencyCode: 'EUR',
+    merchantCapabilities: [
+      'supports3DS', // mandatory
+    ],
+    supportedNetworks: ['visa', 'masterCard', 'amex', 'girocard'],
+    total: {
+      label: 'Demo (Card is not charged)',
+      type: 'final',
+      amount: '1.99',
+    },
+  };
+
+  const applePayButton: ApplePayButton = {
+    selector: '#apple-pay-button',
+    config: {
+      buttonstyle: 'black',
+      type: 'plain',
+      locale: 'de-DE',
+    },
+  };
+
+  new PCPApplePay(applePayConfig, applePayButton);
 };
 
 init();

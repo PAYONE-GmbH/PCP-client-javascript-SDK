@@ -1,4 +1,7 @@
+import basicSsl from '@vitejs/plugin-basic-ssl';
+
 const defineConfig = {
+  plugins: [basicSsl()],
   optimizeDeps: {
     include: ['pcp-client-javascript-sdk'],
   },

@@ -50,5 +50,8 @@
     "singleQuote": true,
     "trailingComma": "all",
     "bracketSpacing": true
+  },
+  "dependencies": {
+    "@types/applepayjs": "^14.0.8"
   }
 }
