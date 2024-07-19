@@ -34,6 +34,9 @@ const server = new aws.ec2.Instance('payone-apple-pay-demo-server', {
         # Clone the repository
         git clone https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK.git /home/ec2-user/express-app
 
+        ## Checkout the develop branch
+        git checkout develop
+
         # Navigate to the app directory
         cd /home/ec2-user/express-app/demo/applepay-demoserver
 
