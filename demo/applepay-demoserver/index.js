@@ -72,42 +72,39 @@ app.post('/validate-merchant', (req, res) => {
   };
 
   // Create the HTTPS request
-  const req = https.request(options, (res) => {
+  const httpsReq = https.request(options, (httpsRes) => {
     let responseData = '';
 
     // Collect the response data
-    res.on('data', (chunk) => {
+    httpsRes.on('data', (chunk) => {
       responseData += chunk;
     });
 
     // Handle the end of the response
-    res.on('end', () => {
-      console.log('Response:', responseData);
+    httpsRes.on('end', () => {
       res.writeHead(httpsRes.statusCode, {
         'Content-Type': 'application/json',
       });
       res.end(responseData);
-      ƒ;
     });
   });
 
   // Handle any errors with the request
-  req.on('error', (error) => {
-    console.error('Error:', error);
+  httpsReq.on('error', (error) => {
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({
-        error: 'Merchant Validation Error',
+        error: 'Internal Server Error',
         details: error.message,
       }),
     );
   });
 
   // Write the data to the request body
-  req.write(data);
+  httpsReq.write(data);
 
   // End the request
-  req.end();
+  httpsReq.end();
 
   // const validationRequest = https.request(options, (validationResponse) => {
   //   let responseData = '';
