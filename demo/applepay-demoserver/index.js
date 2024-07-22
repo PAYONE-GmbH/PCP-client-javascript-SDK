@@ -24,10 +24,12 @@ app.get(
 
 // Paths to merchant identity certificate and private key
 const certificate = fs.readFileSync(
-  path.join(__dirname, 'certificates', 'PayOneApplePay.crt.pem', 'utf8'),
+  path.join(__dirname, 'certificates', 'PayOneApplePay.crt.pem'),
+  'utf8',
 );
 const privateKey = fs.readFileSync(
-  path.join(__dirname, 'certificates', 'PayOneApplePay.key.pem', 'utf8'),
+  path.join(__dirname, 'certificates', 'PayOneApplePay.key.pem'),
+  'utf8',
 );
 
 // Validate merchant
