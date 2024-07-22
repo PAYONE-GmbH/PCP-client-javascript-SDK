@@ -1,7 +1,12 @@
 const express = require('express');
 const app = express();
+const fs = require('fs');
 const https = require('https');
+const bodyParser = require('body-parser');
 const path = require('path');
+
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
