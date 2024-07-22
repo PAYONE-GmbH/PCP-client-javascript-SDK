@@ -64,32 +64,58 @@ app.post('/validate-merchant', (req, res) => {
     path: validationURL.pathname,
     method: 'POST',
     headers: {
-      'Content-Type': 'text/plain',
+      'Content-Type': 'application/json',
       'Content-Length': data.length,
     },
     cert: certificate,
     key: privateKey,
   };
 
-  const validationRequest = https.request(options, (validationResponse) => {
+  // Create the HTTPS request
+  const req = https.request(options, (res) => {
     let responseData = '';
-    validationResponse.on('data', (chunk) => {
+
+    // Collect the response data
+    res.on('data', (chunk) => {
       responseData += chunk;
     });
 
-    validationResponse.on('end', () => {
-      res.status(200).send(responseData);
+    // Handle the end of the response
+    res.on('end', () => {
+      console.log('Response:', responseData);
     });
   });
 
-  validationRequest.on('error', (error) => {
-    console.log('Error:', error.message);
-    res.status(500).send({ error: error.message });
+  // Handle any errors with the request
+  req.on('error', (error) => {
+    console.error('Error:', error);
   });
 
-  validationRequest.write(data);
+  // Write the data to the request body
+  req.write(data);
 
-  validationRequest.end();
+  // End the request
+  req.end();
+
+  // const validationRequest = https.request(options, (validationResponse) => {
+  //   let responseData = '';
+  //   validationResponse.on('data', (chunk) => {
+  //     responseData += chunk;
+  //   });
+
+  //   validationResponse.on('end', () => {
+  //     res.status(200).send(responseData);
+  //   });
+  // });
+
+  // validationRequest.on('error', (error) => {
+  //   console.log('Error:', error.message);
+  //   res.status(500).send({ error: error.message });
+  // });
+
+  // validationRequest.write(data);
+
+  // validationRequest.end();
 });
 
 // Handle Apple Pay payment token
