@@ -1,6 +1,6 @@
 {
   "name": "payone-apple-pay-demo-server",
-  "main": "index.ts",
+  "main": "infrastructure/index.ts",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"

@@ -1,7 +1,8 @@
 import {
   ApplePayButton,
   Config,
-  PCPApplePay,
+  PCPApplePaySession,
+  PCPApplePaySessionConfig,
   PCPCreditCardTokenizer,
   PCPFingerprintingTokenizer,
   Request,
@@ -143,7 +144,7 @@ const init = async () => {
   };
   document.body.appendChild(div);
 
-  const applePayConfig: ApplePayJS.ApplePayPaymentRequest = {
+  const applePaySessionConfig: PCPApplePaySessionConfig = {
     countryCode: 'DE',
     currencyCode: 'EUR',
     merchantCapabilities: [
@@ -154,6 +155,57 @@ const init = async () => {
       label: 'Demo (Card is not charged)',
       type: 'final',
       amount: '1.99',
+    },
+    validateMerchantURL:
+      'https://payone-apple-pay-demo-server.nanogiants-services.de/validate-merchant',
+    processPaymentURL:
+      'https://payone-apple-pay-demo-server.nanogiants-services.de/process-payment',
+    merchantValidationData: {
+      merchantIdentifier: 'merchant.com.nanogiants.payone',
+      foo: 'bar',
+    },
+    paymentMethodSelectedCallback: async (paymentMethod) => {
+      console.log('paymentMethodSelectedCallback', paymentMethod);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    couponCodeChangedCallback: async (couponCode) => {
+      console.log('couponCodeChangedCallback', couponCode);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    shippingMethodSelectedCallback: async (shippingMethod) => {
+      console.log('shippingMethodSelectedCallback', shippingMethod);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    shippingContactAddressSelectedCallback: async (shippingContact) => {
+      console.log('shippingContactAddressSelectedCallback', shippingContact);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    cancelCallback: () => {
+      console.log('cancelCallback');
     },
   };
 
@@ -166,7 +218,7 @@ const init = async () => {
     },
   };
 
-  new PCPApplePay(applePayConfig, applePayButton);
+  new PCPApplePaySession(applePaySessionConfig, applePayButton);
 };
 
 init();
