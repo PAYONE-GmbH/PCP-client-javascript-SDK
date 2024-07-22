@@ -83,12 +83,24 @@ app.post('/validate-merchant', (req, res) => {
     // Handle the end of the response
     res.on('end', () => {
       console.log('Response:', responseData);
+      res.writeHead(httpsRes.statusCode, {
+        'Content-Type': 'application/json',
+      });
+      res.end(responseData);
+      ƒ;
     });
   });
 
   // Handle any errors with the request
   req.on('error', (error) => {
     console.error('Error:', error);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        error: 'Merchant Validation Error',
+        details: error.message,
+      }),
+    );
   });
 
   // Write the data to the request body
