@@ -147,6 +147,11 @@ export class PCPApplePaySession {
     if (!response.ok) {
       throw new Error('Failed to validate merchant');
     }
+
+    const body = await response.json();
+    if (body.statusCode === '400') {
+      throw new Error('Failed to validate merchant');
+    }
     return await response.json();
   }
 

@@ -47,6 +47,12 @@ const privateKey = fs.readFileSync(
   'utf8',
 );
 
+const data = JSON.stringify({
+  merchantIdentifier: 'merchant.de.nanogiants.payonedemo',
+  domainName: 'https://payone-apple-pay-demo-server.nanogiants-services.de',
+  displayName: 'PayOne Apple Pay Demo Server',
+});
+
 // Validate merchant
 app.post('/validate-merchant', (req, res) => {
   const validationURL = new URL(req.body.validationURL);
@@ -59,40 +65,29 @@ app.post('/validate-merchant', (req, res) => {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain',
+      'Content-Length': data.length,
     },
-    key: privateKey,
     cert: certificate,
-    body: JSON.stringify({
-      merchantIdentifier: 'merchant.de.nanogiants.payonedemo',
-      domainName: 'https://payone-apple-pay-demo-server.nanogiants-services.de',
-      displayName: 'PayOne Apple Pay Demo Server',
-    }),
+    key: privateKey,
   };
 
-  console.log('VALIDATE MERCHANT');
-  console.log('options:', options);
-
   const validationRequest = https.request(options, (validationResponse) => {
-    console.log(
-      'validationResponse statusCode:',
-      validationResponse.statusCode,
-    );
-    let data = '';
+    let responseData = '';
     validationResponse.on('data', (chunk) => {
-      data += chunk;
+      responseData += chunk;
     });
 
     validationResponse.on('end', () => {
-      res.status(200).send(data);
+      res.status(200).send(responseData);
     });
   });
-
-  console.log('validationRequest:', validationRequest);
 
   validationRequest.on('error', (error) => {
     console.log('Error:', error.message);
     res.status(500).send({ error: error.message });
   });
+
+  validationRequest.write(data);
 
   validationRequest.end();
 });
