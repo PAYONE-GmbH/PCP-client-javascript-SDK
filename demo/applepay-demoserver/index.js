@@ -69,6 +69,9 @@ app.post('/validate-merchant', (req, res) => {
     }),
   };
 
+  console.log('VALIDATE MERCHANT');
+  console.log('options:', options);
+
   const validationRequest = https.request(options, (validationResponse) => {
     console.log(
       'validationResponse statusCode:',
@@ -83,6 +86,8 @@ app.post('/validate-merchant', (req, res) => {
       res.status(200).send(data);
     });
   });
+
+  console.log('validationRequest:', validationRequest);
 
   validationRequest.on('error', (error) => {
     console.log('Error:', error.message);
