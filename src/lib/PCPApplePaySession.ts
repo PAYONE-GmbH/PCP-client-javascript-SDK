@@ -14,13 +14,11 @@ export class PCPApplePaySession {
 
   constructor(config: PCPApplePaySessionConfig, button: ApplePayButton) {
     if (!window.ApplePaySession || !ApplePaySession.canMakePayments()) {
-      console.error('Apple Pay is not supported.');
-      return;
+      throw new Error('Apple Pay is not available.');
     }
 
     if (!button.selector) {
-      console.error('Button selector is missing.');
-      return;
+      throw new Error('Button Selector is required.');
     }
 
     this.config = config;
@@ -29,12 +27,12 @@ export class PCPApplePaySession {
 
   private async initialize(button: ApplePayButton) {
     // check if buttonSelector exists
-    if (!document.querySelector(button.selector)) {
-      console.error(`Selector ${button.selector} does not exist.`);
-      return;
+    const selector = document.querySelector(button.selector);
+    if (!selector) {
+      throw new Error(`Selector ${button.selector} does not exist.`);
     }
     await this.loadApplePayButtonScript();
-    await this.displayApplePayButton(button);
+    await this.displayApplePayButton(button, selector);
   }
 
   private async startApplePaySession() {
@@ -46,8 +44,8 @@ export class PCPApplePaySession {
         const merchantSession = await this.validateMerchant(validationURL);
         session.completeMerchantValidation(merchantSession);
       } catch (error) {
-        console.error('Merchant validation failed', error);
         session.abort();
+        throw error;
       }
     };
 
@@ -61,8 +59,8 @@ export class PCPApplePaySession {
             : ApplePaySession.STATUS_FAILURE,
         );
       } catch (error) {
-        console.error('Payment processing failed', error);
         session.completePayment(ApplePaySession.STATUS_FAILURE);
+        throw error;
       }
     };
 
@@ -74,8 +72,8 @@ export class PCPApplePaySession {
             await this.config!.paymentMethodSelectedCallback!(paymentMethod);
           session.completePaymentMethodSelection(paymentMethodUpdate);
         } catch (error) {
-          console.error('Payment method selection failed', error);
           session.abort();
+          throw error;
         }
       };
     }
@@ -88,8 +86,8 @@ export class PCPApplePaySession {
             await this.config!.couponCodeChangedCallback!(couponCode);
           session.completeCouponCodeChange(couponCodeUpdate);
         } catch (error) {
-          console.error('Coupon code change failed', error);
           session.abort();
+          throw error;
         }
       };
     }
@@ -102,8 +100,8 @@ export class PCPApplePaySession {
             await this.config!.shippingMethodSelectedCallback!(shippingMethod);
           session.completeShippingMethodSelection(shippingMethodUpdate);
         } catch (error) {
-          console.error('Shipping method selection failed', error);
           session.abort();
+          throw error;
         }
       };
     }
@@ -118,8 +116,8 @@ export class PCPApplePaySession {
             );
           session.completeShippingContactSelection(shippingContactUpdate);
         } catch (error) {
-          console.error('Shipping contact selection failed', error);
           session.abort();
+          throw error;
         }
       };
     }
@@ -174,8 +172,6 @@ export class PCPApplePaySession {
     }
 
     const result = await response.json();
-
-    console.log('Payment processed: ', JSON.stringify(payment), result.success);
     return result.success;
   }
 
@@ -199,13 +195,10 @@ export class PCPApplePaySession {
     });
   }
 
-  private async displayApplePayButton(button: ApplePayButton) {
-    const buttonSelector = document.querySelector(button.selector);
-    if (!buttonSelector) {
-      console.error(`Selector ${button.selector} does not exist.`);
-      return;
-    }
-
+  private async displayApplePayButton(
+    button: ApplePayButton,
+    selector: Element,
+  ) {
     const applePayButton = document.createElement('apple-pay-button');
 
     applePayButton.setAttribute('buttonstyle', button.config.buttonstyle);
@@ -224,6 +217,6 @@ export class PCPApplePaySession {
       await this.startApplePaySession();
     };
 
-    buttonSelector.appendChild(applePayButton);
+    selector.appendChild(applePayButton);
   }
 }
