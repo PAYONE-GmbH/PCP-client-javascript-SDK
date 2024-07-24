@@ -9,19 +9,19 @@ const bodyParser = require('body-parser');
 const path = require('path');
 var cors = require('cors');
 
-const allowedOrigins = ['https://192.168.0.152', 'https://192.168.0.152:5173'];
+// const allowedOrigins = ['https://192.168.0.152', 'https://192.168.0.152:5173'];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-};
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+// };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
