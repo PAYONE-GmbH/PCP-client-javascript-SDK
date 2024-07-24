@@ -13,9 +13,9 @@ const init = async () => {
     ],
     supportedNetworks: ['visa', 'masterCard', 'amex', 'girocard'],
     total: {
-      label: 'Demo (Card is not charged)',
+      label: 'Payone Demo',
       type: 'final',
-      amount: '1.99',
+      amount: '200.99',
     },
     validateMerchantURL:
       'https://payone-apple-pay-demo-server.nanogiants-services.de/validate-merchant',
@@ -25,49 +25,49 @@ const init = async () => {
       merchantIdentifier: 'merchant.de.nanogiants.payonedemo',
       foo: 'bar',
     },
-    // paymentMethodSelectedCallback: async (paymentMethod) => {
-    //   console.log('paymentMethodSelectedCallback', paymentMethod);
-    //   return {
-    //     newTotal: {
-    //       label: 'Demo (Card is not charged)',
-    //       type: 'final',
-    //       amount: '1.99',
-    //     },
-    //   };
-    // },
-    // couponCodeChangedCallback: async (couponCode) => {
-    //   console.log('couponCodeChangedCallback', couponCode);
-    //   return {
-    //     newTotal: {
-    //       label: 'Demo (Card is not charged)',
-    //       type: 'final',
-    //       amount: '1.99',
-    //     },
-    //   };
-    // },
-    // shippingMethodSelectedCallback: async (shippingMethod) => {
-    //   console.log('shippingMethodSelectedCallback', shippingMethod);
-    //   return {
-    //     newTotal: {
-    //       label: 'Demo (Card is not charged)',
-    //       type: 'final',
-    //       amount: '1.99',
-    //     },
-    //   };
-    // },
-    // shippingContactAddressSelectedCallback: async (shippingContact) => {
-    //   console.log('shippingContactAddressSelectedCallback', shippingContact);
-    //   return {
-    //     newTotal: {
-    //       label: 'Demo (Card is not charged)',
-    //       type: 'final',
-    //       amount: '1.99',
-    //     },
-    //   };
-    // },
-    // cancelCallback: () => {
-    //   console.log('cancelCallback');
-    // },
+    paymentMethodSelectedCallback: async (paymentMethod) => {
+      console.log('paymentMethodSelectedCallback', paymentMethod);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    couponCodeChangedCallback: async (couponCode) => {
+      console.log('couponCodeChangedCallback', couponCode);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    shippingMethodSelectedCallback: async (shippingMethod) => {
+      console.log('shippingMethodSelectedCallback', shippingMethod);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    shippingContactAddressSelectedCallback: async (shippingContact) => {
+      console.log('shippingContactAddressSelectedCallback', shippingContact);
+      return {
+        newTotal: {
+          label: 'Demo (Card is not charged)',
+          type: 'final',
+          amount: '1.99',
+        },
+      };
+    },
+    cancelCallback: () => {
+      console.log('cancelCallback');
+    },
   };
 
   const applePayButton: ApplePayButton = {

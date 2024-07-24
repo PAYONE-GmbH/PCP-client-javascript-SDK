@@ -58,17 +58,16 @@ const privateKey = fs.readFileSync(
 );
 
 const data = JSON.stringify({
-  merchantIdentifier: 'merchant.de.nanogiants.payonedemo',
-  // domainName: 'https://payone-apple-pay-demo-server.nanogiants-services.de',
-  displayName: 'PayOne Apple Pay Demo Server',
+  merchantIdentifier: null,
+  displayName: 'Payone Demo',
   initiative: 'web',
-  initiativeContext:
-    'https://payone-apple-pay-demo-server.nanogiants-services.de',
+  initiativeContext: 'payone-apple-pay-demo-server.nanogiants-services.de',
 });
 
 // Validate merchant
 app.post('/validate-merchant', (req, res) => {
   const validationURL = new URL(req.body.validationURL);
+  data.merchantIdentifier = req.body.merchantIdentifier;
 
   // Options for the validation request
   const options = {
@@ -118,26 +117,6 @@ app.post('/validate-merchant', (req, res) => {
 
   // End the request
   httpsReq.end();
-
-  // const validationRequest = https.request(options, (validationResponse) => {
-  //   let responseData = '';
-  //   validationResponse.on('data', (chunk) => {
-  //     responseData += chunk;
-  //   });
-
-  //   validationResponse.on('end', () => {
-  //     res.status(200).send(responseData);
-  //   });
-  // });
-
-  // validationRequest.on('error', (error) => {
-  //   console.log('Error:', error.message);
-  //   res.status(500).send({ error: error.message });
-  // });
-
-  // validationRequest.write(data);
-
-  // validationRequest.end();
 });
 
 // Handle Apple Pay payment token
