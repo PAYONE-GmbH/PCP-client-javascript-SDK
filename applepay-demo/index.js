@@ -124,6 +124,10 @@ app.post('/process-payment', async (req, res) => {
   const billingContact = req.body.billingContact;
   const shippingContact = req.body.shippingContact;
 
+  console.log('Payment token:', token);
+  console.log('Billing contact:', billingContact);
+  console.log('Shipping contact:', shippingContact);
+
   // TODO: Process the payment with Payone
 
   res.status(200).send({ success: true });
