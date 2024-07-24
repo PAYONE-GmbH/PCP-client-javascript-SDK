@@ -22,7 +22,7 @@ const init = async () => {
     processPaymentURL:
       'https://payone-apple-pay-demo-server.nanogiants-services.de/process-payment',
     merchantValidationData: {
-      merchantIdentifier: 'merchant.de.nanogiants.payone',
+      merchantIdentifier: 'merchant.de.nanogiants.payonedemo',
       foo: 'bar',
     },
     // paymentMethodSelectedCallback: async (paymentMethod) => {
