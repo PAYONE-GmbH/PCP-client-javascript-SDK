@@ -57,17 +57,16 @@ const privateKey = fs.readFileSync(
   'utf8',
 );
 
-const data = JSON.stringify({
-  merchantIdentifier: null,
-  displayName: 'Payone Demo',
-  initiative: 'web',
-  initiativeContext: 'payone-apple-pay-demo-server.nanogiants-services.de',
-});
-
 // Validate merchant
 app.post('/validate-merchant', (req, res) => {
   const validationURL = new URL(req.body.validationURL);
-  data.merchantIdentifier = req.body.merchantIdentifier;
+
+  const data = JSON.stringify({
+    merchantIdentifier: req.body.merchantIdentifier,
+    displayName: 'Payone Demo',
+    initiative: 'web',
+    initiativeContext: 'payone-apple-pay-demo-server.nanogiants-services.de',
+  });
 
   // Options for the validation request
   const options = {
