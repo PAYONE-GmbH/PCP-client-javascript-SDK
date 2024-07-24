@@ -42,6 +42,7 @@ export class PCPApplePaySession {
       console.log('validationURL: ', validationURL);
       try {
         const merchantSession = await this.validateMerchant(validationURL);
+        console.log('merchantSession: ', merchantSession);
         session.completeMerchantValidation(merchantSession);
       } catch (error) {
         console.error('Merchant validation failed', error);
@@ -152,7 +153,7 @@ export class PCPApplePaySession {
     if (body.statusCode === '400') {
       throw new Error('Failed to validate merchant');
     }
-    return await response.json();
+    return body;
   }
 
   private async processPayment(

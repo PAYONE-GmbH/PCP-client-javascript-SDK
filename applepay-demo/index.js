@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const express = require('express');
 const app = express();
 const fs = require('fs');
@@ -22,6 +25,13 @@ app.use(cors(corsOptions));
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
+
+// Serve static files from the Vite build output directory
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get('/apple-pay-button-demo', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'src', 'index.html'));
+});
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
