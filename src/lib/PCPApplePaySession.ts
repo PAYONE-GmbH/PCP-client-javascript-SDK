@@ -174,6 +174,8 @@ export class PCPApplePaySession {
     }
 
     const result = await response.json();
+
+    console.log('Payment processed: ', JSON.stringify(payment), result.success);
     return result.success;
   }
 
