@@ -47,6 +47,7 @@ export class PCPApplePaySession {
         const merchantSession = await this.validateMerchant(validationURL);
         console.log('merchantSession: ', merchantSession);
         session.completeMerchantValidation(merchantSession);
+        console.log('merchantSession completed');
       } catch (error) {
         console.error('Merchant validation failed', error);
         session.abort();

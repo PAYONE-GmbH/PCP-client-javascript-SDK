@@ -59,8 +59,11 @@ const privateKey = fs.readFileSync(
 
 const data = JSON.stringify({
   merchantIdentifier: 'merchant.de.nanogiants.payonedemo',
-  domainName: 'https://payone-apple-pay-demo-server.nanogiants-services.de',
+  // domainName: 'https://payone-apple-pay-demo-server.nanogiants-services.de',
   displayName: 'PayOne Apple Pay Demo Server',
+  initiative: 'web',
+  initiativeContext:
+    'https://payone-apple-pay-demo-server.nanogiants-services.de',
 });
 
 // Validate merchant
