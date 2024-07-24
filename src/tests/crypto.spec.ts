@@ -1,7 +1,14 @@
-import { describe, expect, it } from '@jest/globals';
-import { Request, createHash } from '../lib/crypto';
+import { describe, expect, it, beforeAll } from 'vitest';
+import { Request, createHash } from '../lib/crypto.js';
+import nodeCrypto from 'node:crypto';
 
 describe('crypto', () => {
+  beforeAll(() => {
+    Object.defineProperty(global, 'crypto', {
+      value: nodeCrypto,
+      writable: true,
+    });
+  });
   describe('createHash', () => {
     it('should create a hash', async () => {
       const requestWithoutHash: Omit<Request, 'hash'> = {

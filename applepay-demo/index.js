@@ -30,7 +30,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('/apple-pay-button-demo', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'src', 'index.html'));
+  res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 });
 
 app.get('/', (req, res) => {

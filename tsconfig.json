@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES5",
-    "module": "commonjs",
+    "target": "ESNext",
+    "module": "NodeNext",
     "declaration": true,
     "outDir": "./dist",
-    "strict": true
+    "strict": true,
+    "moduleResolution": "NodeNext"
   },
   "include": ["src"],
   "exclude": ["node_modules", "**/__tests__/*", "src/_old"]

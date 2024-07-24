@@ -1,6 +1,6 @@
-import { Config } from '../interfaces';
-import type { Request } from './crypto';
-import { createHash } from './crypto';
+import { Config } from '../interfaces/index.js';
+import type { Request } from './crypto.js';
+import { createHash } from './crypto.js';
 
 declare global {
   interface Window {

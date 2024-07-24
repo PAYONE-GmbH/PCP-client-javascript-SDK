@@ -1,10 +1,10 @@
 const defineConfig = {
   optimizeDeps: {
-    include: ['pcp-client-javascript-sdk'],
+    include: [],
   },
   build: {
     commonjsOptions: {
-      include: [/pcp-client-javascript-sdk/, /node_modules/],
+      include: [/node_modules/],
     },
   },
 };

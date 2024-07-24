@@ -1,4 +1,7 @@
-import { ApplePayButton, PCPApplePaySessionConfig } from '../interfaces';
+import {
+  ApplePayButton,
+  PCPApplePaySessionConfig,
+} from '../interfaces/index.js';
 
 declare global {
   interface Window {
