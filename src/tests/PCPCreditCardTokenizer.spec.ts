@@ -11,7 +11,7 @@ describe('PCPCreditCardTokenizer', () => {
 
   beforeEach(() => {
     const { window: jsdomWindow } = new JSDOM(
-      '<!DOCTYPE html><head></head><body></body>',
+      '<!DOCTYPE html><head></head><body><div id="cardpan"></div><div id="cardcvc2"></div><div id="cardexpiremonth"></div><div id="cardexpireyear"></div></body>',
       {
         url: 'http://localhost',
       },
@@ -106,8 +106,12 @@ describe('PCPCreditCardTokenizer', () => {
       callback: autoCardTypeDetectionCallbackFn,
     },
     language: 'de',
-    submitButtonId: 'submit',
-    submitButtonWithOutCompleteCheckId: 'submitWithOutCompleteCheck',
+    submitButton: {
+      selector: '#submit',
+    },
+    submitButtonWithOutCompleteCheck: {
+      selector: '#submitWithOutCompleteCheck',
+    },
     ccIcons: {
       selector: '#cc-icons',
       mapCardtypeToSelector: {
@@ -142,8 +146,8 @@ describe('PCPCreditCardTokenizer', () => {
     it('should call the creditCardCheck function when the submit button is clicked', async () => {
       hostedIframesIsCompleteMockFunction.mockReturnValueOnce(true);
 
-      const submitButton = document.getElementById(
-        mockConfig.submitButtonId,
+      const submitButton = document.querySelector(
+        mockConfig.submitButton.selector as string,
       ) as HTMLButtonElement;
       submitButton.click();
 
@@ -156,8 +160,8 @@ describe('PCPCreditCardTokenizer', () => {
     it('should throw an error if the creditCardCheck function is called before the hosted iframes are complete', async () => {
       hostedIframesIsCompleteMockFunction.mockReturnValueOnce(false);
 
-      const submitButton = document.getElementById(
-        mockConfig.submitButtonId,
+      const submitButton = document.querySelector(
+        mockConfig.submitButton.selector as string,
       ) as HTMLButtonElement;
       submitButton.click();
 
@@ -169,8 +173,8 @@ describe('PCPCreditCardTokenizer', () => {
     it('should call the creditCardCheck function when the submitWithOutCompleteCheck button is clicked', async () => {
       hostedIframesIsCompleteMockFunction.mockReturnValueOnce(true);
 
-      const submitWithOutCompleteCheck = document.getElementById(
-        mockConfig.submitButtonWithOutCompleteCheckId as string,
+      const submitWithOutCompleteCheck = document.querySelector(
+        mockConfig.submitButtonWithOutCompleteCheck?.selector as string,
       ) as HTMLButtonElement;
       submitWithOutCompleteCheck.click();
 
@@ -215,7 +219,9 @@ describe('PCPCreditCardTokenizer', () => {
     it('should throw an error if the submit button is not found.', async () => {
       const invalidConfig = {
         ...mockConfig,
-        submitButtonId: 'invalid-id',
+        submitButton: {
+          selector: '#invalid-selector',
+        },
       };
       expect(
         async () =>
@@ -224,7 +230,9 @@ describe('PCPCreditCardTokenizer', () => {
             mockRequest,
             mockPmiPortalKey,
           ),
-      ).rejects.toThrow('Submit Button with id invalid-id not found.');
+      ).rejects.toThrow(
+        'Submit Button not present. Please provide a valid selector or element.',
+      );
     });
 
     it('should throw an error if the given cc-icons container is not found.', async () => {
@@ -243,7 +251,7 @@ describe('PCPCreditCardTokenizer', () => {
             mockPmiPortalKey,
           ),
       ).rejects.toThrow(
-        'Container for Credit Card Icons with selector #invalid-selector not found.',
+        'Container for Credit Card Icons not present. Please provide a valid selector or element',
       );
     });
   });

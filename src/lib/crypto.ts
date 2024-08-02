@@ -1,16 +1,4 @@
-export interface Request {
-  request: string;
-  responsetype: string;
-  mode: string;
-  mid: string;
-  aid: string;
-  portalid: string;
-  encoding: string;
-  storecarddata: string;
-  checktype?: string;
-  hash?: string;
-  api_version: string;
-}
+import { Request } from '../interfaces/index.js';
 
 export const createHash = async (
   request: Omit<Request, 'hash'>,

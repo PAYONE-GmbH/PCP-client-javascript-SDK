@@ -1,5 +1,4 @@
-import { Cardtype, Config } from '../interfaces/index.js';
-import type { Request } from './crypto.js';
+import { Cardtype, Config, Request } from '../interfaces/index.js';
 import { createHash } from './crypto.js';
 
 declare global {
@@ -23,6 +22,11 @@ export class PCPCreditCardTokenizer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private iframes: any;
 
+  private submitButtonElement: HTMLElement;
+  private submitButtonWithOutCompleteCheckElement?: HTMLElement;
+
+  private ccIconsContainerElement?: HTMLElement;
+
   static async create(
     config: Config,
     request: Omit<Request, 'hash'>,
@@ -36,10 +40,12 @@ export class PCPCreditCardTokenizer {
   private constructor(config: Config, request: Omit<Request, 'hash'>) {
     this.config = config;
     this.request = request;
+    this.checkForRequiredElementsForConfigFields();
+    this.submitButtonElement =
+      this.checkForRequiredElementsAndReturnSubmitButtonElement();
   }
 
   private async initialize(pmiPortalKey: string) {
-    this.checkForRequiredElements();
     await this.loadPayoneScript();
     this.request.hash = await createHash(this.request, pmiPortalKey);
     this.iframes = new window.Payone.ClientApi.HostedIFrames(
@@ -55,27 +61,94 @@ export class PCPCreditCardTokenizer {
     window.payCallback = this.payCallback;
   }
 
-  private checkForRequiredElements() {
-    if (!document.getElementById(this.config.submitButtonId)) {
-      throw new Error(
-        `Submit Button with id ${this.config.submitButtonId} not found.`,
+  private checkForRequiredElementsForConfigFields() {
+    const cardPanRequiredField =
+      this.config.fields.cardpan.element ||
+      document.querySelector(
+        `#${this.config.fields.cardpan.selector as string}`,
       );
-    }
+    const cardCvc2RequiredField =
+      this.config.fields.cardcvc2.element ||
+      document.querySelector(
+        `#${this.config.fields.cardcvc2.selector as string}`,
+      );
+    const cardExpireMonthRequiredField =
+      this.config.fields.cardexpiremonth.element ||
+      document.querySelector(
+        `#${this.config.fields.cardexpiremonth.selector as string}`,
+      );
+    const cardExpireYearRequiredField =
+      this.config.fields.cardexpireyear.element ||
+      document.querySelector(
+        `#${this.config.fields.cardexpireyear.selector as string}`,
+      );
 
-    if (
-      this.config.ccIcons &&
-      !document.querySelector(this.config.ccIcons.selector)
-    ) {
+    const missingElements = [];
+    if (!cardPanRequiredField) {
+      missingElements.push('cardpan');
+    }
+    if (!cardCvc2RequiredField) {
+      missingElements.push('cardcvc2');
+    }
+    if (!cardExpireMonthRequiredField) {
+      missingElements.push('cardexpiremonth');
+    }
+    if (!cardExpireYearRequiredField) {
+      missingElements.push('cardexpireyear');
+    }
+    if (missingElements.length > 0) {
       throw new Error(
-        `Container for Credit Card Icons with selector ${this.config.ccIcons.selector} not found.`,
+        `The following container elements are missing: ${missingElements.join(', ')}. Please provide valid selectors or elements.`,
       );
     }
   }
 
+  private checkForRequiredElementsAndReturnSubmitButtonElement() {
+    if (this.config.ccIcons) {
+      const ccIconsContainerElement =
+        this.config.ccIcons.element ||
+        document.querySelector(this.config.ccIcons.selector as string);
+      if (!ccIconsContainerElement) {
+        throw new Error(
+          `Container for Credit Card Icons not present. Please provide a valid selector or element.`,
+        );
+      }
+      this.ccIconsContainerElement = ccIconsContainerElement as HTMLElement;
+    }
+
+    if (this.config.submitButtonWithOutCompleteCheck) {
+      const submitButtonWithOutCompleteCheckElement =
+        this.config.submitButtonWithOutCompleteCheck.element ||
+        document.querySelector(
+          this.config.submitButtonWithOutCompleteCheck.selector as string,
+        );
+      if (!submitButtonWithOutCompleteCheckElement) {
+        throw new Error(
+          `Submit Button without complete check not present. Please provide a valid selector or element.`,
+        );
+      }
+      this.submitButtonWithOutCompleteCheckElement =
+        submitButtonWithOutCompleteCheckElement as HTMLElement;
+    }
+
+    const submitButtonElement =
+      this.config.submitButton.element ||
+      document.querySelector(this.config.submitButton.selector as string);
+    console.log(
+      'submitButtonElement',
+      submitButtonElement,
+      this.config.submitButton.selector,
+    );
+    if (!submitButtonElement) {
+      throw new Error(
+        `Submit Button not present. Please provide a valid selector or element.`,
+      );
+    }
+    return submitButtonElement as HTMLElement;
+  }
+
   private createCreditCardIconElements(ccIcons: Config['ccIcons']) {
-    const selector = ccIcons!.selector;
     const style = ccIcons!.style;
-    const container = document.querySelector(selector)!;
 
     this.config.autoCardtypeDetection.supportedCardtypes.forEach((cardtype) => {
       const selector = ccIcons!.mapCardtypeToSelector?.[cardtype as Cardtype];
@@ -96,7 +169,7 @@ export class PCPCreditCardTokenizer {
       if (selector) {
         img.setAttribute('cc-selector', selector);
       }
-      container.appendChild(img);
+      this.ccIconsContainerElement!.appendChild(img);
     });
   }
 
@@ -119,20 +192,14 @@ export class PCPCreditCardTokenizer {
   }
 
   private attachEventHandlers() {
-    const submitButton = document.getElementById(this.config.submitButtonId)!;
-    submitButton.onclick = () => {
+    this.submitButtonElement.onclick = () => {
       this.pay();
     };
 
-    if (this.config.submitButtonWithOutCompleteCheckId) {
-      const submitButtonWithOutCompleteCheck = document.getElementById(
-        this.config.submitButtonWithOutCompleteCheckId,
-      );
-      if (submitButtonWithOutCompleteCheck) {
-        submitButtonWithOutCompleteCheck.onclick = () => {
-          this.iframes.creditCardCheck('payCallback');
-        };
-      }
+    if (this.config.submitButtonWithOutCompleteCheck) {
+      this.submitButtonWithOutCompleteCheckElement!.onclick = () => {
+        this.iframes.creditCardCheck('payCallback');
+      };
     }
   }
 
