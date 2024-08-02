@@ -4,17 +4,12 @@ The following is a set of guidelines for contributing to the PCP Client JavaScri
 
 ## Table of Contents
 
-1. [Code of Conduct](#code-of-conduct)
-2. [How Can I Contribute?](#how-can-i-contribute)
+1. [How Can I Contribute?](#how-can-i-contribute)
    - [Reporting Bugs](#reporting-bugs)
    - [Suggesting Enhancements](#suggesting-enhancements)
    - [Pull Requests](#pull-requests)
-3. [Style Guides](#style-guides)
+2. [Style Guides](#style-guides)
    - [Git Commit Messages](#git-commit-messages)
-
-## Code of Conduct
-
-This project and everyone participating in it is governed by the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [tech.support@payone.com](mailto:tech.support@payone.com).
 
 ## How Can I Contribute?
 
