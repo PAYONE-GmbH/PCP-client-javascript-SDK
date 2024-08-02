@@ -235,25 +235,7 @@ You can find demonstration projects for each feature in the corresponding direct
 
 ## Contributing
 
-We welcome community contributions! To contribute, please follow these steps:
-
-1. **Fork the repository**: Click the "Fork" button at the top right of the repository page.
-2. **Create a new branch**: Branch from `master` with a descriptive name.
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Make your changes**: Implement your feature or fix.
-4. **Commit your changes**: Write clear and concise commit messages.
-   ```bash
-   git commit -am "feature/fix: explanation of the change"
-   ```
-5. **Push to your branch**: Push the changes to your forked repository.
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-6. **Create a new pull request**: Navigate to the original repository and click the "New pull request" button.
-
-Please ensure your code adheres to the coding standards and is appropriately tested.
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## License
 
