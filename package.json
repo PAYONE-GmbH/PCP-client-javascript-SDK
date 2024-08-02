@@ -1,0 +1,60 @@
+{
+  "name": "pcp-client-javascript-sdk",
+  "version": "0.0.1",
+  "description": "PCP Client JavaScript SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:demo": "cd demo && npm install && npm run build",
+    "start:demo": "cd demo && npm start",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint -c ./eslint.config.mjs --fix",
+    "prepack": "npm run lint && npm run prepublishOnly",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK.git"
+  },
+  "keywords": [
+    "payone",
+    "client",
+    "typescript",
+    "javascript",
+    "sdk"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "9.8.0",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "22.0.0",
+    "@vitest/coverage-v8": "2.0.4",
+    "eslint": "9.8.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-prettier": "5.2.1",
+    "globals": "15.8.0",
+    "jsdom": "24.1.1",
+    "prettier": "3.3.3",
+    "ts-node": "10.9.2",
+    "typescript": "5.5.4",
+    "typescript-eslint": "8.0.0-alpha.58",
+    "vitest": "2.0.4"
+  },
+  "prettier": {
+    "useTabs": false,
+    "bracketSameLine": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true
+  },
+  "dependencies": {
+    "@types/applepayjs": "14.0.8"
+  }
+}

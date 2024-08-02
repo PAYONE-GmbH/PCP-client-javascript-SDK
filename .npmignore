@@ -1,0 +1,16 @@
+src
+node_modules
+demo
+coverage
+temp
+applepay-demo
+
+.github
+.vscode
+.idea
+
+tsconfig.json
+eslint.config.mjs
+sonar-project.properties
+.DS_Store
+jest.config.js

@@ -1,0 +1,22 @@
+{
+  "name": "creditcard-tokenizer-demo",
+  "version": "0.0.1",
+  "description": "This is the demo project for the PCP client javascript SDKs credit card tokenizer",
+  "private": true,
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "pcp-client-javascript-sdk": "file:.."
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "22.0.0",
+    "typescript": "5.5.4",
+    "vite": "5.3.5"
+  }
+}
