@@ -2,11 +2,11 @@ name: Quality Check (Lint, Test, Sonarcloud)
 on:
   push:
     branches:
-      - main
+      - master
       - develop
   pull_request:
     branches:
-      - main
+      - master
       - develop
   workflow_dispatch:
   workflow_call:

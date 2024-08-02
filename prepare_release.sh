@@ -33,9 +33,9 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-# Check if the current branch is main
-if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
-    echo "Error: Not on main branch."
+# Check if the current branch is master
+if [ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]; then
+    echo "Error: Not on master branch."
     exit 1
 fi
 

@@ -238,7 +238,7 @@ You can find demonstration projects for each feature in the corresponding direct
 We welcome community contributions! To contribute, please follow these steps:
 
 1. **Fork the repository**: Click the "Fork" button at the top right of the repository page.
-2. **Create a new branch**: Branch from `main` with a descriptive name.
+2. **Create a new branch**: Branch from `master` with a descriptive name.
    ```bash
    git checkout -b feature/your-feature-name
    ```
