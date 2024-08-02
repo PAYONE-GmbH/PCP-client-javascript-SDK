@@ -202,7 +202,7 @@ To integrate the Fingerprinting Tokenizer feature into your application, follow 
      ```
    - This snippet token is automatically generated when the `PCPFingerprintingTokenizer` instance is created and is also stored by Payla for payment verification. You need to send this snippet token to your server so that it can be included in the payment request. Add the token to the property `paymentMethodSpecificInput.customerDevice.deviceToken`.
 
-5. **(Optional) Get Unique ID:**
+5. **(Optional) Get Unique SessionID:**
    ```typescript
    const sessionID = fingerprintingTokenizer.getUniqueId();
    ```
@@ -229,9 +229,9 @@ const createCheckoutRequest: CreateCheckoutRequest = {...}
 
 You can find demonstration projects for each feature in the corresponding directories:
 
-- **Credit Card Tokenizer**: Check out the `creditcard-tokenizer-demo` folder.
-- **Fingerprinting Tokenizer**: See the `fingerprinting-tokenizer-demo` folder.
-- **Apple Pay Session Integration**: Refer to the `applepay-demo` folder.
+- **Credit Card Tokenizer**: Check out the [creditcard-tokenizer-demo](./creditcard-tokenizer-demo/) folder.
+- **Fingerprinting Tokenizer**: See the [fingerprinting-tokenizer-demo](./fingerprinting-tokenizer-demo/) folder.
+- **Apple Pay Session Integration**: Refer to the [applepay-demo](./applepay-demo/) folder.
 
 ## Contributing
 
