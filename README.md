@@ -91,7 +91,65 @@ import {
 
 #### 3. **Configuration Object:**
 
-The configuration object sets up styles, auto card type detection, credit card icons, and callbacks. Below are the details for each field in the configuration object:
+The configuration object sets up styles, auto card type detection, credit card icons, and callbacks.
+
+<details>
+  <summary>Example Configuration Object:</summary>
+  
+```typescript
+  const config: Config = {
+    fields: {
+      cardpan: { selector: '#cardpanInput', type: 'text' },
+      cardcvc2: {
+        selector: '#cardcvc2Input',
+        size: '4',
+        maxlength: '4',
+        type: 'password',
+        length: { V: 3, M: 3, A: 4, J: 0 },
+      },
+      cardexpiremonth: { selector: '#cardExpireMonthInput', type: 'text' },
+      cardexpireyear: { selector: '#cardExpireYearInput', type: 'text' },
+    },
+    defaultStyle: {
+      input: 'font-size: 1em; border: 1px solid #000; width: 175px;',
+      inputFocus: 'border: 1px solid #00f;',
+      select: 'font-size: 1em; border: 1px solid #000; width: 175px;',
+      iframe: {
+        width: '100%',
+        height: '40px',
+      },
+    },
+    autoCardtypeDetection: {
+      supportedCardtypes: ['V', 'M', 'A', 'D', 'J'],
+      callback: (detectedCardtype) => {
+        console.log(`Detected card type: ${detectedCardtype}`);
+      },
+    },
+    language: 'de',
+    submitButtonId: 'submit',
+    ccIcons: {
+      selector: '#ccIcons',
+      mapCardtypeToSelector: {
+        V: '#visa',
+        M: '#mastercard',
+        A: '#american-express',
+        D: '#diners-club',
+        J: '#jcb',
+      },
+      style: {
+        height: '20px',
+        width: '30px',
+      },
+    },
+    creditCardCheckCallback: (response) => {
+      console.log('Credit card check response:', response);
+      // Handle the response as needed
+    },
+  };
+  ```
+</details>
+
+Below are the details for each field in the configuration object:
 
 #### Property: fields
 
