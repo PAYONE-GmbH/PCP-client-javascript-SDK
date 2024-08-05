@@ -254,5 +254,39 @@ describe('PCPCreditCardTokenizer', () => {
         'Container for Credit Card Icons not present. Please provide a valid selector or element',
       );
     });
+
+    it('should throw an error if the given elements and selectors for fields are not found.', async () => {
+      const invalidConfig = {
+        ...mockConfig,
+        fields: {
+          cardpan: {
+            ...mockConfig.fields.cardpan,
+            selector: 'invalid-selector',
+          },
+          cardcvc2: {
+            ...mockConfig.fields.cardcvc2,
+            selector: 'invalid-selector',
+          },
+          cardexpiremonth: {
+            ...mockConfig.fields.cardexpiremonth,
+            selector: 'invalid-selector',
+          },
+          cardexpireyear: {
+            ...mockConfig.fields.cardexpireyear,
+            selector: 'invalid-selector',
+          },
+        },
+      };
+      expect(
+        async () =>
+          await PCPCreditCardTokenizer.create(
+            invalidConfig,
+            mockRequest,
+            mockPmiPortalKey,
+          ),
+      ).rejects.toThrow(
+        'The following container elements are missing: cardpan, cardcvc2, cardexpiremonth, cardexpireyear. Please provide valid selectors or elements.',
+      );
+    });
   });
 });
