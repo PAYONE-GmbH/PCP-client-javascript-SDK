@@ -174,8 +174,9 @@ export class PCPCreditCardTokenizer {
   }
 
   private loadPayoneScript(): Promise<void> {
+    const scriptId = this.config.payOneScriptId || 'payone-hosted-script';
     return new Promise((resolve, reject) => {
-      if (document.getElementById('payone-hosted-script')) {
+      if (document.getElementById(scriptId)) {
         resolve();
         return;
       }
@@ -183,7 +184,7 @@ export class PCPCreditCardTokenizer {
       script.type = 'text/javascript';
       script.src =
         'https://secure.prelive.pay1-test.de/client-api/js/v1/payone_hosted_min.js';
-      script.id = 'payone-hosted-script';
+      script.id = scriptId;
       script.onload = () => resolve();
       script.onerror = () =>
         reject(new Error('Failed to load the Payone script.'));

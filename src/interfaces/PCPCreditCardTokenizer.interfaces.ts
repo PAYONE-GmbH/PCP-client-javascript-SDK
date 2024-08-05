@@ -301,6 +301,10 @@ export interface Config {
    * Define a callback function that is called after the form has been submitted by the normal submit button and the form is not complete.
    */
   formNotCompleteCallback?: () => void;
+  /**
+   * Define an ID for the Payone script to be loaded. If not set, a default ID (payone-hosted-script) will be used.
+   */
+  payOneScriptId?: string;
 }
 
 /**
