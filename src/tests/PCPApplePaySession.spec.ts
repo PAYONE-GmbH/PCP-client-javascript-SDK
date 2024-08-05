@@ -54,10 +54,10 @@ describe('PCPApplePaySession', () => {
     },
     validateMerchantURL: 'https://your-merchant-domain.de/validate-merchant',
     processPaymentURL: 'https://your-merchant-domain.de/process-payment',
-    merchantValidationData: {
-      merchantIdentifier: 'merchant.de.your.project',
+    merchantIdentifier: 'merchant.de.your.project',
+    applicationData: JSON.stringify({
       foo: 'bar',
-    },
+    }),
     paymentMethodSelectedCallback: paymentMethodSelectedCallbackMockFn,
     couponCodeChangedCallback: couponCodeChangedCallbackMockFn,
     shippingMethodSelectedCallback: shippingMethodSelectedCallbackMockFn,
@@ -182,7 +182,8 @@ describe('PCPApplePaySession', () => {
               },
               body: JSON.stringify({
                 validationURL: 'mock-url',
-                ...mockApplePaySessionConfig.merchantValidationData,
+                merchantIdentifier:
+                  mockApplePaySessionConfig.merchantIdentifier,
               }),
             },
           );

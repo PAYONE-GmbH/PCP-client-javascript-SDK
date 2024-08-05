@@ -67,6 +67,10 @@ export interface PCPApplePaySessionConfig
    */
   processPaymentURL: string;
   /**
+   * The Apply Pay merchant identifier. e.g. 'merchant.de.your.project'
+   */
+  merchantIdentifier: string;
+  /**
    * Callback function that is called when the user selects a new payment method
    * @param {ApplePayJS.ApplePayPaymentMethod} paymentMethod
    * @returns {Promise<ApplePayJS.ApplePayPaymentMethodUpdate>}
@@ -102,10 +106,6 @@ export interface PCPApplePaySessionConfig
    * Callback function that is called when the payment UI is dismissed.
    */
   cancelCallback?: () => void;
-  /**
-   * Any additional data that you need to pass to the server for your validation.
-   */
-  merchantValidationData: Record<string, string>;
   /**
    * Error callback function that is called when an error occurs.
    * @param {ErrorType} type

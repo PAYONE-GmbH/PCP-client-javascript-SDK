@@ -1,6 +1,7 @@
-import { describe, expect, it, beforeAll } from 'vitest';
-import { Request, createHash } from '../lib/crypto.js';
 import nodeCrypto from 'node:crypto';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { Request } from '../interfaces/index.js';
+import { createHash } from '../lib/crypto.js';
 
 describe('crypto', () => {
   beforeAll(() => {
