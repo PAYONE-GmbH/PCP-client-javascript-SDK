@@ -23,6 +23,11 @@ Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. Thi
     - [4. Get Snippet Token](#4-get-snippet-token)
     - [5. (Optional) Get Unique SessionID](#5-optional-get-unique-sessionid)
   - [Apple Pay Session Integration](#apple-pay-session-integration)
+    - [Setup Selector for Apple Pay Button](#1-setup-selector-for-apple-pay-button)
+    - [Import PCPApplePaySession and Types from the SDK](#2-import-pcpapplepaysession-and-types-from-the-sdk)
+    - [Session Configuration Object](#3-session-configuration-object)
+    - [Apple Pay Button Configuration](#4-apple-pay-button-configuration)
+    - [Integrating the Apple Pay Session](#5-integrating-the-apple-pay-session)
   - [PCP Compliant Interfaces](#pcp-compliant-interfaces)
 - [Contributing](#contributing)
 - [License](#license)
@@ -275,7 +280,7 @@ The `Cardtype` enum defines the supported credit card types within the SDK. Each
 | `U`      | UATP / Airplus        | 1220, 1920                             | Coming soon; not available yet                              |
 | `G`      | girocard              | 68                                     | Currently only viable for e-commerce payments via Apple Pay |
 
-The `Cardtype` values are used within the configuration object to specify the supported card types for various fields and functionalities, such as the automatic card type detection and the selection of credit card icons. These values help the SDK correctly identify and handle different types of credit cards based on the BIN range.
+The `Cardtype` values are used within the configuration object to specify the supported card types for various fields and functionalities, such as the automatic card type detection and the selection of credit card icons.
 
 #### 4. **Request Object:**
 
@@ -338,6 +343,8 @@ When the user enters valid credit card information and clicks the submit button,
 
 For further information see: https://docs.payone.com/integration/channel-client-api/client-api-hosted-iframe-mode
 
+---
+
 ### Fingerprinting Tokenizer
 
 To integrate the Fingerprinting Tokenizer feature into your application, follow these steps:
@@ -381,7 +388,7 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
 
 #### 4. **Get Snippet Token:**
 
-- Once the scripts are loaded, you can obtain the snippet token required for the PAYONE BNPL payment process by calling:
+- Once the scripts are loaded, you can obtain the snippet token required for the special payment process by calling:
   ```typescript
   const token = fingerprintingTokenizer.getSnippetToken();
   ```
@@ -389,15 +396,191 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
 
 #### 5. **(Optional) Get Unique SessionID:**
 
-```typescript
-const sessionID = fingerprintingTokenizer.getUniqueId();
-```
+- If you need to retrieve the unique session ID that was used or generated during the creation of the PCPFingerprintingTokenizer instance, you can do so by calling the getUniqueId method:
+  ```typescript
+  const sessionID = fingerprintingTokenizer.getUniqueId();
+  ```
 
 For further information see: https://docs.payone.com/pcp/commerce-platform-payment-methods/payone-bnpl/payone-secured-invoice
 
+---
+
 ### Apple Pay Session Integration
 
-See: [Apple Pay Session Demo README](./applepay-demo/README.md)
+This section guides you through integrating Apple Pay into your web application using the provided SDK. The integration involves configuring the Apple Pay button and handling the Apple Pay session.
+
+#### 1. **Setup Selector for Apple Pay Button**
+
+- Ensure you have a selector for the apple pay button element:
+  ```html
+  <div id="apple-pay-button"></div>
+  ```
+
+#### 2. **Import PCPApplePaySession and Types from the SDK**
+
+```typescript
+import {
+  ApplePayButton,
+  PCPApplePaySession,
+  PCPApplePaySessionConfig,
+} from 'pcp-client-javascript-sdk';
+```
+
+#### 3. **Session Configuration Object**
+
+The PCPApplePaySessionConfig interface extends [ApplePayJS.ApplePayPaymentRequest](https://developer.apple.com/documentation/apple_pay_on_the_web/applepayrequestbase) and includes additional properties required for managing the Apple Pay session.
+
+#### Additional PCPApplePaySessionConfig Properties
+
+| Property                               | Type       | Description                                                                                                                                                                                 |
+| -------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| applePayVersion                        | `number`   | The version of Apple Pay on the Web that your website supports. See [version history](https://developer.apple.com/documentation/apple_pay_on_the_web/apple_pay_on_the_web_version_history). |
+| validateMerchantURL                    | `string`   | The URL your server must use to validate itself and obtain a merchant session object.                                                                                                       |
+| processPaymentURL                      | `string`   | The URL your server must use to process the payment.                                                                                                                                        |
+| paymentMethodSelectedCallback          | `function` | Callback function called when the user selects a new payment method.                                                                                                                        |
+| couponCodeChangedCallback              | `function` | Callback function called when the user enters or updates a coupon code.                                                                                                                     |
+| shippingMethodSelectedCallback         | `function` | Callback function called when the user selects a shipping method.                                                                                                                           |
+| shippingContactAddressSelectedCallback | `function` | Callback function called when the user selects a shipping contact in the payment sheet.                                                                                                     |
+| cancelCallback                         | `function` | Callback function called when the payment UI is dismissed.                                                                                                                                  |
+| errorCallback                          | `function` | Callback function called when an error occurs.                                                                                                                                              |
+
+<details>
+  <summary>Example Session Configuration Object:</summary>
+
+```typescript
+import {
+  PCPApplePaySessionConfig,
+  encodeToBase64,
+} from 'pcp-client-javascript-sdk';
+
+const applePaySessionConfig: PCPApplePaySessionConfig = {
+  applePayVersion: 3,
+  countryCode: 'DE',
+  currencyCode: 'EUR',
+  merchantCapabilities: ['supports3DS'], // mandatory
+  supportedNetworks: ['visa', 'masterCard', 'amex', 'girocard'],
+  total: {
+    label: 'Demo',
+    type: 'final',
+    amount: '200.99',
+  },
+  requiredBillingContactFields: ['postalAddress', 'name', 'email'],
+  requiredShippingContactFields: ['postalAddress', 'name', 'email'],
+  shippingMethods: [
+    {
+      label: 'Standard Shipping',
+      amount: '5.00',
+      detail: 'Arrives in 5-7 days',
+      identifier: 'standard',
+    },
+    {
+      label: 'Express Shipping',
+      amount: '10.00',
+      detail: 'Arrives in 2-3 days',
+      identifier: 'express',
+    },
+  ],
+  validateMerchantURL: 'https://your-merchant.url/validate-merchant',
+  processPaymentURL: 'https://your-merchant.url/process-payment',
+  // A Base64-encoded string used to contain your application-specific data. (See: https://developer.apple.com/documentation/apple_pay_on_the_web/applepayrequest/2951834-applicationdata)
+  applicationData: encodeToBase64(
+    JSON.stringify({
+      foo: 'bar',
+    }),
+  ),
+  paymentMethodSelectedCallback: async (paymentMethod) => {
+    console.log('paymentMethodSelectedCallback', paymentMethod);
+    return {
+      newTotal: applePaySessionConfig.total,
+    };
+  },
+  couponCodeChangedCallback: async (couponCode) => {
+    console.log('couponCodeChangedCallback', couponCode);
+    return {
+      newTotal: applePaySessionConfig.total,
+    };
+  },
+  shippingMethodSelectedCallback: async (shippingMethod) => {
+    console.log('shippingMethodSelectedCallback', shippingMethod);
+    return {
+      newTotal: applePaySessionConfig.total,
+    };
+  },
+  shippingContactAddressSelectedCallback: async (shippingContact) => {
+    console.log('shippingContactAddressSelectedCallback', shippingContact);
+    return {
+      newTotal: applePaySessionConfig.total,
+    };
+  },
+  cancelCallback: () => {
+    console.log('cancelCallback');
+  },
+  errorCallback: (type, error) => {
+    console.error('Apple Pay Error:', type, error);
+  },
+};
+```
+
+</details>
+
+#### 4. **Apple Pay Button Configuration**
+
+You need to configure the appearance and behavior of the Apple Pay button. The `ApplePayButtonConfig` interface allows you to specify the style, type, and locale of the button, as well as any additional CSS styles.
+
+#### ApplePayButtonConfig Properties
+
+| Property    | Type                                    | Description                                                                                                                                                                 |
+| ----------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| buttonstyle | `'black' \| 'white' \| 'white-outline'` | The appearance of the Apple Pay button. See [button styles](https://developer.apple.com/documentation/apple_pay_on_the_web/applepaybuttonstyle).                            |
+| type        | Various types                           | The kind of Apple Pay button. See [button types](https://developer.apple.com/documentation/apple_pay_on_the_web/applepaybuttontype).                                        |
+| locale      | `string`                                | The language and region used for the displayed Apple Pay button. See [button locales](https://developer.apple.com/documentation/apple_pay_on_the_web/applepaybuttonlocale). |
+| style       | `object`                                | Additional CSS styles to apply to the Apple Pay button.                                                                                                                     |
+
+<details>
+  <summary>Example Apple Pay Button Configuration:</summary>
+
+```typescript
+import { ApplePayButton } from 'pcp-client-javascript-sdk';
+
+const applePayButton: ApplePayButton = {
+  selector: '#apple-pay-button',
+  config: {
+    buttonstyle: 'black',
+    type: 'plain',
+    locale: 'de-DE',
+    style: {
+      width: '100%',
+      height: '50px',
+      borderRadius: '10px',
+    },
+  },
+};
+```
+
+</details>
+
+#### 5. **Integrating the Apple Pay Session**
+
+To integrate the Apple Pay session, you need to create an instance of the session using the `PCPApplePaySession.create` method. This method takes the session configuration and the button configuration as parameters.
+
+Example:
+
+```typescript
+import {
+  ApplePayButton,
+  PCPApplePaySession,
+  PCPApplePaySessionConfig,
+} from 'pcp-client-javascript-sdk';
+
+const applePaySessionConfig: PCPApplePaySessionConfig = {...};
+const applePayButton: ApplePayButton = {...};
+
+await PCPApplePaySession.create(applePaySessionConfig, applePayButton);
+```
+
+For further information see: https://docs.payone.com/payment-methods/apple-pay
+
+---
 
 ### PCP Compliant Interfaces
 
