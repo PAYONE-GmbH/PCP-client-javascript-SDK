@@ -14,6 +14,12 @@ export class PCPApplePaySession {
   private config?: PCPApplePaySessionConfig;
   private session: ApplePaySession | null = null;
 
+  /**
+   * Creates a new Apple Pay session, displays the Apple Pay button.
+   * @param {PCPApplePaySessionConfig} config
+   * @param {ApplePayButton} button
+   * @returns {Promise<PCPApplePaySession>} A new instance of the PCPApplePaySession
+   */
   public static async create(
     config: PCPApplePaySessionConfig,
     button: ApplePayButton,

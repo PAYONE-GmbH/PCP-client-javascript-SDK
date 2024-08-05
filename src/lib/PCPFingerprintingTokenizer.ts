@@ -15,6 +15,15 @@ export class PCPFingerprintingTokenizer {
   private uniqueId: string;
   private snippetToken: string;
 
+  /**
+   * Creates a new instance of the PCPFingerprintingTokenizer, initializes the Payla fingerprinting snippet, and attaches the Payla stylesheet.
+   * @param {string} selector - The selector of the container element in which to mount the Payla fingerprinting snippet.
+   * @param {string} environment - The environment in which the Payla fingerprinting snippet should run. Possible values are "live" and "test".
+   * @param {string} paylaPartnerId - The Payla Partner ID.
+   * @param {string} partnerMerchantId - The Partner Merchant ID.
+   * @param {string} sessionId - The session ID. If not provided, a random GUID(v4) will be generated.
+   * @returns {Promise<PCPFingerprintingTokenizer>} A new instance of the PCPFingerprintingTokenizer
+   */
   public static async create(
     selector: string,
     environment: string,
@@ -52,10 +61,21 @@ export class PCPFingerprintingTokenizer {
     this.snippetToken = `${paylaPartnerId}_${partnerMerchantId}_${this.uniqueId}`;
   }
 
+  /**
+   * Returns the unique ID of the session.
+   * @returns {string} The unique ID of the session.
+   */
   public getUniqueId() {
     return this.uniqueId;
   }
 
+  /**
+   * Returns the snippet token.
+   * The snippet token is a combination of the Payla Partner ID, the Partner Merchant ID, and the unique ID of the session.
+   * It is used to identify the session between your server and Payla.
+   * You need to send this token to your server to identify the session.
+   * @returns {string} The snippet token.
+   */
   public getSnippetToken() {
     return this.snippetToken;
   }

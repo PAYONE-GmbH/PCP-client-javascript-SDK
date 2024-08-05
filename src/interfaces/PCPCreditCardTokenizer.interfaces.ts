@@ -143,7 +143,7 @@ export interface AutoCardtypeDetection {
    * "-" -> Cardtype automatically detected, but not allowed because not in array supportedCardtypes
    *
    * Further cardtypes may be added in future.
-   * @param resultCode string
+   * @param {string} resultCode
    */
   callback: (resultCode: string) => void;
   /**
@@ -287,7 +287,7 @@ export interface Config {
    *    - response.status = "INVALID"
    *    - response.errorcode -> please refer to the section "error messages"
    *    - response.errormessage in the specified language
-   * @param response object containing the response of the credit card check
+   * @param {Object} response - Object containing the response of the credit card check
    */
   creditCardCheckCallback: (response: {
     [key: string]: string;

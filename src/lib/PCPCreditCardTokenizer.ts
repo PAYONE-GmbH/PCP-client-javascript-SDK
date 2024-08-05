@@ -27,7 +27,14 @@ export class PCPCreditCardTokenizer {
 
   private ccIconsContainerElement?: HTMLElement;
 
-  static async create(
+  /**
+   * Creates a new instance of the PCPCreditCardTokenizer, initializes the Payone script, and attaches event handlers to the submit button.
+   * @param {Config} config - The configuration object sets up styles, auto card type detection, credit card icons, and callbacks
+   * @param {Omit<Request, 'hash'>} request - The request object contains the parameters for the Payone API
+   * @param {string} pmiPortalKey - The pmiPortalKey is used to create a hash for the request object
+   * @returns {Promise<PCPCreditCardTokenizer>} A new instance of the PCPCreditCardTokenizer
+   */
+  public static async create(
     config: Config,
     request: Omit<Request, 'hash'>,
     pmiPortalKey: string,
