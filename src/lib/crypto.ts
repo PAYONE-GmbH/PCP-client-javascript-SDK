@@ -39,3 +39,15 @@ export const createHash = async (
 
   return hash;
 };
+
+export const encodeToBase64 = (str: string): string => {
+  // Convert string to UTF-8 byte array
+  const utf8Bytes = new TextEncoder().encode(str);
+
+  // Convert byte array to base64 string
+  let binaryString = '';
+  for (let i = 0; i < utf8Bytes.length; i++) {
+    binaryString += String.fromCharCode(utf8Bytes[i]);
+  }
+  return btoa(binaryString);
+};

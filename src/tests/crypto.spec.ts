@@ -1,7 +1,7 @@
 import nodeCrypto from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { Request } from '../interfaces/index.js';
-import { createHash } from '../lib/crypto.js';
+import { createHash, encodeToBase64 } from '../lib/crypto.js';
 
 describe('crypto', () => {
   beforeAll(() => {
@@ -32,6 +32,28 @@ describe('crypto', () => {
 
       expect(hash).toBeTruthy();
       expect(hash).toEqual(expectedResultForAboveValues);
+    });
+  });
+
+  describe('encodeToBase64', () => {
+    it('should encode an ascii string to base64', () => {
+      const asciiString = 'Hello, World!';
+      const expectedResult = 'SGVsbG8sIFdvcmxkIQ==';
+
+      const base64String = encodeToBase64(asciiString);
+
+      expect(base64String).toBeTruthy();
+      expect(base64String).toEqual(expectedResult);
+    });
+
+    it('should encode a utf-8 string to base64', () => {
+      const utf8String = '👋🌍';
+      const expectedResult = '8J+Ri/CfjI0=';
+
+      const base64String = encodeToBase64(utf8String);
+
+      expect(base64String).toBeTruthy();
+      expect(base64String).toEqual(expectedResult);
     });
   });
 });
