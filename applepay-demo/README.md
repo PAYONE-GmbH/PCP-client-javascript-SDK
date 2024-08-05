@@ -58,7 +58,6 @@ These files are required for making validation requests against the Apple Pay se
 
 1. Adjust the `PCPApplePaySessionConfig` according to your merchant account capabilities
 2. Update `validateMerchantURL` and `processPaymentURL` with your own URLs.
-3. Set your `merchantIdentifier`.
 
 ### Verify Apple Pay Session
 

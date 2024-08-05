@@ -203,7 +203,6 @@ export class PCPApplePaySession {
       },
       body: JSON.stringify({
         validationURL,
-        merchantIdentifier: this.config!.merchantIdentifier,
       }),
     });
 

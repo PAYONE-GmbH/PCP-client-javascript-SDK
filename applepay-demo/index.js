@@ -41,7 +41,7 @@ app.post('/validate-merchant', (req, res) => {
   const validationURL = new URL(req.body.validationURL);
 
   const data = JSON.stringify({
-    merchantIdentifier: req.body.merchantIdentifier,
+    merchantIdentifier: process.env.APPLE_PAY_MERCHANT_IDENTIFIER,
     displayName: 'Demo',
     initiative: 'web',
     initiativeContext: process.env.MERCHANT_DOMAIN_WITHOUT_PROTOCOL_OR_WWW,

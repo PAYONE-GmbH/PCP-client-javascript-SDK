@@ -36,7 +36,6 @@ const init = async () => {
     ],
     validateMerchantURL: import.meta.env.VITE_APPLE_PAY_VALIDATE_MERCHANT_URL,
     processPaymentURL: import.meta.env.VITE_APPLE_PAY_PROCESS_PAYMENT_URL,
-    merchantIdentifier: import.meta.env.VITE_APPLE_PAY_MERCHANT_IDENTIFIER,
     // This data is completely custom and needs to be sent to your server for merchant validation and must be used as a base64 encoded string here for the apple pay server
     applicationData: JSON.stringify({
       foo: 'bar',

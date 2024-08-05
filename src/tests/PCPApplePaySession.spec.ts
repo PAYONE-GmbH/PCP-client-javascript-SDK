@@ -54,7 +54,6 @@ describe('PCPApplePaySession', () => {
     },
     validateMerchantURL: 'https://your-merchant-domain.de/validate-merchant',
     processPaymentURL: 'https://your-merchant-domain.de/process-payment',
-    merchantIdentifier: 'merchant.de.your.project',
     applicationData: JSON.stringify({
       foo: 'bar',
     }),
@@ -182,8 +181,6 @@ describe('PCPApplePaySession', () => {
               },
               body: JSON.stringify({
                 validationURL: 'mock-url',
-                merchantIdentifier:
-                  mockApplePaySessionConfig.merchantIdentifier,
               }),
             },
           );

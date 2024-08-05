@@ -67,10 +67,6 @@ export interface PCPApplePaySessionConfig
    */
   processPaymentURL: string;
   /**
-   * The Apply Pay merchant identifier. e.g. 'merchant.de.your.project'
-   */
-  merchantIdentifier: string;
-  /**
    * Callback function that is called when the user selects a new payment method
    * @param {ApplePayJS.ApplePayPaymentMethod} paymentMethod
    * @returns {Promise<ApplePayJS.ApplePayPaymentMethodUpdate>}
