@@ -34,7 +34,7 @@ Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. Thi
 - [Contributing](#contributing)
 - [Releasing](#releasing)
   - [How to use the prepare_release.sh script](#how-to-use-the-prepare_releasesh-script)
-  - [Changelog Generation](#changelog-generation)
+  - [Changelog Generation with Conventional Changelog](#changelog-generation-with-conventional-changelog)
   - [GitHub Action for Release](#github-action-for-release)
 - [License](#license)
 
@@ -706,19 +706,26 @@ The [`prepare_release.sh`](./prepare_release.sh) script is a bash script designe
    git tag -d v<version>
    ```
 
-### Changelog Generation
+### Changelog Generation with Conventional Changelog
 
-Before calling the `prepare_release.sh` script, it is recommended to manually trigger the changelog generation script. This ensures that the changelog is up-to-date and reflects all the changes made since the last release.
+Before calling the `prepare_release.sh` script, it is recommended to manually trigger the changelog generation script (which uses [conventional-changelog](https://github.com/conventional-changelog/conventional-changelog)).
 
-**Trigger the Changelog Generation Script**:
+1. **Conventional Commit Messages**:
 
-- Run the changelog generation script in your terminal.
+   - Ensure all commit messages follow the conventional commit format, which helps in automatic changelog generation.
+   - Commit messages should be in the format: `type(scope): subject`.
 
-  ```sh
-  npm run changelog
-  ```
+2. **Enforcing Commit Messages**:
 
-- Ensure that the updated changelog is reviewed and committed to the `master` branch before proceeding with the release script.
+   - We enforce conventional commit messages using [Lefthook](https://github.com/evilmartians/lefthook) with [commitlint](https://github.com/conventional-changelog/commitlint).
+   - This setup ensures that all commit messages are validated before they are committed.
+
+3. **Generate Changelog**:
+   - Run the changelog generation script to update the `CHANGELOG.md` file:
+     ```sh
+     npm run changelog
+     ```
+   - Review and commit the updated changelog before proceeding with the release script.
 
 ### GitHub Action for Release
 
@@ -735,3 +742,7 @@ By following these steps, you can efficiently manage and streamline the release 
 ## License
 
 This project is licensed under the MIT License. For more details, see the [LICENSE](./LICENSE) file.
+
+```
+
+```
