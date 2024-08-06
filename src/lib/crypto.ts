@@ -16,6 +16,10 @@ export const createHash = async (
     request.storecarddata,
   ];
 
+  if (request.checktype) {
+    requestValues.splice(2, 0, request.checktype);
+  }
+
   const dataToHash = requestValues.join('');
 
   const encoder = new TextEncoder();

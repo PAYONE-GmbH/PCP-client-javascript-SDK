@@ -11,24 +11,37 @@ describe('crypto', () => {
     });
   });
   describe('createHash', () => {
-    it('should create a hash', async () => {
-      const requestWithoutHash: Omit<Request, 'hash'> = {
-        request: 'creditcardcheck',
-        responsetype: 'JSON',
-        mode: 'test',
-        mid: '11111',
-        aid: '22222',
-        portalid: '3333333',
-        encoding: 'UTF-8',
-        storecarddata: 'yes',
-        api_version: '3.11',
-      };
-      const pmiPortalKey = 'wurstbrot';
-
+    const requestWithoutHash: Omit<Request, 'hash'> = {
+      request: 'creditcardcheck',
+      responsetype: 'JSON',
+      mode: 'test',
+      mid: '11111',
+      aid: '22222',
+      portalid: '3333333',
+      encoding: 'UTF-8',
+      storecarddata: 'yes',
+      api_version: '3.11',
+    };
+    const pmiPortalKey = 'secretTestKey';
+    it('should create a correct hash', async () => {
       const expectedResultForAboveValues =
-        'ba5c08f0a3ee380214908e1274411227054923d129109e6f4b4460935a64918e5871842655ea8c02e54fcafa9c029bc0';
+        '72a4a5acd535aa5eb87bee93f288b8016fb44134767a36d323dafe2105f491bc555e47d7e2cdc1ee6f291f0999e30d68';
 
       const hash = await createHash(requestWithoutHash, pmiPortalKey);
+
+      expect(hash).toBeTruthy();
+      expect(hash).toEqual(expectedResultForAboveValues);
+    });
+
+    it('should create a correct hash with checktype', async () => {
+      const requestWithChecktype: Omit<Request, 'hash'> = {
+        ...requestWithoutHash,
+        checktype: 'TC',
+      };
+      const expectedResultForAboveValues =
+        'cef6c7de0867328e46adc13da9435a9a37825b9822452fc745b745154a2129d775a820deffcaae022b7259f17aafd36e';
+
+      const hash = await createHash(requestWithChecktype, pmiPortalKey);
 
       expect(hash).toBeTruthy();
       expect(hash).toEqual(expectedResultForAboveValues);
