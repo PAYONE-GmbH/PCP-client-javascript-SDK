@@ -1,15 +1,11 @@
 import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
 
 const init = async () => {
-  // make sure to get this ids from your server
-  const paylaPartnerTestId = 'e7yeryF2of8X';
-  const partnerMerchantTestId = 'test-1';
-
   const fingerprintingTokenizer = await PCPFingerprintingTokenizer.create(
     'body',
     't',
-    paylaPartnerTestId,
-    partnerMerchantTestId,
+    import.meta.env.VITE_PAYLA_PARTNER_ID,
+    import.meta.env.VITE_PARTNER_MERCHANT_ID,
   );
 
   const snippetToken = fingerprintingTokenizer.getSnippetToken();
