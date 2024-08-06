@@ -662,11 +662,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 To ensure a smooth release process, a pre-release script has been created. This script automates versioning, tagging, and ensuring the working directory is in a proper state before creating a new release.
 
-### [`prepare_release.sh`](./prepare_release.sh) Script
+### `prepare_release.sh` Script
 
 The [`prepare_release.sh`](./prepare_release.sh) script is a bash script designed to update the version number in your project, commit the changes, and tag the commit with the new version number.
 
-### How to Use the [`prepare_release.sh`](./prepare_release.sh) Script
+### How to Use the `prepare_release.sh` Script
 
 1. **Ensure your working directory is clean**:
 
