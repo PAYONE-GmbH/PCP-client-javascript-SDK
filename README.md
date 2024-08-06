@@ -29,6 +29,7 @@ Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. Thi
     - [Apple Pay Button Configuration](#4-apple-pay-button-configuration)
     - [Integrating the Apple Pay Session](#5-integrating-the-apple-pay-session)
   - [PCP Compliant Interfaces](#pcp-compliant-interfaces)
+- [Demonstration Projects](#demonstration-projects)
 - [Contributing](#contributing)
 - [License](#license)
 
