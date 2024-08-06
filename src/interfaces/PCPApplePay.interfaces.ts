@@ -67,6 +67,10 @@ export interface PCPApplePaySessionConfig
    */
   processPaymentURL: string;
   /**
+   * The ID for the Apple Pay button element. Default is "apple-pay-button-script".
+   */
+  applePayButtonId?: string;
+  /**
    * Callback function that is called when the user selects a new payment method
    * @param {ApplePayJS.ApplePayPaymentMethod} paymentMethod
    * @returns {Promise<ApplePayJS.ApplePayPaymentMethodUpdate>}

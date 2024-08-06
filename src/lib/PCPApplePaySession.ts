@@ -238,14 +238,15 @@ export class PCPApplePaySession {
   }
 
   private async loadApplePayButtonScript(): Promise<void> {
+    const scriptId = this.config?.applePayButtonId || 'apple-pay-button-script';
     return new Promise((resolve, reject) => {
-      if (document.getElementById('apple-pay-button-script')) {
+      if (document.getElementById(scriptId)) {
         resolve(); // Script already loaded
         return;
       }
 
       const script = document.createElement('script');
-      script.id = 'apple-pay-button-script';
+      script.id = scriptId;
       script.async = true;
       script.crossOrigin = 'anonymous';
       script.src =
