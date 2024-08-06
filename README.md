@@ -318,12 +318,12 @@ const request: Request = {
 | `request`       | `'creditcardcheck'`         | Fixed value indicating the type of request.                                                         |
 | `responsetype`  | `'JSON'`                    | Fixed value indicating the response format.                                                         |
 | `mode`          | `'live'` or `'test'`        | Mode for transactions.                                                                              |
-| `mid`           | Your Merchant ID            | Unique identifier assigned to the merchant.                                                         |
-| `aid`           | Your Account ID             | Unique identifier assigned to the account.                                                          |
-| `portalid`      | Your Portal ID              | Unique identifier assigned to the portal.                                                           |
+| `mid`           | Your Merchant ID            | Merchant ID                                                                                         |
+| `aid`           | Your Account ID             | Account ID                                                                                          |
+| `portalid`      | Your Portal ID              | Portal ID                                                                                           |
 | `encoding`      | `'ISO-8859-1'` or `'UTF-8'` | Character encoding to be used.                                                                      |
-| `storecarddata` | `'yes'`                     | Fixed value indicating whether to store card data.                                                  |
-| `api_version`   | `'3.11'`                    | Fixed value indicating the API version.                                                             |
+| `storecarddata` | `'yes'` or `'no'`           | Specifies whether a pseudocardnumber shall be generated for later use (e.g. payment request)        |
+| `api_version`   | `'3.11'`                    | Recommended API version to be used; it's recommended to use the newest version                      |
 | `checktype`     | `'TC'` (optional)           | Configuration valid for Deutsche Bahn only. Indicates starting `creditcardcheck` with travel cards. |
 | `hash`          | Generated hash value        | SHA-2 384 hash over request values plus the portal key in your PMI portal configuration.            |
 
@@ -375,7 +375,7 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
 
 #### 3. **Create a New Fingerprinting Tokenizer Instance:**
 
-- Initialize a new `FingerprintingTokenizer` instance by invoking the static create method with the appropriate parameters, including a unique session ID for each checkout experience. If you don't have a session ID, you can generate one using a GUIDv4 function or let the SDK generate it automatically:
+- Initialize a new `FingerprintingTokenizer` instance by invoking the static `create` method with the appropriate parameters, including a unique session ID for each checkout experience. If you don't have a session ID, you can generate one using a GUIDv4 function or let the SDK generate it automatically:
 
   ```typescript
   const selector = '#fingerprintContainer'; // or 'body'
@@ -408,7 +408,7 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
 
 #### 5. **(Optional) Get Unique SessionID:**
 
-- If you need to retrieve the unique session ID that was used or generated during the creation of the PCPFingerprintingTokenizer instance, you can do so by calling the getUniqueId method:
+- If you need to retrieve the unique session ID that was used or generated during the creation of the `PCPFingerprintingTokenizer` instance, you can do so by calling the getUniqueId method:
   ```typescript
   const sessionID = fingerprintingTokenizer.getUniqueId();
   ```
