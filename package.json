@@ -20,10 +20,6 @@
     "test:coverage": "vitest run --coverage",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK.git"
-  },
   "keywords": [
     "payone",
     "client",
@@ -31,8 +27,16 @@
     "javascript",
     "sdk"
   ],
-  "author": "",
   "license": "MIT",
+  "author": "PAYONE-GmbH",
+  "homepage": "https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK.git"
+  },
+  "dependencies": {
+    "@types/applepayjs": "14.0.8"
+  },
   "devDependencies": {
     "@commitlint/cli": "19.3.0",
     "@commitlint/config-conventional": "19.2.2",
@@ -59,8 +63,5 @@
     "singleQuote": true,
     "trailingComma": "all",
     "bracketSpacing": true
-  },
-  "dependencies": {
-    "@types/applepayjs": "14.0.8"
   }
 }

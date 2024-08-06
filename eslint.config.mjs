@@ -11,7 +11,6 @@ export default [
       'node_modules/**',
       'dist/**',
       '*-demo/**',
-      'src/_old/**',
       'coverage/**',
       'build/**',
     ],

@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     coverage: {
       include: ['src'],
-      exclude: ['src/interfaces', 'src/_old', '**/*index.ts'],
+      exclude: ['src/interfaces', '**/*index.ts'],
       reporter: ['text', 'lcov'],
     },
     environment: 'jsdom',

@@ -5,8 +5,11 @@
     "declaration": true,
     "outDir": "./dist",
     "strict": true,
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "sourceMap": true,
+    "allowJs": false,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "**/__tests__/*", "src/_old"]
+  "exclude": ["node_modules", "dist", "**/__tests__/*"]
 }

@@ -2,7 +2,6 @@ node_modules/
 dist/
 .DS_Store
 coverage/
-_old
 **/infrastructure/
 **/*.env.local
 **/*.pem
