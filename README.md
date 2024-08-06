@@ -606,7 +606,7 @@ You can find demonstration projects for each feature in the corresponding direct
 
 ### Environment Variables
 
-All the demos are using `.env` files for passing in sensitive information such as API keys, URLs, and other configuration details. If you want to try out these demos, you must add an `.env` (or `.env.local`) file according to the given `.env.example` with your own credentials.
+All the demos are using `.env` files for passing in sensitive information such as Keys, Identifier, URLs, and other configuration details. If you want to try out these demos, you must add an `.env` (or `.env.local`) file according to the given `.env.example` with your own credentials.
 
 #### VITE\_ Prefix
 
