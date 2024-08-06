@@ -33,6 +33,9 @@ Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. Thi
 - [Demonstration Projects](#demonstration-projects)
 - [Contributing](#contributing)
 - [Releasing](#releasing)
+  - [How to use the prepare_release.sh script](#how-to-use-the-prepare_releasesh-script)
+  - [Changelog Generation](#changelog-generation)
+  - [GitHub Action for Release](#github-action-for-release)
 - [License](#license)
 
 ## Features
@@ -666,7 +669,7 @@ To ensure a smooth release process, a pre-release script has been created. This 
 
 The [`prepare_release.sh`](./prepare_release.sh) script is a bash script designed to update the version number in your project, commit the changes, and tag the commit with the new version number.
 
-### How to Use the `prepare_release.sh` Script
+### How to use the `prepare_release.sh` Script
 
 1. **Ensure your working directory is clean**:
 
@@ -717,7 +720,7 @@ Before calling the `prepare_release.sh` script, it is recommended to manually tr
 
 - Ensure that the updated changelog is reviewed and committed to the `master` branch before proceeding with the release script.
 
-### GitHub Actions for Release
+### GitHub Action for Release
 
 After successfully running the `prepare_release.sh` and changelog generation scripts and committing all changes to the `master` branch, you can trigger a GitHub Action to finalize the release. This action ensures that the release process is automated and consistent.
 
