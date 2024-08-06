@@ -23,11 +23,12 @@ Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. Thi
     - [4. Get Snippet Token](#4-get-snippet-token)
     - [5. (Optional) Get Unique SessionID](#5-optional-get-unique-sessionid)
   - [Apple Pay Session Integration](#apple-pay-session-integration)
-    - [Setup Selector for Apple Pay Button](#1-setup-selector-for-apple-pay-button)
-    - [Import PCPApplePaySession and Types from the SDK](#2-import-pcpapplepaysession-and-types-from-the-sdk)
-    - [Session Configuration Object](#3-session-configuration-object)
-    - [Apple Pay Button Configuration](#4-apple-pay-button-configuration)
-    - [Integrating the Apple Pay Session](#5-integrating-the-apple-pay-session)
+    - [1. Setup Your Server and Environment](#1-setup-your-server-and-environment)
+    - [2. Setup Selector for Apple Pay Button](#2-setup-selector-for-apple-pay-button)
+    - [3. Import PCPApplePaySession and Types from the SDK](#3-import-pcpapplepaysession-and-types-from-the-sdk)
+    - [4. Session Configuration Object](#4-session-configuration-object)
+    - [5. Apple Pay Button Configuration](#5-apple-pay-button-configuration)
+    - [6. Integrating the Apple Pay Session](#6-integrating-the-apple-pay-session)
   - [PCP Compliant Interfaces](#pcp-compliant-interfaces)
 - [Demonstration Projects](#demonstration-projects)
 - [Contributing](#contributing)
@@ -413,26 +414,34 @@ For further information see: https://docs.payone.com/pcp/commerce-platform-payme
 
 ### Apple Pay Session Integration
 
-This section guides you through integrating Apple Pay into your web application using the provided SDK. The integration involves configuring the Apple Pay button and handling the Apple Pay session.
+This section guides you through integrating Apple Pay into your web application using the `pcp-client-javascript-sdk`. The integration involves configuring the Apple Pay button and handling the Apple Pay session.
 
-#### 1. **Setup Selector for Apple Pay Button**
+#### 1. **Setup Your Server and Environment**
+
+- Make sure that your server is set up and your environment is configured correctly according to the Apple Developer documentation. Follow the guidelines in the following resources:
+  - [Setting Up Your Server](https://developer.apple.com/documentation/apple_pay_on_the_web/setting_up_your_server)
+  - [Configuring Your Environment](https://developer.apple.com/documentation/apple_pay_on_the_web/configuring_your_environment)
+  - [Maintaining Your Environment](https://developer.apple.com/documentation/apple_pay_on_the_web/maintaining_your_environment)
+
+#### 2. **Setup Selector for Apple Pay Button**
 
 - Ensure you have a selector for the apple pay button element:
   ```html
   <div id="apple-pay-button"></div>
   ```
 
-#### 2. **Import PCPApplePaySession and Types from the SDK**
+#### 3. **Import PCPApplePaySession and Types from the SDK**
 
 ```typescript
 import {
   ApplePayButton,
+  encodeToBase64,
   PCPApplePaySession,
   PCPApplePaySessionConfig,
 } from 'pcp-client-javascript-sdk';
 ```
 
-#### 3. **Session Configuration Object**
+#### 4. **Session Configuration Object**
 
 The PCPApplePaySessionConfig interface extends [ApplePayJS.ApplePayPaymentRequest](https://developer.apple.com/documentation/apple_pay_on_the_web/applepayrequestbase) and includes additional properties required for managing the Apple Pay session.
 
@@ -530,7 +539,7 @@ const applePaySessionConfig: PCPApplePaySessionConfig = {
 
 </details>
 
-#### 4. **Apple Pay Button Configuration**
+#### 5. **Apple Pay Button Configuration**
 
 You need to configure the appearance and behavior of the Apple Pay button. The `ApplePayButtonConfig` interface allows you to specify the style, type, and locale of the button, as well as any additional CSS styles.
 
@@ -566,7 +575,7 @@ const applePayButton: ApplePayButton = {
 
 </details>
 
-#### 5. **Integrating the Apple Pay Session**
+#### 6. **Integrating the Apple Pay Session**
 
 To integrate the Apple Pay session, you need to create an instance of the session using the `PCPApplePaySession.create` method. This method takes the session configuration and the button configuration as parameters.
 
