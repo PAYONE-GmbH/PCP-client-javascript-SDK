@@ -596,11 +596,34 @@ const createCheckoutRequest: CreateCheckoutRequest = {...}
 
 ---
 
+## Demonstration Projects
+
 You can find demonstration projects for each feature in the corresponding directories:
 
 - **Credit Card Tokenizer**: Check out the [creditcard-tokenizer-demo](./creditcard-tokenizer-demo/) folder.
 - **Fingerprinting Tokenizer**: See the [fingerprinting-tokenizer-demo](./fingerprinting-tokenizer-demo/) folder.
 - **Apple Pay Session Integration**: Refer to the [applepay-demo](./applepay-demo/) folder.
+
+### Environment Variables
+
+All the demos are using `.env` files for passing in sensitive information such as API keys, URLs, and other configuration details. If you want to try out these demos, you must add an `.env` (or `.env.local`) file according to the given `.env.example` with your own credentials.
+
+#### VITE\_ Prefix
+
+Each demo app uses Vite as the build tool. Vite exposes environment variables on the special `import.meta.env` object, which are statically replaced at build time. This ensures that the configuration is securely managed and tailored for different environments (development, production, etc.).
+
+Environment variables with the `VITE_` prefix are exposed to your client-side code. This is a security measure to prevent accidental exposure of sensitive data. Vite will only expose variables prefixed with `VITE_`, which ensures that server-only variables are not included in the client bundle.
+
+Example `.env` file for the apple pay demo:
+
+```env
+# client demo environment variables
+VITE_APPLE_PAY_VALIDATE_MERCHANT_URL=https://your-merchant-domain.de/validate-merchant
+VITE_APPLE_PAY_PROCESS_PAYMENT_URL=https://your-merchant-domain.de/process-payment
+# server demo environment variables
+APPLE_PAY_MERCHANT_IDENTIFIER=merchant.de.your.project
+MERCHANT_DOMAIN_WITHOUT_PROTOCOL_OR_WWW=your-merchant-domain.de
+```
 
 ## Contributing
 
