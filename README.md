@@ -3,6 +3,11 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PAYONE-GmbH_PCP-client-javascript-SDK&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PAYONE-GmbH_PCP-client-javascript-SDK)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=PAYONE-GmbH_PCP-client-javascript-SDK&metric=coverage)](https://sonarcloud.io/summary/new_code?id=PAYONE-GmbH_PCP-client-javascript-SDK)
 
+<!--
+TODO: comment in and remove the NOTE below when published on npm
+[![npm](https://img.shields.io/npm/v/@payone/pcp-client-javascript-sdk)](https://www.npmjs.com/package/@payone/pcp-client-javascript-sdk)
+[![npm downloads](https://img.shields.io/npm/dw/@payone/pcp-client-javascript-sdk)](https://www.npmjs.com/package/@nanogiants/pcp-client-javascript-sdk) -->
+
 **NOTE:** This SDK is still under development. Some things may be broken, features may change in non-compatible ways or will be removed completely.
 
 Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. This SDK provides everything a client needs to easily complete payments using Credit or Debit Card, PAYONE Buy Now Pay Later (BNPL) and Apple Pay.
@@ -70,9 +75,13 @@ yarn add pcp-client-javascript-sdk
 pnpm add pcp-client-javascript-sdk
 ```
 
+**[back to top](#table-of-contents)**
+
 ## Usage
 
 ### Credit Card Tokenizer
+
+The Credit Card Tokenizer is an essential component for handling payments on the PAYONE Commerce Platform. It securely collects and processes credit or debit card information to generate a `paymentProcessingToken`, which is required for the Server-SDK to complete the payment process. Without this token, the server cannot perform the transaction. The tokenizer ensures that sensitive card details are handled securely and is PCI DSS (Payment Card Industry Data Security Standard) compliant.
 
 To integrate the Credit Card Tokenizer feature into your application, follow these steps:
 
@@ -351,11 +360,15 @@ const creditCardTokenizer = await PCPCreditCardTokenizer.create(
 
 When the user enters valid credit card information and clicks the submit button, the `creditCardCheckCallback` will be triggered, providing the response with all necessary information for the server to continue the credit card payment process.
 
-For further information see: https://docs.payone.com/integration/channel-client-api/client-api-hosted-iframe-mode
+For further information see: https://docs.payone.com/pcp/commerce-platform-payment-methods/credit-and-debit-card-payments and https://docs.payone.com/integration/channel-client-api/client-api-hosted-iframe-mode
+
+**[back to top](#table-of-contents)**
 
 ---
 
 ### Fingerprinting Tokenizer
+
+To detect and prevent fraud at an early stage for the secured payment methods, the Fingerprinting Tokenizer is an essential component for handling PAYONE Buy Now, Pay Later (BNPL) payment methods on the PAYONE Commerce Platform. During the checkout process, it securely collects three different IDs to generate a snippetToken in the format `<partner_id>_<merchant_id>_<session_id>`. This token must be sent from your server via the API parameter `paymentMethodSpecificInput.customerDevice.deviceToken`. Without this token, the server cannot perform the transaction. The tokenizer sends these IDs via a code snippet to Payla for later server-to-Payla authorization, ensuring the necessary device information is captured to facilitate secure and accurate payment processing.
 
 To integrate the Fingerprinting Tokenizer feature into your application, follow these steps:
 
@@ -418,6 +431,8 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
 
 For further information see: https://docs.payone.com/pcp/commerce-platform-payment-methods/payone-bnpl/payone-secured-invoice
 
+**[back to top](#table-of-contents)**
+
 ---
 
 ### Apple Pay Session Integration
@@ -455,18 +470,18 @@ The PCPApplePaySessionConfig interface extends [ApplePayJS.ApplePayPaymentReques
 
 #### Additional PCPApplePaySessionConfig Properties
 
-| Property                               | Type                  | Description                                                                                                                                                                                 |
-| -------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| applePayVersion                        | `number`              | The version of Apple Pay on the Web that your website supports. See [version history](https://developer.apple.com/documentation/apple_pay_on_the_web/apple_pay_on_the_web_version_history). |
-| validateMerchantURL                    | `string`              | The URL your server must use to validate itself and obtain a merchant session object.                                                                                                       |
-| processPaymentURL                      | `string`              | The URL your server must use to process the payment.                                                                                                                                        |
-| applePayButtonId                       | `string` (optional)   | The ID for the Apple Pay button element. Default is "apple-pay-button-script".                                                                                                              |
-| paymentMethodSelectedCallback          | `function` (optional) | Callback function called when the user selects a new payment method.                                                                                                                        |
-| couponCodeChangedCallback              | `function` (optional) | Callback function called when the user enters or updates a coupon code.                                                                                                                     |
-| shippingMethodSelectedCallback         | `function` (optional) | Callback function called when the user selects a shipping method.                                                                                                                           |
-| shippingContactAddressSelectedCallback | `function` (optional) | Callback function called when the user selects a shipping contact in the payment sheet.                                                                                                     |
-| cancelCallback                         | `function` (optional) | Callback function called when the payment UI is dismissed.                                                                                                                                  |
-| errorCallback                          | `function` (optional) | Callback function called when an error occurs.                                                                                                                                              |
+| Property                               | Type                                                                                                                   | Description                                                                                                                                                                                 |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| applePayVersion                        | `number`                                                                                                               | The version of Apple Pay on the Web that your website supports. See [version history](https://developer.apple.com/documentation/apple_pay_on_the_web/apple_pay_on_the_web_version_history). |
+| validateMerchantURL                    | `string`                                                                                                               | The URL your server must use to validate itself and obtain a merchant session object.                                                                                                       |
+| processPaymentURL                      | `string`                                                                                                               | The URL your server must use to process the payment.                                                                                                                                        |
+| applePayButtonId                       | `string` (optional)                                                                                                    | The ID for the Apple Pay button element. Default is "apple-pay-button-script".                                                                                                              |
+| paymentMethodSelectedCallback          | `(paymentMethod: ApplePayJS.ApplePayPaymentMethod) => Promise<ApplePayJS.ApplePayPaymentMethodUpdate>` (optional)      | Callback function called when the user selects a new payment method.                                                                                                                        |
+| couponCodeChangedCallback              | `(couponCode: string) => Promise<ApplePayJS.ApplePayCouponCodeUpdate>` (optional)                                      | Callback function called when the user enters or updates a coupon code.                                                                                                                     |
+| shippingMethodSelectedCallback         | `(shippingMethod: ApplePayJS.ApplePayShippingMethod) => Promise<ApplePayJS.ApplePayShippingMethodUpdate>` (optional)   | Callback function called when the user selects a shipping method.                                                                                                                           |
+| shippingContactAddressSelectedCallback | `(shippingContact: ApplePayJS.ApplePayPaymentContact) => Promise<ApplePayJS.ApplePayShippingContactUpdate>` (optional) | Callback function called when the user selects a shipping contact in the payment sheet.                                                                                                     |
+| cancelCallback                         | `() => void` (optional)                                                                                                | Callback function called when the payment UI is dismissed.                                                                                                                                  |
+| errorCallback                          | `(type: ErrorType, error: Error) => void` (optional)                                                                   | Callback function called when an error occurs.                                                                                                                                              |
 
 <details>
   <summary>Example Session Configuration Object:</summary>
@@ -604,6 +619,8 @@ await PCPApplePaySession.create(applePaySessionConfig, applePayButton);
 
 For further information see: https://docs.payone.com/payment-methods/apple-pay
 
+**[back to top](#table-of-contents)**
+
 ---
 
 ### PCP Compliant Interfaces
@@ -617,6 +634,8 @@ import type { CreateCheckoutRequest } from 'pcp-client-javascript-sdk';
 
 const createCheckoutRequest: CreateCheckoutRequest = {...}
 ```
+
+**[back to top](#table-of-contents)**
 
 ---
 
@@ -661,9 +680,13 @@ APPLE_PAY_MERCHANT_IDENTIFIER=merchant.de.your.project
 MERCHANT_DOMAIN_WITHOUT_PROTOCOL_OR_WWW=your-merchant-domain.de
 ```
 
+**[back to top](#table-of-contents)**
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+**[back to top](#table-of-contents)**
 
 ## Releasing
 
@@ -765,6 +788,10 @@ These versions ensure compatibility with ES6 features such as arrow functions, c
 
 For optimal performance and access to the latest features, we recommend using the most recent versions of your preferred browser.
 
+**[back to top](#table-of-contents)**
+
 ## License
 
 This project is licensed under the MIT License. For more details, see the [LICENSE](./LICENSE) file.
+
+**[back to top](#table-of-contents)**
