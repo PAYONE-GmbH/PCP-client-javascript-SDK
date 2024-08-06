@@ -36,6 +36,7 @@ Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. Thi
   - [How to use the prepare_release.sh script](#how-to-use-the-prepare_releasesh-script)
   - [Changelog Generation with Conventional Changelog](#changelog-generation-with-conventional-changelog)
   - [GitHub Action for Release](#github-action-for-release)
+- [Minimum Supported Browser Versions](#minimum-supported-browser-versions)
 - [License](#license)
 
 ## Features
@@ -738,6 +739,28 @@ After successfully running the `prepare_release.sh` and changelog generation scr
 - Navigate to the Actions tab on your GitHub repository and manually trigger the release action for the `master` branch.
 
 By following these steps, you can efficiently manage and streamline the release process for your client SDK.
+
+## Minimum Supported Browser Versions
+
+Our SDK targets ES6 (ECMAScript 2015) and supports the following minimum browser versions:
+
+| Browser             | Minimum Supported Version |
+| ------------------- | ------------------------- |
+| Google Chrome       | 51+                       |
+| Mozilla Firefox     | 54+                       |
+| Microsoft Edge      | 15+                       |
+| Safari              | 10.1+                     |
+| Opera               | 38+                       |
+| iOS Safari          | 10.3+                     |
+| Samsung Internet    | 5.0+                      |
+| Android Browser     | 127+                      |
+| Opera Mobile        | 80+                       |
+| Chrome for Android  | 127+                      |
+| Firefox for Android | 127+                      |
+
+These versions ensure compatibility with ES6 features such as arrow functions, classes, template literals, and more.
+
+For optimal performance and access to the latest features, we recommend using the most recent versions of your preferred browser.
 
 ## License
 
