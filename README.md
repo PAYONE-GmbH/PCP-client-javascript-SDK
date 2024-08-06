@@ -32,6 +32,7 @@ Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. Thi
   - [PCP Compliant Interfaces](#pcp-compliant-interfaces)
 - [Demonstration Projects](#demonstration-projects)
 - [Contributing](#contributing)
+- [Releasing](#releasing)
 - [License](#license)
 
 ## Features
@@ -656,6 +657,77 @@ MERCHANT_DOMAIN_WITHOUT_PROTOCOL_OR_WWW=your-merchant-domain.de
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## Releasing
+
+To ensure a smooth release process, a pre-release script has been created. This script automates versioning, tagging, and ensuring the working directory is in a proper state before creating a new release.
+
+### [`prepare_release.sh`](./prepare_release.sh) Script
+
+The [`prepare_release.sh`](./prepare_release.sh) script is a bash script designed to update the version number in your project, commit the changes, and tag the commit with the new version number.
+
+### How to Use the [`prepare_release.sh`](./prepare_release.sh) Script
+
+1. **Ensure your working directory is clean**:
+
+   - Make sure you have no uncommitted changes. The script will exit if there are any changes detected.
+   - Verify that you are on the `master` branch before proceeding.
+
+2. **Run the script with the desired version number**:
+
+   - Open your terminal and navigate to the root directory of your project.
+   - Execute the script with the version number as an argument.
+
+   ```sh
+   ./prepare_release.sh <version>
+   ```
+
+   - Example:
+
+   ```sh
+   ./prepare_release.sh 1.2.3
+   ```
+
+3. **Script Workflow**:
+
+   - The script checks if a version number is provided and validates its format.
+   - It ensures the working directory is clean and that you are on the `master` branch.
+   - It updates the version number in `package.json` and `package-lock.json`.
+   - Commits the changes with a message "Update version to <version>".
+   - Tags the commit with "v<version>".
+
+4. **Handling Mistakes**:
+   - If you make a mistake, you can undo the commit and delete the tag by running the following commands:
+   ```sh
+   git reset --soft HEAD~1
+   git tag -d v<version>
+   ```
+
+### Changelog Generation
+
+Before calling the `prepare_release.sh` script, it is recommended to manually trigger the changelog generation script. This ensures that the changelog is up-to-date and reflects all the changes made since the last release.
+
+**Trigger the Changelog Generation Script**:
+
+- Run the changelog generation script in your terminal.
+
+  ```sh
+  npm run changelog
+  ```
+
+- Ensure that the updated changelog is reviewed and committed to the `master` branch before proceeding with the release script.
+
+### GitHub Actions for Release
+
+After successfully running the `prepare_release.sh` and changelog generation scripts and committing all changes to the `master` branch, you can trigger a GitHub Action to finalize the release. This action ensures that the release process is automated and consistent.
+
+**Triggering the GitHub Action**:
+
+- Only admins can trigger the release action.
+- Ensure that all changes are committed to the `master` branch.
+- Navigate to the Actions tab on your GitHub repository and manually trigger the release action for the `master` branch.
+
+By following these steps, you can efficiently manage and streamline the release process for your client SDK.
 
 ## License
 
