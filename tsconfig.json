@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES6",
     "module": "NodeNext",
     "declaration": true,
     "outDir": "./dist",
     "strict": true,
-    "moduleResolution": "NodeNext",
     "sourceMap": true,
     "allowJs": false,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitOverride": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "**/__tests__/*"]
+  "exclude": ["**/__tests__/*"]
 }

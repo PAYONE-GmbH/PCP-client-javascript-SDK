@@ -106,8 +106,12 @@ const config: Config = {
     // deactivate: true // To turn off automatic card type detection.
   },
   language: 'de',
-  submitButtonId: 'submit',
-  submitButtonWithOutCompleteCheckId: 'submitWithOutCompleteCheck',
+  submitButton: {
+    selector: '#submit',
+  },
+  submitButtonWithOutCompleteCheck: {
+    selector: '#submitWithOutCompleteCheck',
+  },
   ccIcons: {
     selector: '#cc-icons',
     mapCardtypeToSelector: supportedCardtypes.reduce(
