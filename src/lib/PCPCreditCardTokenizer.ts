@@ -141,11 +141,7 @@ export class PCPCreditCardTokenizer {
     const submitButtonElement =
       this.config.submitButton.element ||
       document.querySelector(this.config.submitButton.selector as string);
-    console.log(
-      'submitButtonElement',
-      submitButtonElement,
-      this.config.submitButton.selector,
-    );
+
     if (!submitButtonElement) {
       throw new Error(
         `Submit Button not present. Please provide a valid selector or element.`,
