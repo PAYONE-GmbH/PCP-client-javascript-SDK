@@ -1,5 +1,8 @@
 # PayOne PCP JavaScript Client SDK
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PAYONE-GmbH_PCP-client-javascript-SDK&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PAYONE-GmbH_PCP-client-javascript-SDK)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=PAYONE-GmbH_PCP-client-javascript-SDK&metric=coverage)](https://sonarcloud.io/summary/new_code?id=PAYONE-GmbH_PCP-client-javascript-SDK)
+
 **NOTE:** This SDK is still under development. Some things may be broken, features may change in non-compatible ways or will be removed completely.
 
 Welcome to the PayOne PCP JavaScript Client SDK for the PayOne PCP platform. This SDK provides everything a client needs to easily complete payments using Credit or Debit Card, PAYONE Buy Now Pay Later (BNPL) and Apple Pay.
