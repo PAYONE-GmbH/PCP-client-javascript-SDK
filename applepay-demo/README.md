@@ -133,6 +133,7 @@ const applePayButton: ApplePayButton = {
 ```typescript
 import {
   ApplePayButton,
+  encodeToBase64,
   PCPApplePaySession,
   PCPApplePaySessionConfig,
 } from 'pcp-client-javascript-sdk';
@@ -169,9 +170,8 @@ const init = async () => {
     ],
     validateMerchantURL: import.meta.env.VITE_APPLE_PAY_VALIDATE_MERCHANT_URL,
     processPaymentURL: import.meta.env.VITE_APPLE_PAY_PROCESS_PAYMENT_URL,
-    applicationData: {
-      foo: 'bar',
-    },
+    // This data is completely custom and can be sent to your server for merchant validation and must be used as a base64 encoded string here for the apple pay server (see: https://developer.apple.com/documentation/apple_pay_on_the_web/applepayrequest/2951834-applicationdata)
+    applicationData: encodeToBase64(JSON.stringify({ foo: 'bar' })),
     paymentMethodSelectedCallback: async (paymentMethod) => {
       console.log('paymentMethodSelectedCallback', paymentMethod);
       return {
