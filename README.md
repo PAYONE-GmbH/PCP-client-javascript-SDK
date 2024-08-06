@@ -620,6 +620,18 @@ You can find demonstration projects for each feature in the corresponding direct
 - **Fingerprinting Tokenizer**: See the [fingerprinting-tokenizer-demo](./fingerprinting-tokenizer-demo/) folder.
 - **Apple Pay Session Integration**: Refer to the [applepay-demo](./applepay-demo/) folder.
 
+### Building the SDK
+
+Before running a demo project, you need to build the SDK in the root folder. This is necessary because the `dist` folder that gets created during the build process is targeted by the dependency with `file:..` that is referenced in the credit card tokenizer and fingerprinting tokenizer demo projects.
+
+To build the SDK, run the following command in the root folder:
+
+```sh
+npm run build
+```
+
+This command compiles the SDK and creates the `dist` folder, making it available for the demo projects to use.
+
 ### Environment Variables
 
 All the demos are using `.env` files for passing in sensitive information such as Keys, Identifier, URLs, and other configuration details. If you want to try out these demos, you must add an `.env` (or `.env.local`) file according to the given `.env.example` with your own credentials.
