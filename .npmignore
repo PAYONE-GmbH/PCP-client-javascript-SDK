@@ -1,16 +1,29 @@
 src
 node_modules
-demo
+creditcard-tokenizer-demo
+fingerprinting-tokenizer-demo
 coverage
-temp
 applepay-demo
+
+temp
+images
 
 .github
 .vscode
 .idea
+*.iml
 
-tsconfig.json
-eslint.config.mjs
-sonar-project.properties
 .DS_Store
-jest.config.js
+Thumbs.db
+
+vitest.config.ts
+tsconfig.json
+sonar-project.properties
+prepare_release.sh
+lefthook.yml
+eslint.config.mjs
+commitlint.config.js
+.husky
+
+*.tar.gz
+*.tgz
