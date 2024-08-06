@@ -378,12 +378,17 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
   const partnerMerchantId = 'your-partner-merchant-id';
   const sessionId = yourUniqueSessionId || generateGUIDv4() || undefined; // Optional: You can pass a unique session ID or let the SDK generate one
 
+  const paylaScriptId = 'your-payla-script-id'; // Optional: The ID for the Payla script element. Default is "paylaDcs"
+  const paylaStylesheetId = 'your-payla-stylesheet-id'; // Optional: The ID for the Payla stylesheet element. Default is "paylaDcsStylesheet"
+
   const fingerprintingTokenizer = await PCPFingerprintingTokenizer.create(
     selector,
     environment,
     paylaPartnerId,
     partnerMerchantId,
     sessionId,
+    paylaScriptId,
+    paylaStylesheetId,
   );
   ```
 

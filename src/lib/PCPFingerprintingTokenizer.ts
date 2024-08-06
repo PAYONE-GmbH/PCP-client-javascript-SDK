@@ -15,6 +15,9 @@ export class PCPFingerprintingTokenizer {
   private uniqueId: string;
   private snippetToken: string;
 
+  private paylaScriptId: string;
+  private paylaStylesheetId: string;
+
   /**
    * Creates a new instance of the PCPFingerprintingTokenizer, initializes the Payla fingerprinting snippet, and attaches the Payla stylesheet.
    * @param {string} selector - The selector of the container element in which to mount the Payla fingerprinting snippet.
@@ -22,6 +25,8 @@ export class PCPFingerprintingTokenizer {
    * @param {string} paylaPartnerId - The Payla Partner ID.
    * @param {string} partnerMerchantId - The Partner Merchant ID.
    * @param {string} sessionId - The session ID. If not provided, a random GUID(v4) will be generated.
+   * @param {string} paylaScriptId - The ID for the Payla script element. Default is "paylaDcs".
+   * @param {string} paylaStylesheetId - The ID for the Payla stylesheet element. Default is "paylaDcsStylesheet".
    * @returns {Promise<PCPFingerprintingTokenizer>} A new instance of the PCPFingerprintingTokenizer
    */
   public static async create(
@@ -30,6 +35,8 @@ export class PCPFingerprintingTokenizer {
     paylaPartnerId: string,
     partnerMerchantId: string,
     sessionId?: string,
+    paylaScriptId?: string,
+    paylaStylesheetId?: string,
   ) {
     const instance = new PCPFingerprintingTokenizer(
       selector,
@@ -37,6 +44,8 @@ export class PCPFingerprintingTokenizer {
       paylaPartnerId,
       partnerMerchantId,
       sessionId,
+      paylaScriptId,
+      paylaStylesheetId,
     );
     await instance.initialize();
     return instance;
@@ -48,12 +57,17 @@ export class PCPFingerprintingTokenizer {
     paylaPartnerId: string,
     partnerMerchantId: string,
     sessionId?: string,
+    paylaScriptId?: string,
+    paylaStylesheetId?: string,
   ) {
     this.selector = selector;
     this.environment = environment;
 
     this.paylaPartnerId = paylaPartnerId;
     this.partnerMerchantId = partnerMerchantId;
+
+    this.paylaScriptId = paylaScriptId || 'paylaDcs';
+    this.paylaStylesheetId = paylaStylesheetId || 'paylaDcsStylesheet';
 
     this.uniqueId = sessionId || this.guidv4();
     // This token gets saved by Payla and is used to identify the session between your server and Payla
@@ -92,12 +106,12 @@ export class PCPFingerprintingTokenizer {
 
   private async loadScript() {
     return new Promise<void>((resolve, reject) => {
-      if (document.getElementById('paylaDcs')) {
+      if (document.getElementById(this.paylaScriptId)) {
         resolve(); // Script already loaded
         return;
       }
       const script = document.createElement('script');
-      script.id = 'paylaDcs';
+      script.id = this.paylaScriptId;
       script.type = 'text/javascript';
       script.src = `https://d.payla.io/dcs/${this.paylaPartnerId}/${this.partnerMerchantId}/dcs.js`;
       script.onload = () => {
@@ -118,12 +132,12 @@ export class PCPFingerprintingTokenizer {
 
   private async loadStylesheet() {
     return new Promise<void>((resolve, reject) => {
-      if (document.getElementById('paylaDcsStylesheet')) {
+      if (document.getElementById(this.paylaStylesheetId)) {
         resolve(); // Stylesheet already loaded
         return;
       }
       const link = document.createElement('link');
-      link.id = 'paylaDcsStylesheet';
+      link.id = this.paylaStylesheetId;
       link.type = 'text/css';
       link.rel = 'stylesheet';
       link.href = `https://d.payla.io/dcs/dcs.css?st=${this.snippetToken}&pi=${this.paylaPartnerId}&psi=${this.partnerMerchantId}&e=${this.environment}`;
