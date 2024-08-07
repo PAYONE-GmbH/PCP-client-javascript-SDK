@@ -33,9 +33,9 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-# Check if the current branch is master
-if [ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]; then
-    echo "Error: Not on master branch."
+# Check if the current branch is the correct release branch
+if [ "$(git rev-parse --abbrev-ref HEAD)" != "release/$TAG" ]; then
+    echo "Error: Not on the correct release branch."
     exit 1
 fi
 

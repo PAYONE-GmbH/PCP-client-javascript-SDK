@@ -690,7 +690,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Releasing
 
-To ensure a smooth release process, a pre-release script has been created. This script automates versioning, tagging, and ensuring the working directory is in a proper state before creating a new release.
+To ensure a smooth release process, a pre-release script has been created. This script automates versioning, tagging, and ensuring the working directory is in a proper state before creating a new release. Each release requires creating a new release branch, applying changes there, and verifying the version against the release branch name.
 
 ### `prepare_release.sh` Script
 
@@ -698,12 +698,20 @@ The [`prepare_release.sh`](./prepare_release.sh) script is a bash script designe
 
 ### How to use the `prepare_release.sh` Script
 
-1. **Ensure your working directory is clean**:
+1. **Create and switch to a new release branch**:
+
+   - Create a release branch named `release/v<version>`.
+   - Example:
+     ```sh
+     git checkout -b release/v1.2.3
+     ```
+
+2. **Ensure your working directory is clean**:
 
    - Make sure you have no uncommitted changes. The script will exit if there are any changes detected.
-   - Verify that you are on the `master` branch before proceeding.
+   - Verify that you are on the `release/v<version>` branch before proceeding.
 
-2. **Run the script with the desired version number**:
+3. **Run the script with the desired version number**:
 
    - Open your terminal and navigate to the root directory of your project.
    - Execute the script with the version number as an argument.
@@ -718,15 +726,16 @@ The [`prepare_release.sh`](./prepare_release.sh) script is a bash script designe
    ./prepare_release.sh 1.2.3
    ```
 
-3. **Script Workflow**:
+4. **Script Workflow**:
 
    - The script checks if a version number is provided and validates its format.
-   - It ensures the working directory is clean and that you are on the `master` branch.
+   - It ensures the working directory is clean and that you are on the `release/v<version>` branch.
+   - It verifies that the provided version tag matches the release branch name.
    - It updates the version number in `package.json` and `package-lock.json`.
    - Commits the changes with a message "Update version to <version>".
    - Tags the commit with "v<version>".
 
-4. **Handling Mistakes**:
+5. **Handling Mistakes**:
    - If you make a mistake, you can undo the commit and delete the tag by running the following commands:
    ```sh
    git reset --soft HEAD~1
@@ -754,9 +763,25 @@ Before calling the `prepare_release.sh` script, it is recommended to manually tr
      ```
    - Review and commit the updated changelog before proceeding with the release script.
 
+### Merging the Release Branch
+
+1. **Open a Pull Request (PR)**:
+
+   - Open a PR from the `release/v<version>` branch to the `master` branch on GitHub.
+   - Include a clear description of the changes and the new version.
+
+2. **Code Review**:
+
+   - Request reviews from team members.
+   - Address feedback and make necessary changes.
+
+3. **Merge PR**:
+
+   - Once approved, merge the PR to `master`.
+
 ### GitHub Action for Release
 
-After successfully running the `prepare_release.sh` and changelog generation scripts and committing all changes to the `master` branch, you can trigger a GitHub Action to finalize the release. This action ensures that the release process is automated and consistent.
+After successfully running the `prepare_release.sh` and changelog generation scripts and committing all changes to the `master` branch via a PR, an admin can trigger a GitHub Action to finalize and publish the release. This action ensures that the release process is automated, consistent, and deploys the new release from the `master` branch.
 
 **Triggering the GitHub Action**:
 
@@ -764,7 +789,7 @@ After successfully running the `prepare_release.sh` and changelog generation scr
 - Ensure that all changes are committed to the `master` branch.
 - Navigate to the Actions tab on your GitHub repository and manually trigger the release action for the `master` branch.
 
-By following these steps, you can efficiently manage and streamline the release process for your client SDK.
+By following these steps, you can efficiently manage and streamline the release process for your client SDK, ensuring that the new release is published from the `master` branch while maintaining consistency and reliability.
 
 ## Minimum Supported Browser Versions
 
