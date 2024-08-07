@@ -1,6 +1,6 @@
-# Contributing to the PCP Client JavaScript SDK
+# Contributing to the PAYONE Commerce Platform Client JavaScript SDK
 
-Thank you for considering contributing to the PCP Client JavaScript SDK! We appreciate your efforts to help improve this project. Below are guidelines for contributing.
+Thank you for considering contributing to the PAYONE Commerce Platform Client JavaScript SDK! We appreciate your efforts to help improve this project. Below are guidelines for contributing.
 
 ## How to Contribute
 

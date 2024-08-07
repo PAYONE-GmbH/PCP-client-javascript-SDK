@@ -1,10 +1,9 @@
 {
-  "name": "demo",
+  "name": "fingerprinting-tokenizer-demo",
   "version": "0.0.1",
-  "description": "This is a demo project for the PCP client javascript SDK",
+  "description": "This is a demo project for the PAYONE Commerce Platform Client JavaScript SDKs fingerprinting tokenizer",
   "private": true,
-  "type": "module",
-  "main": "dist/index.js",
+  "main": "src/main.ts",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
