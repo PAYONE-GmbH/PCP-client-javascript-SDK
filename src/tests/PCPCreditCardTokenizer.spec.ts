@@ -235,6 +235,25 @@ describe('PCPCreditCardTokenizer', () => {
       );
     });
 
+    it('should throw an error if a submitWithOutCompleteCheck button selector is provided but not found.', async () => {
+      const invalidConfig = {
+        ...mockConfig,
+        submitButtonWithOutCompleteCheck: {
+          selector: '#invalid-selector',
+        },
+      };
+      expect(
+        async () =>
+          await PCPCreditCardTokenizer.create(
+            invalidConfig,
+            mockRequest,
+            mockPmiPortalKey,
+          ),
+      ).rejects.toThrow(
+        'Submit Button without complete check not present. Please provide a valid selector or element.',
+      );
+    });
+
     it('should throw an error if the given cc-icons container is not found.', async () => {
       const invalidConfig = {
         ...mockConfig,
