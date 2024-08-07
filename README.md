@@ -179,13 +179,13 @@ Below are the details for each field in the configuration object:
 
 Defines the various input fields for credit card details.
 
-| Property          | Type                  | Description                                        |
-| ----------------- | --------------------- | -------------------------------------------------- |
-| `cardtype`        | `CardtypeFieldConfig` | Configuration for the card type field.             |
-| `cardpan`         | `FieldConfig`         | Configuration for the card number field.           |
-| `cardcvc2`        | `FieldConfig`         | Configuration for the card CVC2 field.             |
-| `cardexpiremonth` | `FieldConfig`         | Configuration for the card expiration month field. |
-| `cardexpireyear`  | `FieldConfig`         | Configuration for the card expiration year field.  |
+| Property          | Type                             | Description                                        |
+| ----------------- | -------------------------------- | -------------------------------------------------- |
+| `cardpan`         | `FieldConfig`                    | Configuration for the card number field.           |
+| `cardcvc2`        | `FieldConfig`                    | Configuration for the card CVC2 field.             |
+| `cardexpiremonth` | `FieldConfig`                    | Configuration for the card expiration month field. |
+| `cardexpireyear`  | `FieldConfig`                    | Configuration for the card expiration year field.  |
+| `cardtype`        | `CardtypeFieldConfig` (optional) | Configuration for the card type field.             |
 
 ##### FieldConfig
 
