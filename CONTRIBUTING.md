@@ -10,10 +10,19 @@ We welcome pull requests! Please follow these steps to submit one:
 
 1. **Fork** the repository and create your branch from `master`.
 2. **Install** any dependencies and ensure the project builds and passes tests.
-3. **Write** clear, concise, and self-explanatory commit messages.
+
+   ```bash
+   npm install
+   ```
+
+3. **Develop** your changes in Typescript.
 4. **Test** your changes thoroughly.
-5. **Open** a pull request with a clear title and description of what your change does.
-6. **Ensure** your pull request follows the [style guides](#style-guides).
+   ```bash
+   npm run test
+   ```
+5. **Write** clear, concise, and self-explanatory commit messages.
+6. **Open** a pull request with a clear title and description of what your change does.
+7. **Ensure** your pull request follows the [style guides](#style-guides).
 
 ### Reporting Bugs
 
@@ -27,4 +36,31 @@ If you encounter any bugs, please report them using one of the following methods
 ### Git Commit Messages
 
 We use [Conventional Commits](https://www.conventionalcommits.org/) for our commit messages. See the whole specification [here](https://www.conventionalcommits.org/en/v1.0.0/#specification).
-...
+
+### TypeScript
+
+- Follow the [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) for best practices.
+- Ensure type definitions are clear and comprehensive.
+- We are using `strict` mode in `tsconfig.json` to enforce type safety:
+  ```json
+  {
+    "compilerOptions": {
+      "strict": true,
+      ...
+    }
+  }
+  ```
+
+### Code Style
+
+- Follow the project's existing code style.
+- Use tools like [ESLint](https://eslint.org/) and [Prettier](https://prettier.io/) to maintain code quality and consistency.
+- Ensure your editor/IDE is configured to follow the project's coding standards.
+
+### Testing
+
+- Write unit tests using [Vitest](https://vitest.dev/).
+- Ensure new features and bug fixes are covered by tests.
+- Run the test suite to confirm all tests pass before submitting your pull request.
+
+Thank you for your contributions!
