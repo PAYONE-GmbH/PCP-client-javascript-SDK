@@ -43,7 +43,10 @@ fi
 sed -i '' -e "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
 
 # Update the version number in the package-lock.json file
-sed -i '' -e "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package-lock.json
+jq --arg version "$VERSION" '
+  .version = $version |
+  .packages[""].version = $version
+' package-lock.json >tmp.json && mv tmp.json package-lock.json
 
 # Commit the changes
 git add package.json package-lock.json
