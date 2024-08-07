@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 VERSION=$1
 
 # Check if an argument is provided
@@ -50,7 +52,7 @@ jq --arg version "$VERSION" '
 
 # Commit the changes
 git add package.json package-lock.json
-git commit -m "Update version to $VERSION"
+git commit -m "chore: Update version to $VERSION"
 git tag -a $TAG -m "Release version $VERSION"
 
 echo "Version updated to $VERSION and tagged in Git."
