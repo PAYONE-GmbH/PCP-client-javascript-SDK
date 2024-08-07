@@ -131,7 +131,24 @@ describe('PCPApplePaySession', () => {
       );
     });
 
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should create a new session', async () => {
+      expect(session).toBeDefined();
+    });
+
+    it('should create a new session with the provided configs', async () => {
+      const applePayButton: ApplePayButton = {
+        ...mockApplePayButton,
+        config: { ...mockApplePayButton.config, style: undefined },
+      };
+      session = await PCPApplePaySession.create(
+        mockApplePaySessionConfig,
+        applePayButton,
+      );
+
       expect(session).toBeDefined();
     });
 
