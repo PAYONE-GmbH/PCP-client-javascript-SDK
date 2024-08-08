@@ -2,13 +2,8 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PAYONE-GmbH_PCP-client-javascript-SDK&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PAYONE-GmbH_PCP-client-javascript-SDK)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=PAYONE-GmbH_PCP-client-javascript-SDK&metric=coverage)](https://sonarcloud.io/summary/new_code?id=PAYONE-GmbH_PCP-client-javascript-SDK)
-
-<!--
-TODO: comment in and remove the NOTE below when published on npm
-[![npm](https://img.shields.io/npm/v/@payone/pcp-client-javascript-sdk)](https://www.npmjs.com/package/@payone/pcp-client-javascript-sdk)
-[![npm downloads](https://img.shields.io/npm/dw/@payone/pcp-client-javascript-sdk)](https://www.npmjs.com/package/@nanogiants/pcp-client-javascript-sdk) -->
-
-**NOTE:** This SDK is still under development. Some things may be broken, features may change in non-compatible ways or will be removed completely.
+[![npm](https://img.shields.io/npm/v/pcp-client-javascript-sdk)](https://www.npmjs.com/package/pcp-client-javascript-sdk)
+[![npm downloads](https://img.shields.io/npm/dw/pcp-client-javascript-sdk)](https://www.npmjs.com/package/pcp-client-javascript-sdk)
 
 Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Commerce Platform. This SDK provides everything a client needs to easily complete payments using Credit or Debit Card, PAYONE Buy Now Pay Later (BNPL) and Apple Pay.
 
