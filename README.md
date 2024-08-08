@@ -739,7 +739,7 @@ The [`prepare_release.sh`](./prepare_release.sh) script is a bash script designe
 
 ### Changelog Generation with Conventional Changelog
 
-Before calling the `prepare_release.sh` script, it is recommended to manually trigger the changelog generation script (which uses [conventional-changelog](https://github.com/conventional-changelog/conventional-changelog)).
+After calling the `prepare_release.sh` script, it is recommended to manually trigger the changelog generation script (which uses [conventional-changelog](https://github.com/conventional-changelog/conventional-changelog)).
 
 1. **Conventional Commit Messages**:
 
@@ -756,7 +756,7 @@ Before calling the `prepare_release.sh` script, it is recommended to manually tr
      ```sh
      npm run changelog
      ```
-   - Review and commit the updated changelog before proceeding with the release script.
+   - Review and commit the updated changelog before proceeding with the release.
 
 ### Merging the Release Branch
 
