@@ -93,7 +93,7 @@ To integrate the Credit Card Tokenizer feature into your application, follow the
   ```html
   <button id="submit">Submit</button>
   ```
-- If you want to use the credit card icons from the Payone CDN, make sure to have a container for them:
+- If you want to use the credit card icons from the PAYONE CDN, make sure to have a container for them:
   ```html
   <div id="ccIcons"></div>
   ```
@@ -250,11 +250,11 @@ Configuration for automatic card type detection.
 | `language`                         | `string`                                                                                                                                                   | The language for the SDK (e.g., `'de'`).                                                                                                               |
 | `submitButton`                     | `SubmitButtonConfig`                                                                                                                                       | Configuration for the submit button.                                                                                                                   |
 | `submitButtonWithOutCompleteCheck` | `SubmitButtonConfig` (optional)                                                                                                                            | Configuration for the submit button that skips the completeness check.                                                                                 |
-| `ccIcons`                          | `CreditCardIconsConfig` (optional)                                                                                                                         | Configuration for loading credit card icons from the Payone CDN and mounting them on the specified selector with individual selectors for easy access. |
+| `ccIcons`                          | `CreditCardIconsConfig` (optional)                                                                                                                         | Configuration for loading credit card icons from the PAYONE CDN and mounting them on the specified selector with individual selectors for easy access. |
 | `error`                            | `string` (optional)                                                                                                                                        | The name of the div-container where error messages should be displayed.                                                                                |
 | `creditCardCheckCallback`          | `(response: { [key: string]: string; status: string; pseudocardpan: string; truncatedcardpan: string; cardtype: string; cardexpiredate: string }) => void` | Callback function for credit card check responses.                                                                                                     |
 | `formNotCompleteCallback`          | `() => void` (optional)                                                                                                                                    | Callback function triggered when the form is not complete.                                                                                             |
-| `payOneScriptId`                   | `string` (optional)                                                                                                                                        | The ID for the Payone script to be loaded. Defaults to `payone-hosted-script`.                                                                         |
+| `payOneScriptId`                   | `string` (optional)                                                                                                                                        | The ID for the PAYONE script to be loaded. Defaults to `payone-hosted-script`.                                                                         |
 
 ##### SubmitButtonConfig
 
