@@ -29,7 +29,7 @@ We welcome pull requests! Please follow these steps to submit one:
 If you encounter any bugs, please report them using one of the following methods:
 
 1. **Issue Tracker**: Submit an issue through our [issues tracker](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/issues/new).
-2. **Security Issues**: For security-related issues, please contact our IT support via email at tech.support@payone.com with a clear subject line indicating that it is a security issue. This ensures that the issue will be visible to and handled by the Payone tech support team.
+2. **Security Issues**: For security-related issues, please contact our IT support via email at tech.support@payone.com with a clear subject line indicating that it is a security issue. This ensures that the issue will be visible to and handled by the PAYONE tech support team.
 
 ## Style Guides
 
