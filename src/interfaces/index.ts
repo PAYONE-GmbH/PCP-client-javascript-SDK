@@ -1231,7 +1231,7 @@ export interface OrderLineDetailsInput {
    *     Used for PAYONE Buy Now, Pay Later (BNPL).
    * @example https://shop.url/watches/watch01
    */
-  productURL?: string;
+  productUrl?: string;
   /**
    * Format: uri
    * @description URL of a product image.
