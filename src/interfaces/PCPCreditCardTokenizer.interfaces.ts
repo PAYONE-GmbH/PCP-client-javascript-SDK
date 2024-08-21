@@ -302,7 +302,7 @@ export interface Config {
    */
   formNotCompleteCallback?: () => void;
   /**
-   * Define an ID for the Payone script to be loaded. If not set, a default ID (payone-hosted-script) will be used.
+   * Define an ID for the PAYONE script to be loaded. If not set, a default ID (payone-hosted-script) will be used.
    */
   payOneScriptId?: string;
 }

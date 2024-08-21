@@ -28,9 +28,9 @@ export class PCPCreditCardTokenizer {
   private ccIconsContainerElement?: HTMLElement;
 
   /**
-   * Creates a new instance of the PCPCreditCardTokenizer, initializes the Payone script, and attaches event handlers to the submit button.
+   * Creates a new instance of the PCPCreditCardTokenizer, initializes the PAYONE script, and attaches event handlers to the submit button.
    * @param {Config} config - The configuration object sets up styles, auto card type detection, credit card icons, and callbacks
-   * @param {Omit<Request, 'hash'>} request - The request object contains the parameters for the Payone API
+   * @param {Omit<Request, 'hash'>} request - The request object contains the parameters for the PAYONE API
    * @param {string} pmiPortalKey - The pmiPortalKey is used to create a hash for the request object
    * @returns {Promise<PCPCreditCardTokenizer>} A new instance of the PCPCreditCardTokenizer
    */
@@ -64,7 +64,7 @@ export class PCPCreditCardTokenizer {
       this.createCreditCardIconElements(this.config.ccIcons);
     }
 
-    // add callback function to window object so it can be called by the Payone script
+    // add callback function to window object so it can be called by the PAYONE script
     window.payCallback = this.payCallback;
   }
 
@@ -190,7 +190,7 @@ export class PCPCreditCardTokenizer {
       script.id = scriptId;
       script.onload = () => resolve();
       script.onerror = () =>
-        reject(new Error('Failed to load the Payone script.'));
+        reject(new Error('Failed to load the PAYONE script.'));
       document.head.appendChild(script);
     });
   }
