@@ -8,7 +8,7 @@ This demo application showcases the integration of Apple Pay on the web using th
 
 - **SDK Integration**: The demo uses the `pcp-client-javascript-sdk`, which simplifies the Apple Pay session management. You only need to pass the correct configuration and a DOM selector.
 - **Pre-configured Apple Pay Button**: A ready-to-use Apple Pay button appears on your webpage, allowing users to open the payment sheet, select a payment method, adjust shipping and billing information, and verify themselves using Face ID or Touch ID.
-- **Payment Token and More**: The `onpaymentauthorized` callback returns not only a payment token but also additional billing and shipping information that can be used to process payments with Payone.
+- **Payment Token and More**: The `onpaymentauthorized` callback returns not only a payment token but also additional billing and shipping information that can be used to process payments with PAYONE.
 
 ## Setup
 
