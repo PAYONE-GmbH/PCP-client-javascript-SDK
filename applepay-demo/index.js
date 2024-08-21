@@ -98,7 +98,7 @@ app.post('/process-payment', async (req, res) => {
   console.log('Shipping contact:', req.body.shippingContact);
   const body = req.body;
 
-  // Process the payment with Payone here
+  // Process the payment with PAYONE here
 
   res.status(200).send({ success: true, body });
 });
