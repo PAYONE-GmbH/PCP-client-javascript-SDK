@@ -1,4 +1,8 @@
-## 0.0.2 (2024-08-21)
+# [1.0.0](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/v0.0.2...v1.0.0) (2024-08-22)
+
+
+
+## [0.0.2](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/8d7d08f8b07292ba70ca4dd1d1fc9b205a54e10a...v0.0.2) (2024-08-21)
 
 
 ### Features
