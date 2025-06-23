@@ -36,7 +36,8 @@
     "url": "https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK.git"
   },
   "dependencies": {
-    "@types/applepayjs": "14.0.9"
+    "@types/applepayjs": "14.0.9",
+    "@types/googlepay": "^0.7.6"
   },
   "devDependencies": {
     "@commitlint/cli": "19.8.1",
