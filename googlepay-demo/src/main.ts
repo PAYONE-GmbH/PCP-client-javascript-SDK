@@ -62,9 +62,14 @@ class MyGooglePayButton extends HTMLElement {
         currencyCode: 'EUR',
         countryCode: 'DE',
       },
-      callbackIntents: ['PAYMENT_AUTHORIZATION'],
+      callbackIntents: [
+        'PAYMENT_AUTHORIZATION',
+        'SHIPPING_ADDRESS',
+        'SHIPPING_OPTION',
+      ],
     };
     button.onLoadPaymentData = this.onLoadPaymentData;
+    button.onPaymentDataChanged = this.onPaymentDataChanged;
     button.onPaymentAuthorized = this.onPaymentAuthorized;
     button.onReadyToPayChange = this.onReadyToPayChange;
     button.onCancel = this.onCancel;
@@ -76,6 +81,22 @@ class MyGooglePayButton extends HTMLElement {
   onLoadPaymentData(paymentData: google.payments.api.PaymentData) {
     // This is where you would typically send the payment data to your server for processing
     console.log('load payment data', paymentData);
+  }
+
+  onPaymentDataChanged(
+    paymentDataChange: google.payments.api.IntermediatePaymentData,
+  ): google.payments.api.PaymentDataRequestUpdate {
+    // This is where you can handle changes to the payment data, such as shipping address, options or coupon codes
+    console.log('payment data changed', paymentDataChange);
+    return {
+      newTransactionInfo: {
+        totalPriceStatus: 'FINAL' as google.payments.api.TotalPriceStatus,
+        totalPriceLabel: 'Total',
+        totalPrice: '100.00',
+        currencyCode: 'EUR',
+        countryCode: 'DE',
+      },
+    };
   }
 
   onPaymentAuthorized(paymentData: google.payments.api.PaymentData) {
