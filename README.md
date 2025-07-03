@@ -32,6 +32,12 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
     - [4. Session Configuration Object](#4-session-configuration-object)
     - [5. Apple Pay Button Configuration](#5-apple-pay-button-configuration)
     - [6. Integrating the Apple Pay Session](#6-integrating-the-apple-pay-session)
+  - [Google Pay Integration](#google-pay-integration)
+    - [Setup Google Pay Integration](#setup-google-pay-integration-web-component-example)
+      - [1. Install Dependencies](#1-install-dependencies)
+      - [2. Create a Web Component](#2-create-a-web-component)
+      - [3. Add the Component to your HTML](#3-add-the-component-to-your-html)
+    - [Button Configuration Options](#button-configuration-options)
   - [PAYONE Commerce Platform Compliant Interfaces](#payone-commerce-platform-compliant-interfaces)
 - [Demonstration Projects](#demonstration-projects)
 - [Contributing](#contributing)
@@ -620,6 +626,163 @@ For further information see: https://docs.payone.com/payment-methods/apple-pay
 
 ---
 
+### Google Pay Integration
+
+The PAYONE Commerce Platform Client JavaScript SDK provides a demonstration project for Google Pay integration. The integration uses the official Google Pay Button libraries which are available for various frameworks:
+
+- Web Components ([@google-pay/button-element](https://github.com/google-pay/google-pay-button))
+- React ([@google-pay/button-react](https://github.com/google-pay/google-pay-button))
+- Angular ([@google-pay/button-angular](https://github.com/google-pay/google-pay-button))
+- Vue (using the Web Component)
+- Svelte (using the Web Component)
+
+Choose the appropriate library based on your framework:
+
+#### Web Components
+
+```bash
+npm install @google-pay/button-element
+```
+
+#### React
+
+```bash
+npm install @google-pay/button-react
+```
+
+#### Angular
+
+```bash
+npm install @google-pay/button-angular
+```
+
+Our demo implementation uses the Web Component version (@google-pay/button-element), but you can adapt the code to use any of the framework-specific versions. The configuration options and payment request structure remain the same across all versions.
+
+#### Setup Google Pay Integration (Web Component Example)
+
+##### 1. **Install Dependencies**
+
+```bash
+npm install @google-pay/button-element
+```
+
+##### 2. **Create a Web Component**
+
+Create a custom web component that encapsulates the Google Pay button:
+
+```typescript
+import GooglePayButton from '@google-pay/button-element';
+
+class MyGooglePayButton extends HTMLElement {
+  constructor() {
+    super();
+
+    const shadow = this.attachShadow({ mode: 'open' });
+    const button = new GooglePayButton();
+
+    // Configure the button
+    button.environment = 'TEST'; // Use 'PRODUCTION' for live environment
+    button.buttonLocale = 'de';
+    button.buttonType = 'pay';
+
+    // Configure the payment request
+    button.paymentRequest = {
+      apiVersion: 2,
+      apiVersionMinor: 0,
+      allowedPaymentMethods: [
+        {
+          type: 'CARD',
+          parameters: {
+            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+            allowedCardNetworks: ['MASTERCARD', 'VISA'],
+            billingAddressParameters: {
+              format: 'FULL',
+            },
+          },
+          tokenizationSpecification: {
+            type: 'PAYMENT_GATEWAY',
+            parameters: {
+              gateway: 'payonegmbh',
+              gatewayMerchantId: 'your-merchant-id',
+            },
+          },
+        },
+      ],
+      merchantInfo: {
+        merchantId: 'your-merchant-id',
+        merchantName: 'Your Merchant Name',
+      },
+      transactionInfo: {
+        totalPriceStatus: 'FINAL',
+        totalPriceLabel: 'Total',
+        totalPrice: '100.00',
+        currencyCode: 'EUR',
+        countryCode: 'DE',
+      },
+      // Optional: Configure shipping options
+      shippingAddressRequired: true,
+      shippingOptionRequired: true,
+      shippingOptionParameters: {
+        shippingOptions: [
+          {
+            id: 'standard',
+            label: 'Standard Shipping',
+            description: 'Arrives in 5-7 days',
+          },
+          {
+            id: 'express',
+            label: 'Express Shipping',
+            description: 'Arrives in 2-3 days',
+          },
+        ],
+        defaultSelectedOptionId: 'standard',
+      },
+    };
+
+    // Handle the payment data
+    button.onLoadPaymentData = (
+      paymentData: google.payments.api.PaymentData,
+    ) => {
+      console.log('Payment Data:', paymentData);
+      // This is where you would typically send the payment data to your server for processing
+    };
+
+    shadow.appendChild(button);
+  }
+}
+
+customElements.define('my-google-pay-button', MyGooglePayButton);
+```
+
+##### 3. **Add the Component to your HTML**
+
+```html
+<my-google-pay-button></my-google-pay-button>
+```
+
+#### Button Configuration Options
+
+| Property       | Type                              | Description                                    |
+| -------------- | --------------------------------- | ---------------------------------------------- |
+| environment    | `'TEST' \| 'PRODUCTION'`          | The Google Pay environment to use              |
+| buttonLocale   | `string`                          | The language for the button (e.g., 'de', 'en') |
+| buttonType     | `string`                          | The type of button ('pay', 'buy', etc.)        |
+| buttonColor    | `'default' \| 'black' \| 'white'` | The color scheme of the button                 |
+| buttonSizeMode | `'static' \| 'fill'`              | How the button should be sized                 |
+
+For more information about customizing the Google Pay Button, refer to:
+
+- [Customize your Google Pay Button](https://developers.google.com/pay/api/web/guides/resources/customize)
+
+For more information about Google Pay integration, refer to:
+
+- [Google Pay Button Element Documentation](https://github.com/google-pay/google-pay-button)
+- [Google Pay API Documentation](https://developers.google.com/pay/api/web/overview)
+
+**[back to top](#table-of-contents)**
+
+---
+
 ### PAYONE Commerce Platform Compliant Interfaces
 
 In addition to the Client-SDK, we also provide multiple Server-SDKs. If you want to directly expose PAYONE Commerce Platform compliant objects from your client, you can find all the necessary interfaces within the interfaces folder.
@@ -643,6 +806,7 @@ You can find demonstration projects for each feature in the corresponding direct
 - **Credit Card Tokenizer**: Check out the [creditcard-tokenizer-demo](./creditcard-tokenizer-demo/) folder.
 - **Fingerprinting Tokenizer**: See the [fingerprinting-tokenizer-demo](./fingerprinting-tokenizer-demo/) folder.
 - **Apple Pay Session Integration**: Refer to the [applepay-demo](./applepay-demo/) folder.
+- **Google Pay Integration**: Refer to the [googlepay-demo](./googlepay-demo/) folder.
 
 ### Building the SDK
 
@@ -707,12 +871,10 @@ npm version major|minor|patch
 The changelog gets generated automatically when the npm version gets bumped via `npm version major|minor|patch` within the `version.sh` script.
 
 1. **Conventional Commit Messages**:
-
    - Ensure all commit messages follow the conventional commit format, which helps in automatic changelog generation.
    - Commit messages should be in the format: `type(scope): subject`.
 
 2. **Enforcing Commit Messages**:
-
    - We enforce conventional commit messages using [Lefthook](https://github.com/evilmartians/lefthook) with [commitlint](https://github.com/conventional-changelog/commitlint).
    - This setup ensures that all commit messages are validated before they are committed.
 
