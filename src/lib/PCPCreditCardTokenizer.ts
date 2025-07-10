@@ -8,9 +8,9 @@ declare global {
 }
 
 export class PCPCreditCardTokenizer {
-  private config: Config;
+  private readonly config: Config;
   private readonly jwtToken: string;
-  private submitButtonElement: HTMLElement;
+  private readonly submitButtonElement: HTMLElement;
 
   /**
    * Creates a new instance of the PCPCreditCardTokenizer, initializes the Hosted Tokenization SDK, and attaches event handlers to the submit button.
