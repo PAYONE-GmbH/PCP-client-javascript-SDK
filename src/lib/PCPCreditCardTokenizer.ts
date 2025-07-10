@@ -1,183 +1,75 @@
-import { Cardtype, Config, Request } from '../interfaces/index.js';
-import { createHash } from './crypto.js';
+import { Config } from '../interfaces/index.js';
 
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Payone: any;
-    payCallback: (response: {
-      [key: string]: string;
-      status: string;
-      pseudocardpan: string;
-      truncatedcardpan: string;
-      cardtype: string;
-      cardexpiredate: string;
-    }) => void;
+    HostedTokenizationSdk: any;
   }
 }
 
 export class PCPCreditCardTokenizer {
-  private config: Config;
-  private request: Request;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private iframes: any;
-
-  private submitButtonElement: HTMLElement;
-  private submitButtonWithOutCompleteCheckElement?: HTMLElement;
-
-  private ccIconsContainerElement?: HTMLElement;
+  private readonly config: Config;
+  private readonly jwtToken: string;
+  private readonly submitButtonElement: HTMLElement;
 
   /**
-   * Creates a new instance of the PCPCreditCardTokenizer, initializes the PAYONE script, and attaches event handlers to the submit button.
-   * @param {Config} config - The configuration object sets up styles, auto card type detection, credit card icons, and callbacks
-   * @param {Omit<Request, 'hash'>} request - The request object contains the parameters for the PAYONE API
-   * @param {string} pmiPortalKey - The pmiPortalKey is used to create a hash for the request object
+   * Creates a new instance of the PCPCreditCardTokenizer, initializes the Hosted Tokenization SDK, and attaches event handlers to the submit button.
+   * @param {Config} config - The configuration object for UI and callbacks
+   * @param {string} jwtToken - The JWT token from your backend (CommercePlatform-API)
    * @returns {Promise<PCPCreditCardTokenizer>} A new instance of the PCPCreditCardTokenizer
    */
-  public static async create(
-    config: Config,
-    request: Omit<Request, 'hash'>,
-    pmiPortalKey: string,
-  ) {
-    const instance = new PCPCreditCardTokenizer(config, request);
-    await instance.initialize(pmiPortalKey);
+  public static async create(config: Config, jwtToken: string) {
+    const instance = new PCPCreditCardTokenizer(config, jwtToken);
+    await instance.initialize();
     return instance;
   }
 
-  private constructor(config: Config, request: Omit<Request, 'hash'>) {
+  private constructor(config: Config, jwtToken: string) {
     this.config = config;
-    this.request = request;
-    this.checkForRequiredElementsForConfigFields();
+    this.jwtToken = jwtToken;
     this.submitButtonElement =
       this.checkForRequiredElementsAndReturnSubmitButtonElement();
   }
 
-  private async initialize(pmiPortalKey: string) {
-    await this.loadPayoneScript();
-    this.request.hash = await createHash(this.request, pmiPortalKey);
-    this.iframes = new window.Payone.ClientApi.HostedIFrames(
-      this.config,
-      this.request,
-    );
-    this.attachEventHandlers();
-    if (this.config.ccIcons?.selector) {
-      this.createCreditCardIconElements(this.config.ccIcons);
-    }
+  private async initialize() {
+    await this.loadHostedTokenizationSdk();
 
-    // add callback function to window object so it can be called by the PAYONE script
-    window.payCallback = this.payCallback;
-  }
+    const sdkConfig = {
+      iframe: {
+        iframeWrapperId:
+          this.config.iframe?.iframeWrapperId || 'payment-IFrame',
+        height: this.config.iframe?.height || 400,
+        width: this.config.iframe?.width || 400,
+      },
+      uiConfig: this.config.uiConfig || {},
+      locale: this.config.locale || 'de_DE',
+      token: this.jwtToken,
+    };
 
-  private checkForRequiredElementsForConfigFields() {
-    const cardPanRequiredField =
-      this.config.fields.cardpan.element ||
-      document.querySelector(
-        `#${this.config.fields.cardpan.selector as string}`,
-      );
-    const cardCvc2RequiredField =
-      this.config.fields.cardcvc2.element ||
-      document.querySelector(
-        `#${this.config.fields.cardcvc2.selector as string}`,
-      );
-    const cardExpireMonthRequiredField =
-      this.config.fields.cardexpiremonth.element ||
-      document.querySelector(
-        `#${this.config.fields.cardexpiremonth.selector as string}`,
-      );
-    const cardExpireYearRequiredField =
-      this.config.fields.cardexpireyear.element ||
-      document.querySelector(
-        `#${this.config.fields.cardexpireyear.selector as string}`,
-      );
+    if (window.HostedTokenizationSdk) {
+      try {
+        await window.HostedTokenizationSdk.init();
+        window.HostedTokenizationSdk.getPaymentPage(sdkConfig);
+      } catch (error) {
+        console.error('Error initializing Hosted Tokenization SDK:', error);
+        throw new Error('Failed to initialize Hosted Tokenization SDK.');
+      }
 
-    const missingElements = [];
-    if (!cardPanRequiredField) {
-      missingElements.push('cardpan');
-    }
-    if (!cardCvc2RequiredField) {
-      missingElements.push('cardcvc2');
-    }
-    if (!cardExpireMonthRequiredField) {
-      missingElements.push('cardexpiremonth');
-    }
-    if (!cardExpireYearRequiredField) {
-      missingElements.push('cardexpireyear');
-    }
-    if (missingElements.length > 0) {
-      throw new Error(
-        `The following container elements are missing: ${missingElements.join(', ')}. Please provide valid selectors or elements.`,
-      );
-    }
-  }
-
-  private checkForRequiredElementsAndReturnSubmitButtonElement() {
-    if (this.config.ccIcons) {
-      const ccIconsContainerElement =
-        this.config.ccIcons.element ||
-        document.querySelector(this.config.ccIcons.selector as string);
-      if (!ccIconsContainerElement) {
-        throw new Error(
-          `Container for Credit Card Icons not present. Please provide a valid selector or element.`,
+      this.submitButtonElement.onclick = () => {
+        window.HostedTokenizationSdk.submitForm(
+          this.config.tokenizationSuccessCallback,
+          this.config.tokenizationFailureCallback,
         );
-      }
-      this.ccIconsContainerElement = ccIconsContainerElement as HTMLElement;
+      };
     }
-
-    if (this.config.submitButtonWithOutCompleteCheck) {
-      const submitButtonWithOutCompleteCheckElement =
-        this.config.submitButtonWithOutCompleteCheck.element ||
-        document.querySelector(
-          this.config.submitButtonWithOutCompleteCheck.selector as string,
-        );
-      if (!submitButtonWithOutCompleteCheckElement) {
-        throw new Error(
-          `Submit Button without complete check not present. Please provide a valid selector or element.`,
-        );
-      }
-      this.submitButtonWithOutCompleteCheckElement =
-        submitButtonWithOutCompleteCheckElement as HTMLElement;
-    }
-
-    const submitButtonElement =
-      this.config.submitButton.element ||
-      document.querySelector(this.config.submitButton.selector as string);
-
-    if (!submitButtonElement) {
-      throw new Error(
-        `Submit Button not present. Please provide a valid selector or element.`,
-      );
-    }
-    return submitButtonElement as HTMLElement;
   }
 
-  private createCreditCardIconElements(ccIcons: Config['ccIcons']) {
-    const style = ccIcons!.style;
-
-    this.config.autoCardtypeDetection.supportedCardtypes.forEach((cardtype) => {
-      const selector = ccIcons!.mapCardtypeToSelector?.[cardtype as Cardtype];
-      const type = cardtype.toLowerCase();
-      const img = document.createElement('img');
-      img.className = 'cc-icon';
-      img.src = `https://cdn.pay1.de/cc/${type}/l/default.png`;
-      img.alt = `${type} Icon`;
-      img.setAttribute('data-cc-type', type);
-      if (style) {
-        for (const key in style) {
-          const value = style[key];
-          if (value) {
-            img.style.setProperty(key, value);
-          }
-        }
-      }
-      if (selector) {
-        img.setAttribute('cc-selector', selector);
-      }
-      this.ccIconsContainerElement!.appendChild(img);
-    });
-  }
-
-  private loadPayoneScript(): Promise<void> {
-    const scriptId = this.config.payOneScriptId || 'payone-hosted-script';
+  private loadHostedTokenizationSdk(): Promise<void> {
+    // If SDK is already present (e.g. in tests), resolve immediately
+    if (typeof window !== 'undefined' && window.HostedTokenizationSdk) {
+      return Promise.resolve();
+    }
+    const scriptId = 'hosted-tokenization-sdk';
     return new Promise((resolve, reject) => {
       if (document.getElementById(scriptId)) {
         resolve();
@@ -186,43 +78,25 @@ export class PCPCreditCardTokenizer {
       const script = document.createElement('script');
       script.type = 'text/javascript';
       script.src =
-        'https://secure.prelive.pay1-test.de/client-api/js/v1/payone_hosted_min.js';
+        'https://sdk.preprod.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk.js';
       script.id = scriptId;
       script.onload = () => resolve();
       script.onerror = () =>
-        reject(new Error('Failed to load the PAYONE script.'));
+        reject(new Error('Failed to load the Hosted Tokenization SDK script.'));
       document.head.appendChild(script);
     });
   }
 
-  private attachEventHandlers() {
-    this.submitButtonElement.onclick = () => {
-      this.pay();
-    };
+  private checkForRequiredElementsAndReturnSubmitButtonElement() {
+    const submitButtonElement =
+      this.config.submitButton?.element ||
+      document.querySelector(this.config.submitButton?.selector as string);
 
-    if (this.config.submitButtonWithOutCompleteCheck) {
-      this.submitButtonWithOutCompleteCheckElement!.onclick = () => {
-        this.iframes.creditCardCheck('payCallback');
-      };
+    if (!submitButtonElement) {
+      throw new Error(
+        `Submit Button not present. Please provide a valid selector or element.`,
+      );
     }
+    return submitButtonElement as HTMLElement;
   }
-
-  private pay() {
-    if (this.iframes.isComplete()) {
-      this.iframes.creditCardCheck('payCallback');
-    } else {
-      this.config.formNotCompleteCallback?.();
-    }
-  }
-
-  private payCallback = (response: {
-    [key: string]: string;
-    status: string;
-    pseudocardpan: string;
-    truncatedcardpan: string;
-    cardtype: string;
-    cardexpiredate: string;
-  }) => {
-    this.config.creditCardCheckCallback(response);
-  };
 }

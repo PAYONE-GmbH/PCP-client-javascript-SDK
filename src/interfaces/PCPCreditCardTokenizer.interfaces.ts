@@ -217,94 +217,70 @@ export interface Request {
 }
 
 export interface SubmitButtonConfig {
-  /**
-   * Name of your container selector, e.g. "#submit".
-   * Either "selector" or "element" is required.
-   */
   selector?: string;
-  /**
-   * Javascript Element of the container, e.g. "document.getElementById("submitButton")"
-   */
   element?: HTMLElement;
 }
 
-export interface CreditCardIconsConfig {
-  /**
-   * Name of your container selector, e.g. "#cc-icons".
-   * Either "selector" or "element" is required.
-   */
-  selector?: string;
-  /**
-   * Javascript Element of the container, e.g. "document.getElementById("cc-icons")"
-   */
-  element?: HTMLElement;
-  /**
-   * Map cardtype to selector, e.g. { "V": "#visa", "M": "#mastercard" }
-   */
-  mapCardtypeToSelector?: Partial<Record<Cardtype, string>>;
-  /**
-   * CSS style properties for credit card icons, e.g.
-   * {
-   *     height: "25px", width: "50px", margin: "0 10px", ...
-   * }
-   */
-  style?: {
-    [key: string]: string | undefined;
-    height?: string;
-    width?: string;
-  };
+export interface UIConfig {
+  formBgColor?: string;
+  fieldBgColor?: string;
+  fieldBorder?: string;
+  fieldOutline?: string;
+  fieldLabelColor?: string;
+  fieldPlaceholderColor?: string;
+  fieldTextColor?: string;
+  fieldErrorCodeColor?: string;
+  // Add more UI customization options as needed
+}
+
+export interface IframeConfig {
+  iframeWrapperId: string;
+  height?: number;
+  width?: number;
 }
 
 export interface Config {
-  fields: {
-    cardtype?: CardtypeFieldConfig;
-    cardpan: FieldConfig;
-    cardcvc2: FieldConfig;
-    cardexpiremonth: FieldConfig;
-    cardexpireyear: FieldConfig;
-  };
-  defaultStyle: Style;
-  autoCardtypeDetection: AutoCardtypeDetection;
-  language: string;
-  submitButton: SubmitButtonConfig;
-  submitButtonWithOutCompleteCheck?: SubmitButtonConfig;
-  ccIcons?: CreditCardIconsConfig;
   /**
-   * The value for attribute "error" refers to the name of your div-container where error-messages should be displayed.
+   * Configuration for the iframe container and its size.
    */
-  error?: string;
+  iframe?: IframeConfig;
 
   /**
-   * Define a callback function that is called after the credit card check has been completed. The function receives the response object as a parameter.
-   * The response object contains either:
-   *    - response.status = "VALID"
-   *    - response.pseudocardpan containing the unique pseudocardnumber (Pseudo-PAN)
-   *    - response.truncatedcardpan containing the masked creditcard number (masked PAN)
-   *    - response.cardtype containing the selected cardtype
-   *    - response. cardexpiredate containing the entered expiredate (YYMM)
-   *
-   * or
-   *    - response.status = "INVALID"
-   *    - response.errorcode -> please refer to the section "error messages"
-   *    - response.errormessage in the specified language
-   * @param {Object} response - Object containing the response of the credit card check
+   * UI customization for the hosted tokenization form.
    */
-  creditCardCheckCallback: (response: {
-    [key: string]: string;
-    status: string;
-    pseudocardpan: string;
-    truncatedcardpan: string;
-    cardtype: string;
-    cardexpiredate: string;
-  }) => void;
+  uiConfig?: UIConfig;
+
   /**
-   * Define a callback function that is called after the form has been submitted by the normal submit button and the form is not complete.
+   * Locale for the form, e.g. "de_DE".
    */
-  formNotCompleteCallback?: () => void;
+  locale?: string;
+
   /**
-   * Define an ID for the PAYONE script to be loaded. If not set, a default ID (payone-hosted-script) will be used.
+   * Submit button configuration (selector or element).
    */
-  payOneScriptId?: string;
+  submitButton?: SubmitButtonConfig;
+
+  /**
+   * Callback for successful tokenization.
+   */
+  tokenizationSuccessCallback: (
+    statusCode: number,
+    token: string,
+    cardDetails: {
+      cardholderName?: string;
+      cardNumber?: string;
+      expiryDate?: string;
+      [key: string]: unknown;
+    },
+  ) => void;
+
+  /**
+   * Callback for failed tokenization.
+   */
+  tokenizationFailureCallback: (
+    statusCode: number,
+    errorResponse: { error?: string; [key: string]: unknown },
+  ) => void;
 }
 
 /**
