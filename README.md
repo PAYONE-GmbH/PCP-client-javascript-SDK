@@ -13,12 +13,14 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
 - [Installation](#installation)
 - [Usage](#usage)
   - [Credit Card Tokenizer](#credit-card-tokenizer)
-    - [1. Setup Input Containers and Submit Button](#1-setup-input-containers-and-submit-button)
-    - [2. Import Tokenizer and Types from the SDK](#2-import-tokenizer-and-types-from-the-sdk)
-    - [3. Configuration Object](#3-configuration-object)
-    - [4. Request Object](#4-request-object)
-    - [5. Initialize the Credit Card Tokenizer](#5-initialize-the-credit-card-tokenizer)
-    - [6. Handle Credit Card Input and Submission](#6-handle-credit-card-input-and-submission)
+    - [1. Add the Payment IFrame and Submit Button to your HTML](#1-add-the-payment-iframe-and-submit-button-to-your-html)
+    - [2. Import the Tokenizer and Types from the SDK](#2-import-the-tokenizer-and-types-from-the-sdk)
+    - [3. Configure the Tokenizer](#3-configure-the-tokenizer)
+    - [4. Fetch the JWT Token from your Backend](#4-fetch-the-jwt-token-from-your-backend)
+    - [5. Initialize the Tokenizer](#5-initialize-the-tokenizer)
+    - [6. Customization and Callbacks](#6-customization-and-callbacks)
+    - [7. PCI DSS & Security](#7-pci-dss--security)
+    - [8. Migration Note](#8-migration-note)
   - [Fingerprinting Tokenizer](#fingerprinting-tokenizer)
     - [1. Import Tokenizer from the SDK](#1-import-tokenizer-from-the-sdk)
     - [2. Setup Selector for Script and Link Tag](#2-setup-selector-for-script-and-link-tag)
@@ -84,286 +86,99 @@ pnpm add pcp-client-javascript-sdk
 
 ### Credit Card Tokenizer
 
-The Credit Card Tokenizer is an essential component for handling payments on the PAYONE Commerce Platform. It securely collects and processes credit or debit card information to generate a `paymentProcessingToken`, which is required for the Server-SDK to complete the payment process. Without this token, the server cannot perform the transaction. The tokenizer ensures that sensitive card details are handled securely and is PCI DSS (Payment Card Industry Data Security Standard) compliant.
+The Credit Card Tokenizer now uses the new PAYONE Hosted Tokenization SDK. It securely collects and processes credit or debit card information in a PCI DSS-compliant way, returning a token for use in your server-side payment process.
 
 To integrate the Credit Card Tokenizer feature into your application, follow these steps:
 
-#### 1. **Setup Input Containers and Submit Button:**
+#### 1. **Add the Payment IFrame and Submit Button to your HTML**
 
-- Create a container for each input iframe. For example:
-  ```html
-  <div id="cardpanInput"></div>
-  <div id="cardcvc2Input"></div>
-  <div id="cardExpireMonthInput"></div>
-  <div id="cardExpireYearInput"></div>
-  ```
-- Create a submit button to trigger the credit card check:
-  ```html
-  <button id="submit">Submit</button>
-  ```
-- If you want to use the credit card icons from the PAYONE CDN, make sure to have a container for them:
-  ```html
-  <div id="ccIcons"></div>
-  ```
-
-#### 2. **Import Tokenizer and Types from the SDK:**
-
-```typescript
-import {
-  PCPCreditCardTokenizer,
-  Config,
-  Request,
-} from 'pcp-client-javascript-sdk';
+```html
+<div id="payment-IFrame"></div>
+<button id="submit">Submit</button>
 ```
 
-#### 3. **Configuration Object:**
-
-The configuration object sets up styles, auto card type detection, credit card icons, and callbacks.
-
-<details>
-  <summary>Example Configuration Object:</summary>
-  
-```typescript
-  const config: Config = {
-    fields: {
-      cardpan: { selector: '#cardpanInput', type: 'text' },
-      cardcvc2: {
-        selector: '#cardcvc2Input',
-        size: '4',
-        maxlength: '4',
-        type: 'password',
-        length: { V: 3, M: 3, A: 4, J: 0 },
-      },
-      cardexpiremonth: { selector: '#cardExpireMonthInput', type: 'text' },
-      cardexpireyear: { selector: '#cardExpireYearInput', type: 'text' },
-    },
-    defaultStyle: {
-      input: 'font-size: 1em; border: 1px solid #000; width: 175px;',
-      inputFocus: 'border: 1px solid #00f;',
-      select: 'font-size: 1em; border: 1px solid #000; width: 175px;',
-      iframe: {
-        width: '100%',
-        height: '40px',
-      },
-    },
-    autoCardtypeDetection: {
-      supportedCardtypes: ['V', 'M', 'A', 'D', 'J'],
-      callback: (detectedCardtype) => {
-        console.log(`Detected card type: ${detectedCardtype}`);
-      },
-    },
-    language: 'de',
-    submitButtonId: 'submit',
-    ccIcons: {
-      selector: '#ccIcons',
-      mapCardtypeToSelector: {
-        V: '#visa',
-        M: '#mastercard',
-        A: '#american-express',
-        D: '#diners-club',
-        J: '#jcb',
-      },
-      style: {
-        height: '20px',
-        width: '30px',
-      },
-    },
-    creditCardCheckCallback: (response) => {
-      console.log('Credit card check response:', response);
-      // Handle the response as needed
-    },
-  };
-  ```
-</details>
-
-Below are the details for each field in the configuration object:
-
-#### Property: fields
-
-Defines the various input fields for credit card details.
-
-| Property          | Type                             | Description                                        |
-| ----------------- | -------------------------------- | -------------------------------------------------- |
-| `cardpan`         | `FieldConfig`                    | Configuration for the card number field.           |
-| `cardcvc2`        | `FieldConfig`                    | Configuration for the card CVC2 field.             |
-| `cardexpiremonth` | `FieldConfig`                    | Configuration for the card expiration month field. |
-| `cardexpireyear`  | `FieldConfig`                    | Configuration for the card expiration year field.  |
-| `cardtype`        | `CardtypeFieldConfig` (optional) | Configuration for the card type field.             |
-
-##### FieldConfig
-
-- **selector**: `string`  
-  The CSS selector for the input element.
-
-- **element**: `HTMLElement` (optional)  
-  The actual DOM element if not using a selector.
-
-- **size**: `string` (optional)  
-  The size attribute for the input element.
-
-- **maxlength**: `string` (optional)  
-  The maximum length of input allowed.
-
-- **length**: `{ [key: string]: number }` (optional)  
-  Specifies the length for various card types (e.g., `{ V: 3, M: 3, A: 4, J: 0 }`).
-
-- **type**: `string`  
-  The type attribute for the input element (e.g., `text`, `password`).
-
-- **style**: `string` (optional)  
-  CSS styles applied to the input element.
-
-- **styleFocus**: `string` (optional)  
-  CSS styles applied when the input element is focused.
-
-- **iframe**: `{ width?: string; height?: string }` (optional)  
-  Dimensions for the iframe if used.
-
-##### CardtypeFieldConfig
-
-- **selector**: `string`  
-  The CSS selector.
-
-- **element**: `HTMLElement` (optional)  
-  The actual DOM element if not using a selector.
-
-- **cardtypes**: `string[]`  
-  List of supported card types (e.g., `['V', 'M', 'A', 'D', 'J']`). The new card type "#" enforces user selection and displays "Please select" initially.
-
-#### Property: defaultStyle
-
-Defines the default styling for various elements.
-
-| Property     | Type                                  | Description                            |
-| ------------ | ------------------------------------- | -------------------------------------- |
-| `input`      | `string`                              | CSS styles for input elements.         |
-| `inputFocus` | `string`                              | CSS styles for focused input elements. |
-| `select`     | `string`                              | CSS styles for select elements.        |
-| `iframe`     | `{ width?: string; height?: string }` | Dimensions for the iframe.             |
-
-#### Property: autoCardtypeDetection
-
-Configuration for automatic card type detection.
-
-| Property             | Type                                 | Description                                           |
-| -------------------- | ------------------------------------ | ----------------------------------------------------- |
-| `supportedCardtypes` | `string[]`                           | List of supported card types.                         |
-| `callback`           | `(detectedCardtype: string) => void` | Callback function triggered upon card type detection. |
-| `deactivate`         | `boolean` (optional)                 | If true, deactivates auto card type detection.        |
-
-#### Additional Configurations
-
-| Property                           | Type                                                                                                                                                       | Description                                                                                                                                            |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `language`                         | `string`                                                                                                                                                   | The language for the SDK (e.g., `'de'`).                                                                                                               |
-| `submitButton`                     | `SubmitButtonConfig`                                                                                                                                       | Configuration for the submit button.                                                                                                                   |
-| `submitButtonWithOutCompleteCheck` | `SubmitButtonConfig` (optional)                                                                                                                            | Configuration for the submit button that skips the completeness check.                                                                                 |
-| `ccIcons`                          | `CreditCardIconsConfig` (optional)                                                                                                                         | Configuration for loading credit card icons from the PAYONE CDN and mounting them on the specified selector with individual selectors for easy access. |
-| `error`                            | `string` (optional)                                                                                                                                        | The name of the div-container where error messages should be displayed.                                                                                |
-| `creditCardCheckCallback`          | `(response: { [key: string]: string; status: string; pseudocardpan: string; truncatedcardpan: string; cardtype: string; cardexpiredate: string }) => void` | Callback function for credit card check responses.                                                                                                     |
-| `formNotCompleteCallback`          | `() => void` (optional)                                                                                                                                    | Callback function triggered when the form is not complete.                                                                                             |
-| `payOneScriptId`                   | `string` (optional)                                                                                                                                        | The ID for the PAYONE script to be loaded. Defaults to `payone-hosted-script`.                                                                         |
-
-##### SubmitButtonConfig
-
-- **selector**: `string` (optional)  
-  The CSS selector for the submit button.
-
-- **element**: `HTMLElement` (optional)  
-  The actual DOM element if not using a selector.
-
-##### CreditCardIconsConfig
-
-- **selector**: `string` (optional)  
-  The CSS selector for the container of the credit card icons.
-
-- **element**: `HTMLElement` (optional)  
-  The actual DOM element if not using a selector.
-
-- **mapCardtypeToSelector**: `Partial<Record<Cardtype, string>>` (optional)  
-  Maps card types to their corresponding icon selectors (e.g., `{ V: '#visa', M: '#mastercard' }`).
-
-- **style**: `{ [key: string]: string | undefined; height?: string; width?: string; }` (optional)  
-  CSS styles for the icons (e.g., `{ height: '20px', width: '30px' }`).
-
-#### Card Types
-
-The `Cardtype` enum defines the supported credit card types within the SDK. Each card type corresponds to a particular credit card brand and has specific BIN (Bank Identification Number) ranges for automatic detection. The following table provides details on each card type, its value, and the BIN ranges used for automatic detection:
-
-| Cardtype | Value                 | BIN Range                              | Comment                                                     |
-| -------- | --------------------- | -------------------------------------- | ----------------------------------------------------------- |
-| `V`      | Visa                  | 4                                      |                                                             |
-| `M`      | MasterCard            | 51-55, 2221-2720                       |                                                             |
-| `A`      | American Express      | 34, 37                                 |                                                             |
-| `D`      | Diners / Discover     | 300-305, 3095, 36, 38, 39, 601, 64, 65 |                                                             |
-| `J`      | JCB                   | 3528-3589                              |                                                             |
-| `O`      | Maestro International | 50, 56-58, 602, 61, 620, 627, 63, 67   |                                                             |
-| `P`      | China Union Pay       | 62212600-62299800, 624-626, 6282-6288  |                                                             |
-| `U`      | UATP / Airplus        | 1220, 1920                             | Coming soon; not available yet                              |
-| `G`      | girocard              | 68                                     | Currently only viable for e-commerce payments via Apple Pay |
-
-The `Cardtype` values are used within the configuration object to specify the supported card types for various fields and functionalities, such as the automatic card type detection and the selection of credit card icons.
-
-#### 4. **Request Object:**
-
-The `Request` object is a crucial component used to initiate a credit card check via the PAYONE API. Below are the detailed instructions on how to construct the `Request` object, including descriptions of its properties and their required values.
-
-#### Example Request Object
+#### 2. **Import the Tokenizer and Types from the SDK**
 
 ```typescript
-const request: Request = {
-  request: 'creditcardcheck',
-  responsetype: 'JSON',
-  mode: 'test', // or 'live'
-  mid: '123456789', // your Merchant ID
-  aid: '987654321', // your Account ID
-  portalid: '12340001', // your Portal ID
-  encoding: 'UTF-8', // or 'ISO-8859-1'
-  storecarddata: 'yes',
-  api_version: '3.11',
-  checktype: 'TC', // optional, for Deutsche Bahn only
-  // The hash is generated by the PAYONE Commerce Platform Client JavaScript SDK.
+import { Config, PCPCreditCardTokenizer } from 'pcp-client-javascript-sdk';
+```
+
+#### 3. **Configure the Tokenizer**
+
+```typescript
+const config: Config = {
+  iframe: {
+    iframeWrapperId: 'payment-IFrame',
+    height: 400,
+    width: 400,
+  },
+  uiConfig: {
+    formBgColor: '#64bbb7',
+    fieldBgColor: 'wheat',
+    fieldBorder: '1px solid #b33cd8',
+    fieldOutline: '#101010 solid 5px',
+    fieldLabelColor: '#d3d83c',
+    fieldPlaceholderColor: 'blue',
+    fieldTextColor: 'crimson',
+    fieldErrorCodeColor: 'green',
+  },
+  locale: 'de_DE',
+  submitButton: {
+    selector: '#submit',
+  },
+  tokenizationSuccessCallback: (statusCode, token, cardDetails) => {
+    console.log('Tokenized card successfully');
+    console.log('Status:', statusCode);
+    console.log('Token:', token);
+    console.log('Card Details:', cardDetails);
+  },
+  tokenizationFailureCallback: (statusCode, errorResponse) => {
+    console.error('Tokenization of card failed');
+    console.error('Status:', statusCode);
+    console.error('Error:', errorResponse.error);
+  },
 };
 ```
 
-#### Request Object Properties
-
-| Attribute       | Value                       | Description                                                                                         |
-| --------------- | --------------------------- | --------------------------------------------------------------------------------------------------- |
-| `request`       | `'creditcardcheck'`         | Fixed value indicating the type of request.                                                         |
-| `responsetype`  | `'JSON'`                    | Fixed value indicating the response format.                                                         |
-| `mode`          | `'live'` or `'test'`        | Mode for transactions.                                                                              |
-| `mid`           | Your Merchant ID            | Merchant ID                                                                                         |
-| `aid`           | Your Account ID             | Account ID                                                                                          |
-| `portalid`      | Your Portal ID              | Portal ID                                                                                           |
-| `encoding`      | `'ISO-8859-1'` or `'UTF-8'` | Character encoding to be used.                                                                      |
-| `storecarddata` | `'yes'` or `'no'`           | Specifies whether a pseudocardnumber shall be generated for later use (e.g. payment request)        |
-| `api_version`   | `'3.11'`                    | Recommended API version to be used; it's recommended to use the newest version                      |
-| `checktype`     | `'TC'` (optional)           | Configuration valid for Deutsche Bahn only. Indicates starting `creditcardcheck` with travel cards. |
-| `hash`          | Generated hash value        | SHA-2 384 hash over request values plus the portal key in your PMI portal configuration.            |
-
-#### Hash Generation
-
-The `hash` attribute is a security feature that ensures the integrity and authenticity of the request. It is generated by creating an HMAC-SHA384 hash of the concatenated request values (in alphabetical order) and your portal key. The PAYONE Commerce Platform Client JavaScript SDK handles the hash generation, so no additional implementation is necessary on your part.
-
-#### 5. **Initialize the Credit Card Tokenizer:**
-
-Initialize the Credit Card Tokenizer with the configuration and request objects, along with your PMI Portal Key:
+#### 4. **Fetch the JWT Token from your Backend**
 
 ```typescript
-const pmiPortalKey = 'your-pmi-portal-key';
-const creditCardTokenizer = await PCPCreditCardTokenizer.create(
-  config,
-  request,
-  pmiPortalKey,
-);
+const fetchJwtToken = async (): Promise<string> => {
+  // Fetch the JWT from your backend (CommercePlatform-API)
+  return '<Token to be retrieved from the CommercePlatform-API>';
+};
 ```
 
-#### 6. **Handle Credit Card Input and Submission:**
+#### 5. **Initialize the Tokenizer**
 
-When the user enters valid credit card information and clicks the submit button, the `creditCardCheckCallback` will be triggered, providing the response with all necessary information for the server to continue the credit card payment process.
+```typescript
+const init = async () => {
+  const jwtToken = await fetchJwtToken();
+  await PCPCreditCardTokenizer.create(config, jwtToken);
+};
 
-For further information see: https://docs.payone.com/pcp/commerce-platform-payment-methods/credit-and-debit-card-payments and https://docs.payone.com/integration/channel-client-api/client-api-hosted-iframe-mode
+init();
+```
+
+#### 6. **Customization and Callbacks**
+
+- `iframe`: Configure the container and size for the payment iframe.
+- `uiConfig`: Customize the look and feel of the form fields.
+- `locale`: Set the language/locale for the form.
+- `submitButton`: Provide a selector or element for the submit button.
+- `tokenizationSuccessCallback`: Handle the token and card details on success.
+- `tokenizationFailureCallback`: Handle errors on failure.
+
+#### 7. **PCI DSS & Security**
+
+- The SDK uses a JWT from your backend for secure initialization.
+- All card data is handled inside the iframe and never touches your application code.
+
+#### 8. **Migration Note**
+
+If you previously used the classic PAYONE Hosted IFrames, update your integration to use the new Hosted Tokenization SDK as shown above. The old `fields`, `defaultStyle`, and related config are no longer used.
+
+**For more details, see the [demo project](./creditcard-tokenizer-demo/).**
 
 **[back to top](#table-of-contents)**
 
