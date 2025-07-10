@@ -9,7 +9,7 @@ declare global {
 
 export class PCPCreditCardTokenizer {
   private config: Config;
-  private jwtToken: string;
+  private readonly jwtToken: string;
   private submitButtonElement: HTMLElement;
 
   /**
@@ -87,7 +87,7 @@ export class PCPCreditCardTokenizer {
     });
   }
 
-  private tokenizationSuccessCallback = (
+  private readonly tokenizationSuccessCallback = (
     statusCode: number,
     token: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,7 +98,7 @@ export class PCPCreditCardTokenizer {
     }
   };
 
-  private tokenizationFailureCallback = (
+  private readonly tokenizationFailureCallback = (
     statusCode: number,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     errorResponse: any,
