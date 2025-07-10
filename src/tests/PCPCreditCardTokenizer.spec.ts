@@ -49,6 +49,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
+      environment: 'test',
     };
     const jwtToken = 'dummy-jwt';
 
@@ -71,6 +72,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
+      environment: 'test',
     };
     const jwtToken = 'dummy-jwt';
 
@@ -93,6 +95,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#notfound' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
+      environment: 'test',
     };
     const jwtToken = 'dummy-jwt';
 
@@ -114,6 +117,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { element: button },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
+      environment: 'test',
     };
     const jwtToken = 'dummy-jwt';
     await PCPCreditCardTokenizer.create(config, jwtToken);
@@ -135,6 +139,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
+      environment: 'test',
     };
     const jwtToken = 'dummy-jwt';
     await expect(
@@ -172,6 +177,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
+      environment: 'test',
     };
     const jwtToken = 'dummy-jwt';
     await expect(

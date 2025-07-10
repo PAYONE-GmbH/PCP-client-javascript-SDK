@@ -7,6 +7,19 @@ declare global {
   }
 }
 
+const SDK_SCRIPT_ENV = {
+  test: {
+    src: 'https://sdk.preprod.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk.js',
+    integrity:
+      'sha384-Ec6OPQvn8poHUzTwcUYWC/pwd5wgVuVB+jKl+Eml5MWou154pm6j2MdhhJb9uqML',
+  },
+  live: {
+    src: 'https://sdk.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk',
+    integrity:
+      'sha384-Ec6OPQvn8poHUzTwcUYWC/pwd5wgVuVB+jKl+Eml5MWou154pm6j2MdhhJb9uqML',
+  },
+};
+
 export class PCPCreditCardTokenizer {
   private readonly config: Config;
   private readonly jwtToken: string;
@@ -75,11 +88,16 @@ export class PCPCreditCardTokenizer {
         resolve();
         return;
       }
+
+      // Determine script infos via environment
+      const SDK_SCRIPT = SDK_SCRIPT_ENV[this.config.environment];
+
       const script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src =
-        'https://sdk.preprod.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk.js';
+      script.src = SDK_SCRIPT.src;
       script.id = scriptId;
+      script.setAttribute('integrity', SDK_SCRIPT.integrity);
+      script.setAttribute('crossorigin', 'anonymous');
       script.onload = () => resolve();
       script.onerror = () =>
         reject(new Error('Failed to load the Hosted Tokenization SDK script.'));
