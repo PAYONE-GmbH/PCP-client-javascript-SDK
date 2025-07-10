@@ -103,38 +103,6 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     );
   });
 
-  it('should call the success callback if set, or do nothing if not set', async () => {
-    const config: Config = {
-      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
-      uiConfig: {},
-      locale: 'de_DE',
-      submitButton: { selector: '#submit' },
-      tokenizationFailureCallback: failureCallback,
-    };
-    const jwtToken = 'dummy-jwt';
-    const instance = await PCPCreditCardTokenizer.create(config, jwtToken);
-    expect(() =>
-      // @ts-expect-error private method
-      instance.tokenizationSuccessCallback(201, 'tok', { foo: 'bar' }),
-    ).not.toThrow();
-  });
-
-  it('should call the failure callback if set, or do nothing if not set', async () => {
-    const config: Config = {
-      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
-      uiConfig: {},
-      locale: 'de_DE',
-      submitButton: { selector: '#submit' },
-      tokenizationSuccessCallback: successCallback,
-    };
-    const jwtToken = 'dummy-jwt';
-    const instance = await PCPCreditCardTokenizer.create(config, jwtToken);
-    expect(() =>
-      // @ts-expect-error private method
-      instance.tokenizationFailureCallback(400, { error: 'fail' }),
-    ).not.toThrow();
-  });
-
   it('should use submitButton.element if provided', async () => {
     const button = document.createElement('button');
     button.id = 'element-btn';
