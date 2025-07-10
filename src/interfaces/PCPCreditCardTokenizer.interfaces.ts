@@ -281,6 +281,11 @@ export interface Config {
     statusCode: number,
     errorResponse: { error?: string; [key: string]: unknown },
   ) => void;
+
+  /**
+   * Environment for SDK loading: 'test' or 'live'.
+   */
+  environment: 'test' | 'live';
 }
 
 /**

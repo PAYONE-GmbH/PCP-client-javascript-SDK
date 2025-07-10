@@ -137,6 +137,7 @@ const config: Config = {
     console.error('Status:', statusCode);
     console.error('Error:', errorResponse.error);
   },
+  environment: 'test', // Use 'live' for production
 };
 ```
 

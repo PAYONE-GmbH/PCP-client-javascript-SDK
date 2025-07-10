@@ -34,6 +34,7 @@ const config: Config = {
     console.error('Status:', statusCode);
     console.error('Error:', errorResponse.error);
   },
+  environment: 'test',
 };
 
 // You must fetch the JWT from your backend before initializing the SDK.

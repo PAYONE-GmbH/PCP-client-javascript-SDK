@@ -1,3 +1,12 @@
+## [1.2.1](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/v1.2.0...v1.2.1) (2025-07-10)
+
+
+### Features
+
+* add environment configuration for SDK loading ([e6141b7](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/e6141b72e04ed0e4d540fb58ab45dec81274d09b))
+
+
+
 # [1.2.0](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/v1.1.0...v1.2.0) (2025-07-10)
 
 
