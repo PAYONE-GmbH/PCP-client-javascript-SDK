@@ -263,7 +263,7 @@ export interface Config {
   /**
    * Callback for successful tokenization.
    */
-  tokenizationSuccessCallback?: (
+  tokenizationSuccessCallback: (
     statusCode: number,
     token: string,
     cardDetails: {
@@ -277,7 +277,7 @@ export interface Config {
   /**
    * Callback for failed tokenization.
    */
-  tokenizationFailureCallback?: (
+  tokenizationFailureCallback: (
     statusCode: number,
     errorResponse: { error?: string; [key: string]: unknown },
   ) => void;

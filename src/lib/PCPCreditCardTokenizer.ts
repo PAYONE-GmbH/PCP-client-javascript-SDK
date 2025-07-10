@@ -57,8 +57,8 @@ export class PCPCreditCardTokenizer {
 
       this.submitButtonElement.onclick = () => {
         window.HostedTokenizationSdk.submitForm(
-          this.tokenizationSuccessCallback,
-          this.tokenizationFailureCallback,
+          this.config.tokenizationSuccessCallback,
+          this.config.tokenizationFailureCallback,
         );
       };
     }
@@ -86,27 +86,6 @@ export class PCPCreditCardTokenizer {
       document.head.appendChild(script);
     });
   }
-
-  private readonly tokenizationSuccessCallback = (
-    statusCode: number,
-    token: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cardDetails: any,
-  ) => {
-    if (this.config.tokenizationSuccessCallback) {
-      this.config.tokenizationSuccessCallback(statusCode, token, cardDetails);
-    }
-  };
-
-  private readonly tokenizationFailureCallback = (
-    statusCode: number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    errorResponse: any,
-  ) => {
-    if (this.config.tokenizationFailureCallback) {
-      this.config.tokenizationFailureCallback(statusCode, errorResponse);
-    }
-  };
 
   private checkForRequiredElementsAndReturnSubmitButtonElement() {
     const submitButtonElement =
