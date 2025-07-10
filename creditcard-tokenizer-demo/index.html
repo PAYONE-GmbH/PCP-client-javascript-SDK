@@ -7,20 +7,6 @@
         width: 100px;
       }
 
-      .input-row {
-        display: flex;
-        align-items: center;
-      }
-
-      .payment-methods svg {
-        width: 32px;
-        margin: 4px;
-      }
-
-      .inputIframe {
-        height: 50px;
-      }
-
       input[type='button'] {
         border-radius: 22px;
         box-sizing: border-box;
@@ -57,57 +43,13 @@
       </h1>
     </header>
 
-    <!-- HTML for displaying CC detection messages. -->
-    <div class="payone-cc-message-wrap my-3">
-      <div id="error" class="alert alert-success" role="alert"></div>
-    </div>
-
-    <!-- CC icons container -->
-    <div id="cc-icons"></div>
+    <script type="module" src="src/main.ts"></script>
 
     <!-- The form the with IFrame fields. -->
     <form name="paymentform" action="#" method="post">
       <fieldset>
-        <div class="input-row">
-          <label for="cardpanInput">Cardpan:</label>
-
-          <!-- Mount element for PAN IFrame. -->
-          <span class="inputIframe" id="cardpan"></span>
-
-          <label for="cvcInput">CVC:</label>
-
-          <!-- Mount element for CVC IFrame. -->
-          <span class="inputIframe" id="cardcvc2"></span>
-        </div>
-        <div class="input-row">
-          <label for="expireInput">Expire date (mm/yyyy):</label>
-          <span class="inputIframe" id="expireInput">
-            <!-- Mount element for card expire month IFrame. -->
-            <span id="cardexpiremonth"></span>
-
-            <!-- Mount element for card expire year IFrame. -->
-            <span id="cardexpireyear"></span>
-          </span>
-        </div>
-        <div id="error"></div>
         <input id="submit" type="button" value="Run credit card check" />
-        <input
-          id="submitWithOutCompleteCheck"
-          type="button"
-          value="Run CCC (w/o complete check)" />
       </fieldset>
     </form>
-
-    <!-- HTML to render the credit card check response. -->
-    <h2>Response from PAYONE Client-API</h2>
-    <div id="jsonResponse">
-      <pre id="jsonResponsePre">Nothing received yet.</pre>
-    </div>
-    <h2>Autodetection callback result</h2>
-    <div id="autodetectionResponse">
-      <pre id="autodetectionResponsePre">Nothing received yet.</pre>
-    </div>
-
-    <script type="module" src="src/main.ts"></script>
   </body>
 </html>

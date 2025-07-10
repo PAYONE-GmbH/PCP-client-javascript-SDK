@@ -1,3 +1,18 @@
+# [1.2.0](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/v1.1.0...v1.2.0) (2025-07-10)
+
+
+### Features
+
+* add example for new credit card tokenizer sdk ([a774ed6](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/a774ed6c54768748fe13f4925de41393097f7e07))
+* update PCPCreditCardTokenizer to use new Hosted Tokenization SDK ([47373e9](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/47373e98c3661342c81ac15942da306ceddfea5d))
+
+
+### Reverts
+
+* Revert "chore: update SonarCloud action" ([907c3f9](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/907c3f9a4b4b19232d173d6e5f2b942d4cda0a69))
+
+
+
 # [1.1.0](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/v1.0.0...v1.1.0) (2025-07-03)
 
 

@@ -1,311 +1,214 @@
 import { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Config, PCPCreditCardTokenizer, Request } from '../index.js';
+import { Config, PCPCreditCardTokenizer } from '../index.js';
 
-describe('PCPCreditCardTokenizer', () => {
+describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   let document: Document;
-  let window;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let window: any;
+  let initMock: ReturnType<typeof vi.fn>;
+  let getPaymentPageMock: ReturnType<typeof vi.fn>;
+  let submitFormMock: ReturnType<typeof vi.fn>;
+  let successCallback: ReturnType<typeof vi.fn>;
+  let failureCallback: ReturnType<typeof vi.fn>;
 
-  const hostedIframesIsCompleteMockFunction = vi.fn().mockReturnValue(false);
-  const hostedIframesCreditCardCheckMockFunction = vi.fn();
-
-  beforeEach(() => {
+  beforeEach(async () => {
     const { window: jsdomWindow } = new JSDOM(
-      '<!DOCTYPE html><head></head><body><div id="cardpan"></div><div id="cardcvc2"></div><div id="cardexpiremonth"></div><div id="cardexpireyear"></div></body>',
-      {
-        url: 'http://localhost',
-      },
+      '<!DOCTYPE html><body><div id="payment-IFrame"></div><button id="submit"></button><pre id="jsonResponsePre"></pre></body>',
+      { url: 'http://localhost' },
     );
     document = jsdomWindow.document;
-    window = jsdomWindow as unknown as Window & typeof globalThis;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    window = jsdomWindow as any;
     global.document = document;
     global.window = window;
 
-    // create button elements for submit and submitWithOutCompleteCheck
-    const submitButton = document.createElement('button');
-    submitButton.id = 'submit';
-    document.body.appendChild(submitButton);
-    const submitButtonWithOutCompleteCheck = document.createElement('button');
-    submitButtonWithOutCompleteCheck.id = 'submitWithOutCompleteCheck';
-    document.body.appendChild(submitButtonWithOutCompleteCheck);
-
-    // create cc-icons container
-    const ccIcons = document.createElement('div');
-    ccIcons.id = 'cc-icons';
-    document.body.appendChild(ccIcons);
-
-    // mock the new window.Payone.ClientApi.HostedIFrames function
-    const hostedIframesMockFunction = vi.fn();
-    window!.Payone = {
-      ClientApi: {
-        HostedIFrames: hostedIframesMockFunction.mockReturnValue({
-          isComplete: hostedIframesIsCompleteMockFunction,
-          creditCardCheck: hostedIframesCreditCardCheckMockFunction,
-        }),
-      },
+    // Mock HostedTokenizationSdk
+    initMock = vi.fn().mockResolvedValue(undefined);
+    getPaymentPageMock = vi.fn();
+    submitFormMock = vi.fn();
+    window.HostedTokenizationSdk = {
+      init: initMock,
+      getPaymentPage: getPaymentPageMock,
+      submitForm: submitFormMock,
     };
+
+    successCallback = vi.fn();
+    failureCallback = vi.fn();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  const autoCardTypeDetectionCallbackFn = vi.fn();
-  const creditcardcheckCallbackFn = vi.fn();
-  const formNotCompleteCallbackFn = vi.fn();
-  const mockPmiPortalKey = 'mockPmiPortalKey';
+  it('should initialize the SDK and render the payment page', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+    };
+    const jwtToken = 'dummy-jwt';
 
-  const mockRequest: Request = {
-    request: 'creditcardcheck',
-    responsetype: 'JSON',
-    mode: 'test',
-    mid: 'mockMID',
-    aid: 'mockAID',
-    portalid: 'mockPortalId',
-    encoding: 'UTF-8',
-    storecarddata: 'yes',
-    api_version: '3.11',
-  };
+    await PCPCreditCardTokenizer.create(config, jwtToken);
 
-  const mockConfig: Config = {
-    fields: {
-      cardpan: {
-        selector: 'cardpan',
-        type: 'input',
-      },
-      cardcvc2: {
-        selector: 'cardcvc2',
-        type: 'password',
-        size: '4',
-        maxlength: '4',
-        length: { V: 3, M: 3 },
-      },
-      cardexpiremonth: {
-        selector: 'cardexpiremonth',
-        type: 'text',
-        size: '2',
-        maxlength: '2',
-        iframe: {
-          width: '60px',
-        },
-      },
-      cardexpireyear: {
-        selector: 'cardexpireyear',
-        type: 'text',
-        iframe: {},
-      },
-    },
-    defaultStyle: {
-      input: '',
-      inputFocus: '',
-      select: '',
-      iframe: {},
-    },
-    autoCardtypeDetection: {
-      supportedCardtypes: ['V', 'M', 'A', 'D', 'J'],
-      callback: autoCardTypeDetectionCallbackFn,
-    },
-    language: 'de',
-    submitButton: {
-      selector: '#submit',
-    },
-    submitButtonWithOutCompleteCheck: {
-      selector: '#submitWithOutCompleteCheck',
-    },
-    ccIcons: {
-      selector: '#cc-icons',
-      mapCardtypeToSelector: {
-        V: '#visa',
-        M: '#mastercard',
-        A: '#american-express',
-        D: '#diners-club',
-        J: '#jcb',
-      },
-      style: {
-        width: '50px',
-        margin: '0 10px',
-      },
-    },
-    creditCardCheckCallback: creditcardcheckCallbackFn,
-    formNotCompleteCallback: formNotCompleteCallbackFn,
-  };
-
-  describe('given a valid config', () => {
-    beforeEach(async () => {
-      setTimeout(() => {
-        const scriptElement = document.querySelector('#payone-hosted-script');
-        scriptElement!.dispatchEvent(new Event('load'));
-      }, 0);
-      await PCPCreditCardTokenizer.create(
-        mockConfig,
-        mockRequest,
-        mockPmiPortalKey,
-      );
-    });
-
-    it('should call the creditCardCheck function when the submit button is clicked', async () => {
-      hostedIframesIsCompleteMockFunction.mockReturnValueOnce(true);
-
-      const submitButton = document.querySelector(
-        mockConfig.submitButton.selector as string,
-      ) as HTMLButtonElement;
-      submitButton.click();
-
-      expect(hostedIframesIsCompleteMockFunction).toHaveBeenCalledOnce();
-      expect(hostedIframesCreditCardCheckMockFunction).toHaveBeenCalledWith(
-        'payCallback',
-      );
-    });
-
-    it('should throw an error if the creditCardCheck function is called before the hosted iframes are complete', async () => {
-      hostedIframesIsCompleteMockFunction.mockReturnValueOnce(false);
-
-      const submitButton = document.querySelector(
-        mockConfig.submitButton.selector as string,
-      ) as HTMLButtonElement;
-      submitButton.click();
-
-      expect(hostedIframesIsCompleteMockFunction).toHaveBeenCalledOnce();
-      expect(hostedIframesCreditCardCheckMockFunction).not.toHaveBeenCalled();
-      expect(formNotCompleteCallbackFn).toHaveBeenCalled();
-    });
-
-    it('should call the creditCardCheck function when the submitWithOutCompleteCheck button is clicked', async () => {
-      hostedIframesIsCompleteMockFunction.mockReturnValueOnce(true);
-
-      const submitWithOutCompleteCheck = document.querySelector(
-        mockConfig.submitButtonWithOutCompleteCheck?.selector as string,
-      ) as HTMLButtonElement;
-      submitWithOutCompleteCheck.click();
-
-      expect(hostedIframesIsCompleteMockFunction).not.toHaveBeenCalled();
-      expect(hostedIframesCreditCardCheckMockFunction).toHaveBeenCalledWith(
-        'payCallback',
-      );
-    });
-
-    it('should call the creditCardCheckCallback when the window.payCallback function is called', async () => {
-      window!.payCallback({
-        status: 'VALID',
-        pseudocardpan: 'mockPseudoCardPan',
-        truncatedcardpan: 'mockTruncatedCardPan',
-        cardtype: 'mockCardType',
-        cardexpiredate: 'mockCardExpireDate',
-      });
-
-      expect(creditcardcheckCallbackFn).toHaveBeenCalledWith({
-        status: 'VALID',
-        pseudocardpan: 'mockPseudoCardPan',
-        truncatedcardpan: 'mockTruncatedCardPan',
-        cardtype: 'mockCardType',
-        cardexpiredate: 'mockCardExpireDate',
-      });
-    });
-
-    it('wont load the script if it is already loaded', async () => {
-      document.body.innerHTML += '<script id="payone-hosted-script"></script>';
-
-      const tokenizer = await PCPCreditCardTokenizer.create(
-        mockConfig,
-        mockRequest,
-        mockPmiPortalKey,
-      );
-
-      expect(tokenizer).toBeDefined();
+    expect(initMock).toHaveBeenCalled();
+    expect(getPaymentPageMock).toHaveBeenCalledWith({
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      token: jwtToken,
     });
   });
 
-  describe('given an invalid config', () => {
-    it('should throw an error if the submit button is not found.', async () => {
-      const invalidConfig = {
-        ...mockConfig,
-        submitButton: {
-          selector: '#invalid-selector',
-        },
-      };
-      expect(
-        async () =>
-          await PCPCreditCardTokenizer.create(
-            invalidConfig,
-            mockRequest,
-            mockPmiPortalKey,
-          ),
-      ).rejects.toThrow(
-        'Submit Button not present. Please provide a valid selector or element.',
-      );
-    });
+  it('should call submitForm with the correct callbacks when the submit button is clicked', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+    };
+    const jwtToken = 'dummy-jwt';
 
-    it('should throw an error if a submitWithOutCompleteCheck button selector is provided but not found.', async () => {
-      const invalidConfig = {
-        ...mockConfig,
-        submitButtonWithOutCompleteCheck: {
-          selector: '#invalid-selector',
-        },
-      };
-      expect(
-        async () =>
-          await PCPCreditCardTokenizer.create(
-            invalidConfig,
-            mockRequest,
-            mockPmiPortalKey,
-          ),
-      ).rejects.toThrow(
-        'Submit Button without complete check not present. Please provide a valid selector or element.',
-      );
-    });
+    await PCPCreditCardTokenizer.create(config, jwtToken);
 
-    it('should throw an error if the given cc-icons container is not found.', async () => {
-      const invalidConfig = {
-        ...mockConfig,
-        ccIcons: {
-          ...mockConfig.ccIcons,
-          selector: '#invalid-selector',
-        },
-      };
-      expect(
-        async () =>
-          await PCPCreditCardTokenizer.create(
-            invalidConfig,
-            mockRequest,
-            mockPmiPortalKey,
-          ),
-      ).rejects.toThrow(
-        'Container for Credit Card Icons not present. Please provide a valid selector or element',
-      );
-    });
+    const submitButton = document.querySelector('#submit') as HTMLButtonElement;
+    submitButton.click();
 
-    it('should throw an error if the given elements and selectors for fields are not found.', async () => {
-      const invalidConfig = {
-        ...mockConfig,
-        fields: {
-          cardpan: {
-            ...mockConfig.fields.cardpan,
-            selector: 'invalid-selector',
-          },
-          cardcvc2: {
-            ...mockConfig.fields.cardcvc2,
-            selector: 'invalid-selector',
-          },
-          cardexpiremonth: {
-            ...mockConfig.fields.cardexpiremonth,
-            selector: 'invalid-selector',
-          },
-          cardexpireyear: {
-            ...mockConfig.fields.cardexpireyear,
-            selector: 'invalid-selector',
-          },
-        },
-      };
-      expect(
-        async () =>
-          await PCPCreditCardTokenizer.create(
-            invalidConfig,
-            mockRequest,
-            mockPmiPortalKey,
-          ),
-      ).rejects.toThrow(
-        'The following container elements are missing: cardpan, cardcvc2, cardexpiremonth, cardexpireyear. Please provide valid selectors or elements.',
-      );
+    expect(submitFormMock).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+    );
+  });
+
+  it('should throw if the submit button is not found', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#notfound' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+    };
+    const jwtToken = 'dummy-jwt';
+
+    await expect(
+      PCPCreditCardTokenizer.create(config, jwtToken),
+    ).rejects.toThrow(
+      'Submit Button not present. Please provide a valid selector or element.',
+    );
+  });
+
+  it('should call the success callback if set, or do nothing if not set', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationFailureCallback: failureCallback,
+    };
+    const jwtToken = 'dummy-jwt';
+    const instance = await PCPCreditCardTokenizer.create(config, jwtToken);
+    expect(() =>
+      // @ts-expect-error private method
+      instance.tokenizationSuccessCallback(201, 'tok', { foo: 'bar' }),
+    ).not.toThrow();
+  });
+
+  it('should call the failure callback if set, or do nothing if not set', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+    };
+    const jwtToken = 'dummy-jwt';
+    const instance = await PCPCreditCardTokenizer.create(config, jwtToken);
+    expect(() =>
+      // @ts-expect-error private method
+      instance.tokenizationFailureCallback(400, { error: 'fail' }),
+    ).not.toThrow();
+  });
+
+  it('should use submitButton.element if provided', async () => {
+    const button = document.createElement('button');
+    button.id = 'element-btn';
+    document.body.appendChild(button);
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { element: button },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+    };
+    const jwtToken = 'dummy-jwt';
+    await PCPCreditCardTokenizer.create(config, jwtToken);
+    button.click();
+    expect(submitFormMock).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+    );
+  });
+
+  it('should throw if HostedTokenizationSdk.init throws', async () => {
+    window.HostedTokenizationSdk.init = vi
+      .fn()
+      .mockRejectedValue(new Error('init fail'));
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+    };
+    const jwtToken = 'dummy-jwt';
+    await expect(
+      PCPCreditCardTokenizer.create(config, jwtToken),
+    ).rejects.toThrow('Failed to initialize Hosted Tokenization SDK.');
+  });
+
+  it('should reject if the SDK script fails to load', async () => {
+    // Remove the SDK from window to force script loading
+    delete window.HostedTokenizationSdk;
+    // Remove any existing script
+    const existing = document.getElementById('hosted-tokenization-sdk');
+    if (existing) existing.remove();
+    // Mock script creation to trigger error
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, 'createElement');
+    createElementSpy.mockImplementation((tagName: string) => {
+      if (tagName === 'script') {
+        const script = originalCreateElement('div');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (script as any).setAttribute('id', 'hosted-tokenization-sdk');
+        setTimeout(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          () => (script as any).onerror && (script as any).onerror(),
+          0,
+        );
+        return script;
+      }
+      return originalCreateElement(tagName);
     });
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+    };
+    const jwtToken = 'dummy-jwt';
+    await expect(
+      PCPCreditCardTokenizer.create(config, jwtToken),
+    ).rejects.toThrow('Failed to load the Hosted Tokenization SDK script.');
+    createElementSpy.mockRestore();
   });
 });
