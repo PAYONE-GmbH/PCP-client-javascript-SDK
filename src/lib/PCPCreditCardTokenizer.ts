@@ -14,7 +14,7 @@ const SDK_SCRIPT_ENV = {
       'sha384-Ec6OPQvn8poHUzTwcUYWC/pwd5wgVuVB+jKl+Eml5MWou154pm6j2MdhhJb9uqML',
   },
   live: {
-    src: 'https://sdk.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk',
+    src: 'https://sdk.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk.js',
     integrity:
       'sha384-Ec6OPQvn8poHUzTwcUYWC/pwd5wgVuVB+jKl+Eml5MWou154pm6j2MdhhJb9uqML',
   },
