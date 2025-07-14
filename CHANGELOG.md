@@ -1,3 +1,12 @@
+## [1.2.2](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/v1.2.1...v1.2.2) (2025-07-14)
+
+
+### Bug Fixes
+
+* correct SDK script URL for live environment ([b3d36d4](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/b3d36d410e2d1ec0cd057ec204ab093847acbbfa))
+
+
+
 ## [1.2.1](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/compare/v1.2.0...v1.2.1) (2025-07-10)
 
 
