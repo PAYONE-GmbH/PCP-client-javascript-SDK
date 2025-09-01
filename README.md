@@ -111,6 +111,7 @@ const config: Config = {
     iframeWrapperId: 'payment-IFrame',
     height: 400,
     width: 400,
+    zIndex: 9998,
   },
   uiConfig: {
     formBgColor: '#64bbb7',
@@ -121,6 +122,20 @@ const config: Config = {
     fieldPlaceholderColor: 'blue',
     fieldTextColor: 'crimson',
     fieldErrorCodeColor: 'green',
+    fontFamily: "Mozilla Headline",
+    fontUrl: "https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&family=Nata+Sans:wght@100..900&display=swap",
+    labelStyle: {
+      fontSize: "20px",
+      fontWeight: "900",
+    },
+    inputStyle: {
+      fontSize: "20px",
+      fontWeight: "900",
+    },
+    errorValidationStyle: {
+      fontSize: "16px",
+      fontWeight: "normal",
+    },
   },
   locale: 'de_DE',
   submitButton: {

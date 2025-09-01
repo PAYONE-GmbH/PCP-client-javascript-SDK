@@ -9,14 +9,14 @@ declare global {
 
 const SDK_SCRIPT_ENV = {
   test: {
-    src: 'https://sdk.preprod.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk.js',
+    src: 'https://sdk.preprod.tokenization.secure.payone.com/1.0.2/hosted-tokenization-sdk.js',
     integrity:
-      'sha384-Ec6OPQvn8poHUzTwcUYWC/pwd5wgVuVB+jKl+Eml5MWou154pm6j2MdhhJb9uqML',
+      'sha384-JavLFVzhH2fmwhTeBqVkXIiKlGAMbvznkievdJ4VHNpc02zWI0djUJS6J9LVI9L3',
   },
   live: {
-    src: 'https://sdk.tokenization.secure.payone.com/1.0.1/hosted-tokenization-sdk.js',
+    src: 'https://sdk.tokenization.secure.payone.com/1.0.2/hosted-tokenization-sdk.js',
     integrity:
-      'sha384-Ec6OPQvn8poHUzTwcUYWC/pwd5wgVuVB+jKl+Eml5MWou154pm6j2MdhhJb9uqML',
+      'sha384-JavLFVzhH2fmwhTeBqVkXIiKlGAMbvznkievdJ4VHNpc02zWI0djUJS6J9LVI9L3',
   },
 };
 
@@ -53,6 +53,7 @@ export class PCPCreditCardTokenizer {
           this.config.iframe?.iframeWrapperId || 'payment-IFrame',
         height: this.config.iframe?.height || 400,
         width: this.config.iframe?.width || 400,
+        zIndex: this.config.iframe?.zIndex || 9999,
       },
       uiConfig: this.config.uiConfig || {},
       locale: this.config.locale || 'de_DE',
