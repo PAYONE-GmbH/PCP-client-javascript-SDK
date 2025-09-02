@@ -43,7 +43,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
 
   it('should initialize the SDK and render the payment page', async () => {
     const config: Config = {
-      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400, zIndex: 42 },
       uiConfig: {},
       locale: 'de_DE',
       submitButton: { selector: '#submit' },
@@ -57,7 +57,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
 
     expect(initMock).toHaveBeenCalled();
     expect(getPaymentPageMock).toHaveBeenCalledWith({
-      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400, zIndex: 42 },
       uiConfig: {},
       locale: 'de_DE',
       token: jwtToken,

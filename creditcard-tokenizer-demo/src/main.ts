@@ -2,14 +2,28 @@ import { Config, PCPCreditCardTokenizer } from 'pcp-client-javascript-sdk';
 
 // Example UI config for the new SDK
 const uiConfig = {
-  formBgColor: '#64bbb7',
-  fieldBgColor: 'wheat',
-  fieldBorder: '1px solid #b33cd8',
-  fieldOutline: '#101010 solid 5px',
-  fieldLabelColor: '#d3d83c',
-  fieldPlaceholderColor: 'blue',
-  fieldTextColor: 'crimson',
-  fieldErrorCodeColor: 'green',
+  formBgColor: '#ffffff',
+  fieldBgColor: '#ffffff',
+  fieldBorder: '1px solid #8f8f8f',
+  fieldOutline: '#da0c1f solid 1px',
+  fieldLabelColor: '#333333',
+  fieldPlaceholderColor: '#333333',
+  fieldTextColor: '#333333',
+  fieldErrorCodeColor: '#8f8f8f',
+  fontFamily: "Mozilla Headline",
+  fontUrl: "https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&family=Nata+Sans:wght@100..900&display=swap",
+  labelStyle: {
+    fontSize: "20px",
+    fontWeight: "900",
+  },
+  inputStyle: {
+    fontSize: "20px",
+    fontWeight: "900",
+  },
+  errorValidationStyle: {
+    fontSize: "16px",
+    fontWeight: "normal",
+  },
 };
 
 const config: Config = {
@@ -17,6 +31,7 @@ const config: Config = {
     iframeWrapperId: 'payment-IFrame',
     height: 400,
     width: 400,
+    zIndex: 9998,
   },
   uiConfig,
   locale: 'de_DE',
