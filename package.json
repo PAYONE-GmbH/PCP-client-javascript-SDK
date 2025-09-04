@@ -1,6 +1,6 @@
 {
   "name": "pcp-client-javascript-sdk",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "PAYONE Commerce Platform Client JavaScript SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

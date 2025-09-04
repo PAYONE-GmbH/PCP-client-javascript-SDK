@@ -12,13 +12,24 @@ export interface UIConfig {
   fieldPlaceholderColor?: string;
   fieldTextColor?: string;
   fieldErrorCodeColor?: string;
+  fontFamily?: string;
+  fontUrl?: string;
+  labelStyle?: FontStyle;
+  inputStyle?: FontStyle;
+  errorValidationStyle?: FontStyle;
   // Add more UI customization options as needed
+}
+
+export interface FontStyle {
+  fontSize?: string;
+  fontWeight?: string;
 }
 
 export interface IframeConfig {
   iframeWrapperId: string;
   height?: number;
   width?: number;
+  zIndex?: number;
 }
 
 export interface Config {
