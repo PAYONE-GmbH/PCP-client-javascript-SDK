@@ -36,6 +36,7 @@ loadScript({
 
           const order = await response.json();
 
+          // get paypal order id from your server
           return order.id;
         },
         onApprove: async (data, _actions) => {
@@ -57,6 +58,8 @@ loadScript({
           }
           const responseData = await response.json();
           console.log('Order captured successfully:', responseData);
+          document.getElementById('message')!.textContent =
+            `Success - OrderId: ${data.orderID}`;
         },
         onError: (error) => {
           console.error('PayPal error:', error);
