@@ -34,6 +34,13 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
     - [4. Session Configuration Object](#4-session-configuration-object)
     - [5. Apple Pay Button Configuration](#5-apple-pay-button-configuration)
     - [6. Integrating the Apple Pay Session](#6-integrating-the-apple-pay-session)
+  - [PayPal Integration](#paypal-integration)
+    - [1. Install Dependencies](#1-install-paypal-dependencies)
+    - [2. Add the PayPal Button Container](#2-add-the-paypal-button-container)
+    - [3. Load the PayPal JavaScript SDK](#3-load-the-paypal-javascript-sdk)
+    - [4. Configure and Render PayPal Buttons](#4-configure-and-render-paypal-buttons)
+    - [5. Handle Payment Processing](#5-handle-payment-processing)
+    - [6. Customize Button Appearance](#6-customize-button-appearance)
   - [Google Pay Integration](#google-pay-integration)
     - [Setup Google Pay Integration](#setup-google-pay-integration-web-component-example)
       - [1. Install Dependencies](#1-install-dependencies)
@@ -57,6 +64,7 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
 - **Credit Card Tokenizer**: Securely tokenize credit and debit card information.
 - **Fingerprinting Tokenizer**: Generate unique tokens for device fingerprinting.
 - **Apple Pay Session Integration**: Seamlessly integrate Apple Pay into your payment workflow.
+- **PayPal Integration**: Enable PayPal payment options on your website.
 
 ## Installation
 
@@ -122,19 +130,20 @@ const config: Config = {
     fieldPlaceholderColor: 'blue',
     fieldTextColor: 'crimson',
     fieldErrorCodeColor: 'green',
-    fontFamily: "Mozilla Headline",
-    fontUrl: "https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&family=Nata+Sans:wght@100..900&display=swap",
+    fontFamily: 'Mozilla Headline',
+    fontUrl:
+      'https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&family=Nata+Sans:wght@100..900&display=swap',
     labelStyle: {
-      fontSize: "20px",
-      fontWeight: "900",
+      fontSize: '20px',
+      fontWeight: '900',
     },
     inputStyle: {
-      fontSize: "20px",
-      fontWeight: "900",
+      fontSize: '20px',
+      fontWeight: '900',
     },
     errorValidationStyle: {
-      fontSize: "16px",
-      fontWeight: "normal",
+      fontSize: '16px',
+      fontWeight: 'normal',
     },
   },
   locale: 'de_DE',
@@ -457,6 +466,231 @@ For further information see: https://docs.payone.com/payment-methods/apple-pay
 
 ---
 
+### PayPal Integration
+
+The PAYONE Commerce Platform Client JavaScript SDK provides a demonstration project for PayPal integration. The integration uses the official PayPal JavaScript SDK, which allows for a seamless checkout experience.
+
+#### 1. Install PayPal Dependencies
+
+To start using PayPal, install one of the following packages based on your needs:
+
+**Standard JavaScript:**
+
+```bash
+npm install @paypal/paypal-js
+```
+
+**React.js:**
+
+```bash
+npm install @paypal/react-paypal-js
+```
+
+#### 2. Add the PayPal Button Container
+
+**Standard HTML:**
+
+Add a container for the PayPal button in your HTML:
+
+```html
+<div id="paypal-button-container"></div>
+
+<!-- Optional: Add message containers for status and errors -->
+<div class="message-container">
+  <div id="message" class="success"></div>
+  <div id="error" class="error"></div>
+</div>
+```
+
+**React.js:**
+
+For React applications, integrate the PayPal button component:
+
+```jsx
+import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
+
+export default function App() {
+  return (
+    <PayPalScriptProvider options={{ 'client-id': YOUR_CLIENT_ID }}>
+      <PayPalButtons />
+    </PayPalScriptProvider>
+  );
+}
+```
+
+#### 3. Load the PayPal JavaScript SDK
+
+There are two ways to load the PayPal JavaScript SDK:
+
+**Standard JavaScript:**
+
+Use the PayPal JS package to dynamically load the SDK:
+
+```typescript
+import { loadScript } from '@paypal/paypal-js';
+
+loadScript({
+  clientId: 'YOUR_PAYPAL_CLIENT_ID',
+  merchantId: 'YOUR_PAYPAL_MERCHANT_ID',
+  currency: 'EUR',
+  intent: 'authorize', // Or 'capture' for immediate payment
+  locale: 'de_DE', // Set to your preferred locale
+  commit: true, // Show the 'Pay Now' button
+  // Optional: Disable certain funding sources
+  disableFunding: ['card', 'sepa', 'bancontact'],
+  // Optional: Enable specific funding sources
+  enableFunding: ['paylater'],
+  debug: false, // Set to true for development
+})
+  .then((paypal) => {
+    if (!paypal) {
+      throw new Error('PayPal SDK could not be loaded.');
+    }
+
+    // Configure and render PayPal buttons here
+  })
+  .catch((err) => {
+    console.error('Failed to load the PayPal JS SDK script', err);
+  });
+```
+
+**React.js:**
+
+For React applications, use the `PayPalScriptProvider`:
+
+```jsx
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
+
+export default function App() {
+  return <PayPalScriptProvider options={{ 'client-id': YOUR_CLIENT_ID }} />;
+}
+```
+
+The rest of this documentation focuses on integration using ES Modules. For complete Vanilla JS or React-specific implementation details, please refer to the official [PayPal JavaScript SDK Reference](https://developer.paypal.com/sdk/js/reference/).
+
+#### 4. Configure and Render PayPal Buttons
+
+After loading the SDK, configure and render the PayPal buttons:
+
+```typescript
+paypal
+  .Buttons({
+    // Create order via your server that communicates with PAYONE Commerce Platform
+    async createOrder() {
+      const response = await fetch('YOUR_SERVER_ENDPOINT/create-paypal-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Optional: You can pass additional data needed for order creation
+        body: JSON.stringify({
+          checkoutId: 'YOUR_CHECKOUT_ID', // If already created
+        }),
+      });
+
+      // Your server should return the PayPal OrderID (or payPalTransactionId) from PAYONE Commerce Platform
+      const order = await response.json();
+      return order.id;
+    },
+
+    // Handle payment approval
+    onApprove: async (data, actions) => {
+      // Notify your server about the approved payment
+      const response = await fetch(
+        'YOUR_SERVER_ENDPOINT/process-paypal-payment',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderID: data.orderID,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Server responded with ${response.status}: ${response.statusText}`,
+        );
+      }
+
+      const responseData = await response.json();
+      console.log('Payment processed successfully:', responseData);
+
+      // Update UI or redirect to success page
+    },
+
+    // Handle errors
+    onError: (error) => {
+      console.error('PayPal error:', error);
+      document.getElementById('error').textContent = error.message;
+    },
+
+    // Handle cancellations
+    onCancel: () => {
+      console.log('Payment cancelled');
+      document.getElementById('message').textContent =
+        'Payment cancelled by user';
+    },
+
+    // Button style
+    style: {
+      layout: 'vertical',
+      color: 'gold',
+      shape: 'rect',
+      label: 'paypal',
+    },
+  })
+  .render('#paypal-button-container');
+```
+
+#### 5. Integration with PAYONE Commerce Platform
+
+The PayPal integration with the PAYONE Commerce Platform follows this flow:
+
+1. **Create a Checkout**: First, create a checkout using the PAYONE Commerce Platform Server SDK (either together with a Commerce Case or in distinct calls).
+
+2. **Render the PayPal Button**: Use the PayPal JavaScript SDK to render the button on your page.
+
+3. **Handle Customer Selection**: When a customer selects the PayPal button, the SDK triggers a callback to your server.
+
+4. **Generate PayPal OrderID**: Your server communicates with the PAYONE Commerce Platform using the previously created Checkout to retrieve a payPalTransactionId (also referred to as OrderID).
+
+5. **Authenticate and Approve**: The PayPal JavaScript SDK opens a popup window where the customer logs in and approves the payment.
+
+6. **Handle Callbacks**: After the popup closes, you'll receive one of the following callbacks:
+   - `onApprove`: Payment was approved
+   - `onCancel`: Customer canceled the payment
+   - `onError`: An error occurred during payment processing
+
+7. **Update Order Status**: Based on the callback received, send a request to the PAYONE Commerce Platform to update the order status.
+
+8. **Finalize Process**: Once payment is confirmed, initialize the delivery process to capture the amount and deliver goods or services.
+
+#### 6. Customize Button Appearance
+
+You can customize the appearance of your PayPal buttons using the style options:
+
+| Property | Type                                                           | Description                                    |
+| -------- | -------------------------------------------------------------- | ---------------------------------------------- |
+| layout   | `'vertical' \| 'horizontal'`                                   | Orientation of multiple funding source buttons |
+| color    | `'gold' \| 'blue' \| 'silver' \| 'white' \| 'black'`           | Button color scheme                            |
+| shape    | `'rect' \| 'pill'`                                             | Button corner style                            |
+| label    | `'paypal' \| 'checkout' \| 'buynow' \| 'pay' \| 'installment'` | Text displayed on the button                   |
+| height   | `number`                                                       | Button height (px), minimum 25                 |
+| tagline  | `boolean`                                                      | Whether to show tagline text below buttons     |
+
+For more information about PayPal integration, refer to:
+
+- [PayPal JavaScript SDK Configuration](https://developer.paypal.com/sdk/js/configuration/)
+- [PayPal JavaScript SDK Reference](https://developer.paypal.com/sdk/js/reference/)
+- [PAYONE Commerce Platform PayPal SDK Documentation](https://docs.payone.com/pcp/commerce-platform-payment-methods/paypal/paypal-sdk)
+
+**[back to top](#table-of-contents)**
+
+---
+
 ### Google Pay Integration
 
 The PAYONE Commerce Platform Client JavaScript SDK provides a demonstration project for Google Pay integration. The integration uses the official Google Pay Button libraries which are available for various frameworks:
@@ -637,6 +871,7 @@ You can find demonstration projects for each feature in the corresponding direct
 - **Credit Card Tokenizer**: Check out the [creditcard-tokenizer-demo](./creditcard-tokenizer-demo/) folder.
 - **Fingerprinting Tokenizer**: See the [fingerprinting-tokenizer-demo](./fingerprinting-tokenizer-demo/) folder.
 - **Apple Pay Session Integration**: Refer to the [applepay-demo](./applepay-demo/) folder.
+- **PayPal Integration**: Refer to the [paypal-demo](./paypal-demo/) folder.
 - **Google Pay Integration**: Refer to the [googlepay-demo](./googlepay-demo/) folder.
 
 ### Building the SDK
