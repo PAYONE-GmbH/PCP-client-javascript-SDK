@@ -126,7 +126,7 @@ export interface Config {
   /**
    * Submit button configuration (selector or element).
    */
-  submitButton?: SubmitButtonConfig;
+  submitButton: SubmitButtonConfig;
 
   /**
    * Callback for successful tokenization.

@@ -109,8 +109,10 @@ export class PCPCreditCardTokenizer {
 
   private checkForRequiredElementsAndReturnSubmitButtonElement() {
     const submitButtonElement =
-      this.config.submitButton?.element ||
-      document.querySelector(this.config.submitButton?.selector as string);
+      this.config.submitButton.element ||
+      (this.config.submitButton.selector
+        ? document.querySelector(this.config.submitButton.selector)
+        : undefined);
 
     if (!submitButtonElement) {
       throw new Error(

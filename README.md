@@ -15,8 +15,8 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
   - [Credit Card Tokenizer](#credit-card-tokenizer)
     - [1. Add the Payment IFrame and Submit Button to your HTML](#1-add-the-payment-iframe-and-submit-button-to-your-html)
     - [2. Import the Tokenizer and Types from the SDK](#2-import-the-tokenizer-and-types-from-the-sdk)
-    - [3. Configure the Tokenizer](#3-configure-the-tokenizer)
-    - [4. Fetch the JWT Token from your Backend](#4-fetch-the-jwt-token-from-your-backend)
+    - [3. Fetch the JWT Token from your Backend](#3-fetch-the-jwt-token-from-your-backend)
+    - [4. Configure the Tokenizer](#4-configure-the-tokenizer)
     - [5. Initialize the Tokenizer](#5-initialize-the-tokenizer)
     - [6. Customization and Callbacks](#6-customization-and-callbacks)
     - [7. PCI DSS & Security](#7-pci-dss--security)
@@ -111,9 +111,23 @@ To integrate the Credit Card Tokenizer feature into your application, follow the
 import { Config, PCPCreditCardTokenizer } from 'pcp-client-javascript-sdk';
 ```
 
-#### 3. **Configure the Tokenizer**
+#### 3. **Fetch the JWT Token from your Backend**
+
+You must obtain a JWT token from your backend before initializing the tokenizer. This token is required for secure communication with the PAYONE Commerce Platform API.
 
 ```typescript
+const fetchJwtToken = async (): Promise<string> => {
+  // Fetch the JWT from your backend (CommercePlatform-API)
+  // Use the /v1/{merchantId}/authentication-token endpoint
+  return '<Token to be retrieved from the CommercePlatform-API>';
+};
+```
+
+#### 4. **Configure the Tokenizer**
+
+```typescript
+const jwtToken = await fetchJwtToken();
+
 const config: Config = {
   iframe: {
     iframeWrapperId: 'payment-IFrame',
@@ -122,14 +136,14 @@ const config: Config = {
     zIndex: 9998,
   },
   uiConfig: {
-    formBgColor: '#64bbb7',
-    fieldBgColor: 'wheat',
-    fieldBorder: '1px solid #b33cd8',
-    fieldOutline: '#101010 solid 5px',
-    fieldLabelColor: '#d3d83c',
-    fieldPlaceholderColor: 'blue',
-    fieldTextColor: 'crimson',
-    fieldErrorCodeColor: 'green',
+    formBgColor: '#ffffff',
+    fieldBgColor: '#ffffff',
+    fieldBorder: '1px solid #8f8f8f',
+    fieldOutline: '#da0c1f solid 1px',
+    fieldLabelColor: '#333333',
+    fieldPlaceholderColor: '#333333',
+    fieldTextColor: '#333333',
+    fieldErrorCodeColor: '#8f8f8f',
     fontFamily: 'Mozilla Headline',
     fontUrl:
       'https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&family=Nata+Sans:wght@100..900&display=swap',
@@ -150,11 +164,12 @@ const config: Config = {
   submitButton: {
     selector: '#submit',
   },
-  tokenizationSuccessCallback: (statusCode, token, cardDetails) => {
+  tokenizationSuccessCallback: (statusCode, token, cardDetails, inputMode) => {
     console.log('Tokenized card successfully');
     console.log('Status:', statusCode);
     console.log('Token:', token);
     console.log('Card Details:', cardDetails);
+    console.log('Input Mode:', inputMode);
   },
   tokenizationFailureCallback: (statusCode, errorResponse) => {
     console.error('Tokenization of card failed');
@@ -162,15 +177,7 @@ const config: Config = {
     console.error('Error:', errorResponse.error);
   },
   environment: 'test', // Use 'live' for production
-};
-```
-
-#### 4. **Fetch the JWT Token from your Backend**
-
-```typescript
-const fetchJwtToken = async (): Promise<string> => {
-  // Fetch the JWT from your backend (CommercePlatform-API)
-  return '<Token to be retrieved from the CommercePlatform-API>';
+  token: jwtToken, // JWT token from your backend
 };
 ```
 
@@ -179,7 +186,13 @@ const fetchJwtToken = async (): Promise<string> => {
 ```typescript
 const init = async () => {
   const jwtToken = await fetchJwtToken();
-  await PCPCreditCardTokenizer.create(config, jwtToken);
+  
+  const config: Config = {
+    // ... configuration as shown above
+    token: jwtToken,
+  };
+
+  await PCPCreditCardTokenizer.create(config);
 };
 
 init();
@@ -187,12 +200,39 @@ init();
 
 #### 6. **Customization and Callbacks**
 
-- `iframe`: Configure the container and size for the payment iframe.
-- `uiConfig`: Customize the look and feel of the form fields.
-- `locale`: Set the language/locale for the form.
-- `submitButton`: Provide a selector or element for the submit button.
-- `tokenizationSuccessCallback`: Handle the token and card details on success.
-- `tokenizationFailureCallback`: Handle errors on failure.
+**Configuration Properties:**
+
+- `iframe`: Configure the container and size for the payment iframe
+  - `iframeWrapperId`: (required) ID of the HTML element where the iframe will be rendered
+  - `height`: (optional) Height in pixels or 'auto', defaults to 'auto'
+  - `width`: (optional) Width in pixels, defaults to 400
+  - `zIndex`: (optional) CSS z-index for the iframe, defaults to 9999
+
+- `token`: (required) JWT token obtained from your backend via the CommercePlatform-API
+
+- `environment`: (required) Either 'test' or 'live'
+
+- `uiConfig`: (optional) Customize the look and feel of the form fields including colors, fonts, borders, and styling for labels, inputs, and error messages
+
+- `locale`: (optional) Set the language/locale for the form (e.g., 'de_DE', 'en_US'), defaults to 'de_DE'
+
+- `mode`: (optional) Either 'test' or 'live', defaults to 'live'
+
+- `submitButton`: Provide a selector or element for the submit button
+
+- `allowedCardSchemes`: (optional) Array of allowed card types: 'amex', 'diners', 'discover', 'maestro', 'mastercard', 'visa', 'unionpay'
+
+- `customTextConfig`: (optional) Customize labels, placeholders, aria-labels, and error messages for different locales
+
+- `tokenizationSuccessCallback`: (required) Handle the token and card details on success. Receives:
+  - `statusCode`: HTTP status code
+  - `token`: The tokenized card token
+  - `cardDetails`: Object containing `cardholderName`, `cardNumber`, `expiryDate`, and `cardType`
+  - `inputMode`: The input method used (e.g., 'manual', 'scan')
+
+- `tokenizationFailureCallback`: (required) Handle errors on failure. Receives:
+  - `statusCode`: HTTP status code
+  - `errorResponse`: Object containing error details
 
 #### 7. **PCI DSS & Security**
 
