@@ -195,4 +195,215 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     );
     createElementSpy.mockRestore();
   });
+
+  it('should pass customTextConfig with multiple locales', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'en_US',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+      customTextConfig: {
+        en: {
+          labels: {
+            cardNumber: 'Card Number',
+            cardholderName: 'Cardholder Name',
+            expiryDate: 'Expiry Date',
+            securityCode: 'Security Code',
+          },
+          placeholders: {
+            cardNumber: '1234 5678 9012 3456',
+            cardholderName: 'John Doe',
+            expiryDate: 'MM/YY',
+            securityCode: 'CVV',
+          },
+          arialabels: {
+            cardNumber: 'Enter your card number',
+            cardholderName: 'Enter the name on the card',
+            expiryDate: 'Enter the expiration month and year',
+            securityCode: 'Enter the card verification code',
+          },
+          errors: {
+            cardNumber: {
+              isRequired: 'Card number is required',
+              isInvalid: 'Invalid card number',
+              isTooShort: 'Card number is too short',
+              notSupported: 'Card type not supported',
+            },
+            cardholderName: {
+              isRequired: 'Cardholder name is required',
+              isInvalid: 'Invalid cardholder name',
+            },
+            expiryDate: {
+              isRequired: 'Expiry date is required',
+              isInvalid: 'Invalid expiry date',
+            },
+            securityCode: {
+              isRequired: 'Security code is required',
+              amexCardSecurityCodeError: 'Invalid Amex security code',
+              generalSecurityCodeError: 'Invalid security code',
+            },
+          },
+        },
+        de: {
+          labels: {
+            cardNumber: 'Kartennummer',
+            cardholderName: 'Karteninhaber',
+            expiryDate: 'Ablaufdatum',
+            securityCode: 'Sicherheitscode',
+          },
+        },
+        fr: {
+          labels: {
+            cardNumber: 'Numéro de carte',
+            cardholderName: 'Nom du titulaire',
+            expiryDate: "Date d'expiration",
+            securityCode: 'Code de sécurité',
+          },
+        },
+      },
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(initMock).toHaveBeenCalled();
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customTextConfig: expect.objectContaining({
+          en: expect.objectContaining({
+            labels: expect.objectContaining({
+              cardNumber: 'Card Number',
+              expiryDate: 'Expiry Date',
+              securityCode: 'Security Code',
+            }),
+            errors: expect.objectContaining({
+              securityCode: expect.objectContaining({
+                amexCardSecurityCodeError: 'Invalid Amex security code',
+              }),
+            }),
+          }),
+          de: expect.objectContaining({
+            labels: expect.objectContaining({
+              cardNumber: 'Kartennummer',
+            }),
+          }),
+          fr: expect.objectContaining({
+            labels: expect.objectContaining({
+              cardNumber: 'Numéro de carte',
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('should pass allowedCardSchemes configuration', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'en_US',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+      allowedCardSchemes: ['visa', 'mastercard', 'amex'],
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowedCardSchemes: ['visa', 'mastercard', 'amex'],
+      }),
+    );
+  });
+
+  it('should handle iframe config with height as "auto"', async () => {
+    const config: Config = {
+      iframe: {
+        iframeWrapperId: 'payment-IFrame',
+        height: 'auto',
+        width: 400,
+      },
+      uiConfig: {},
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        iframe: expect.objectContaining({
+          height: 'auto',
+        }),
+      }),
+    );
+  });
+
+  it('should use live mode configuration', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {},
+      locale: 'en_US',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'live',
+      token: 'live-jwt-token',
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'live',
+        token: 'live-jwt-token',
+      }),
+    );
+  });
+
+  it('should pass complete uiConfig with all styling options', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      uiConfig: {
+        formBgColor: '#ffffff',
+        fieldBgColor: '#f0f0f0',
+        fieldBorder: '1px solid #ccc',
+        btnBgColor: '#007bff',
+        btnTextColor: '#ffffff',
+        fieldLabelColor: '#333333',
+        fieldTextColor: '#000000',
+        inputBorderRadius: '4px',
+        fontFamily: 'Arial, sans-serif',
+      },
+      locale: 'de_DE',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uiConfig: expect.objectContaining({
+          formBgColor: '#ffffff',
+          fieldBgColor: '#f0f0f0',
+          btnBgColor: '#007bff',
+          inputBorderRadius: '4px',
+        }),
+      }),
+    );
+  });
 });
