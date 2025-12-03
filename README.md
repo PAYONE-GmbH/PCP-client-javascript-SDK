@@ -176,7 +176,7 @@ const config: Config = {
     console.error('Status:', statusCode);
     console.error('Error:', errorResponse.error);
   },
-  environment: 'test', // Use 'live' for production
+  mode: 'test', // Use 'live' for production
   token: token, // JWT from your backend
 };
 ```
@@ -203,13 +203,11 @@ init();
 
 - `token`: (required) JWT obtained from your backend via the CommercePlatform-API
 
-- `environment`: (required) Either 'test' or 'live'
+- `mode`: (required) Either 'test' or 'live', defaults to 'live'
 
 - `uiConfig`: (optional) Customize the look and feel of the form fields including colors, fonts, borders, and styling for labels, inputs, and error messages
 
 - `locale`: (optional) Set the language/locale for the form (e.g., 'de_DE', 'en_US'), defaults to 'de_DE'
-
-- `mode`: (optional) Either 'test' or 'live', defaults to 'live'
 
 - `submitButton`: Provide a selector or element for the submit button
 

@@ -91,8 +91,8 @@ export class PCPCreditCardTokenizer {
         return;
       }
 
-      // Determine script infos via environment
-      const SDK_SCRIPT = SDK_SCRIPT_ENV[this.config.environment];
+      // Determine script infos via mode
+      const SDK_SCRIPT = SDK_SCRIPT_ENV[this.config.mode || 'live'];
 
       const script = document.createElement('script');
       script.type = 'text/javascript';

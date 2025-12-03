@@ -61,31 +61,47 @@ export interface IframeConfig {
   zIndex?: number;
 }
 
-export interface FieldErrors {
-  isRequired?: string;
-  isInvalid?: string;
-  isTooShort?: string;
-  notSupported?: string;
-}
-
 export interface LocaleTextLabels {
   cardNumber?: string;
   cardholderName?: string;
+  expiryDate?: string;
+  securityCode?: string;
 }
 
 export interface LocaleTextPlaceholders {
   cardNumber?: string;
   cardholderName?: string;
+  expiryDate?: string;
+  securityCode?: string;
 }
 
 export interface LocaleTextAriaLabels {
   cardNumber?: string;
   cardholderName?: string;
+  expiryDate?: string;
+  securityCode?: string;
 }
 
 export interface LocaleTextErrors {
-  cardNumber?: FieldErrors;
-  cardholderName?: Omit<FieldErrors, 'isTooShort' | 'notSupported'>;
+  cardNumber?: {
+    isRequired?: string;
+    isInvalid?: string;
+    isTooShort?: string;
+    notSupported?: string;
+  };
+  cardholderName?: {
+    isRequired?: string;
+    isInvalid?: string;
+  };
+  expiryDate?: {
+    isRequired?: string;
+    isInvalid?: string;
+  };
+  securityCode?: {
+    isRequired?: string;
+    amexCardSecurityCodeError?: string;
+    generalSecurityCodeError?: string;
+  };
 }
 
 export interface LocaleTextConfig {
@@ -150,9 +166,4 @@ export interface Config {
     statusCode: number,
     errorResponse: { error?: string; [key: string]: unknown },
   ) => void;
-
-  /**
-   * Environment for SDK loading: 'test' or 'live'.
-   */
-  environment: 'test' | 'live';
 }

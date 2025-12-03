@@ -54,7 +54,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
-      environment: 'test',
+      mode: 'test',
       token: 'dummy-jwt',
     };
 
@@ -84,7 +84,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
-      environment: 'test',
+      mode: 'test',
       token: 'dummy-jwt',
     };
 
@@ -107,7 +107,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#notfound' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
-      environment: 'test',
+      mode: 'test',
       token: 'dummy-jwt',
     };
 
@@ -127,7 +127,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { element: button },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
-      environment: 'test',
+      mode: 'test',
       token: 'dummy-jwt',
     };
     await PCPCreditCardTokenizer.create(config);
@@ -149,7 +149,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
-      environment: 'test',
+      mode: 'test',
       token: 'dummy-jwt',
     };
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
@@ -184,10 +184,10 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
       uiConfig: {},
       locale: 'de_DE',
+      mode: 'test',
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
-      environment: 'test',
       token: 'dummy-jwt',
     };
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(

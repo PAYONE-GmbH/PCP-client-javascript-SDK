@@ -64,7 +64,7 @@ const init = async () => {
       console.error('Status:', statusCode);
       console.error('Error:', errorResponse.error);
     },
-    environment: 'test',
+    mode: 'test',
     token: token,
   };
 
