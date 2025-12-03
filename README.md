@@ -15,7 +15,7 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
   - [Credit Card Tokenizer](#credit-card-tokenizer)
     - [1. Add the Payment IFrame and Submit Button to your HTML](#1-add-the-payment-iframe-and-submit-button-to-your-html)
     - [2. Import the Tokenizer and Types from the SDK](#2-import-the-tokenizer-and-types-from-the-sdk)
-    - [3. Fetch the JWT Token from your Backend](#3-fetch-the-jwt-token-from-your-backend)
+    - [3. Fetch the JWT from your Backend](#3-fetch-the-jwt-token-from-your-backend)
     - [4. Configure the Tokenizer](#4-configure-the-tokenizer)
     - [5. Initialize the Tokenizer](#5-initialize-the-tokenizer)
     - [6. Customization and Callbacks](#6-customization-and-callbacks)
@@ -111,12 +111,12 @@ To integrate the Credit Card Tokenizer feature into your application, follow the
 import { Config, PCPCreditCardTokenizer } from 'pcp-client-javascript-sdk';
 ```
 
-#### 3. **Fetch the JWT Token from your Backend**
+#### 3. **Fetch the JWT from your Backend**
 
-You must obtain a JWT token from your backend before initializing the tokenizer. This token is required for secure communication with the PAYONE Commerce Platform API.
+You must obtain a JWT from your backend before initializing the tokenizer. This token is required for secure communication with the PAYONE Commerce Platform API.
 
 ```typescript
-const fetchJwtToken = async (): Promise<string> => {
+const fetchJwt = async (): Promise<string> => {
   // Fetch the JWT from your backend (CommercePlatform-API)
   // Use the /v1/{merchantId}/authentication-token endpoint
   return '<Token to be retrieved from the CommercePlatform-API>';
@@ -126,7 +126,7 @@ const fetchJwtToken = async (): Promise<string> => {
 #### 4. **Configure the Tokenizer**
 
 ```typescript
-const jwtToken = await fetchJwtToken();
+const token = await fetchJwt();
 
 const config: Config = {
   iframe: {
@@ -177,7 +177,7 @@ const config: Config = {
     console.error('Error:', errorResponse.error);
   },
   environment: 'test', // Use 'live' for production
-  token: jwtToken, // JWT token from your backend
+  token: token, // JWT from your backend
 };
 ```
 
@@ -185,13 +185,6 @@ const config: Config = {
 
 ```typescript
 const init = async () => {
-  const jwtToken = await fetchJwtToken();
-  
-  const config: Config = {
-    // ... configuration as shown above
-    token: jwtToken,
-  };
-
   await PCPCreditCardTokenizer.create(config);
 };
 
@@ -208,7 +201,7 @@ init();
   - `width`: (optional) Width in pixels, defaults to 400
   - `zIndex`: (optional) CSS z-index for the iframe, defaults to 9999
 
-- `token`: (required) JWT token obtained from your backend via the CommercePlatform-API
+- `token`: (required) JWT obtained from your backend via the CommercePlatform-API
 
 - `environment`: (required) Either 'test' or 'live'
 

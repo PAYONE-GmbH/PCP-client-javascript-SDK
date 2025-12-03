@@ -32,14 +32,14 @@ const uiConfig: UIConfig = {
 };
 
 // You must fetch the JWT from your backend before initializing the SDK.
-const fetchJwtToken = async (): Promise<string> => {
-  // Please start one of the Server SDKs or use the /v1/{merchantId}/authenticatin-token Endpoint directly to get the JWT token.
+const fetchJwt = async (): Promise<string> => {
+  // Please start one of the Server SDKs or use the /v1/{merchantId}/authenticatin-token Endpoint directly to get the JWT.
   // Then return the actual token in the next line to test this example.
   return '<Token to be retrieved from the CommercePlatform-API>';
 };
 
 const init = async () => {
-  const jwtToken = await fetchJwtToken();
+  const token = await fetchJwt();
 
   const config: Config = {
     iframe: {
@@ -65,7 +65,7 @@ const init = async () => {
       console.error('Error:', errorResponse.error);
     },
     environment: 'test',
-    token: jwtToken,
+    token: token,
   };
 
   await PCPCreditCardTokenizer.create(config);
