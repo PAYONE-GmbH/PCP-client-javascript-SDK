@@ -5,7 +5,6 @@
 
 * initialize PayPal demo project ([bdb1922](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/bdb19224983c805e7dffc47312b08df91087a974))
 * update tokenizer to 1.3.0 ([6807c69](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/6807c6984311abb211840656549b83e893f44685))
-* using version 1.0.2 of the hosted tokenization js ([8976ad3](https://github.com/PAYONE-GmbH/PCP-client-javascript-SDK/commit/8976ad3806b5e66fe95312e2b8948c8122f94c71))
 
 
 
