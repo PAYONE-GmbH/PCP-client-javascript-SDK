@@ -43,25 +43,37 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
 
   it('should initialize the SDK and render the payment page', async () => {
     const config: Config = {
-      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400, zIndex: 42 },
+      iframe: {
+        iframeWrapperId: 'payment-IFrame',
+        height: 400,
+        width: 400,
+        zIndex: 42,
+      },
       uiConfig: {},
       locale: 'de_DE',
       submitButton: { selector: '#submit' },
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
       environment: 'test',
+      token: 'dummy-jwt',
     };
-    const jwtToken = 'dummy-jwt';
 
-    await PCPCreditCardTokenizer.create(config, jwtToken);
+    await PCPCreditCardTokenizer.create(config);
 
     expect(initMock).toHaveBeenCalled();
-    expect(getPaymentPageMock).toHaveBeenCalledWith({
-      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400, zIndex: 42 },
-      uiConfig: {},
-      locale: 'de_DE',
-      token: jwtToken,
-    });
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        iframe: expect.objectContaining({
+          iframeWrapperId: 'payment-IFrame',
+          height: 400,
+          width: 400,
+          zIndex: 42,
+        }),
+        uiConfig: {},
+        locale: 'de_DE',
+        token: 'dummy-jwt',
+      }),
+    );
   });
 
   it('should call submitForm with the correct callbacks when the submit button is clicked', async () => {
@@ -73,10 +85,10 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
       environment: 'test',
+      token: 'dummy-jwt',
     };
-    const jwtToken = 'dummy-jwt';
 
-    await PCPCreditCardTokenizer.create(config, jwtToken);
+    await PCPCreditCardTokenizer.create(config);
 
     const submitButton = document.querySelector('#submit') as HTMLButtonElement;
     submitButton.click();
@@ -96,12 +108,10 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
       environment: 'test',
+      token: 'dummy-jwt',
     };
-    const jwtToken = 'dummy-jwt';
 
-    await expect(
-      PCPCreditCardTokenizer.create(config, jwtToken),
-    ).rejects.toThrow(
+    await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
       'Submit Button not present. Please provide a valid selector or element.',
     );
   });
@@ -118,9 +128,9 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
       environment: 'test',
+      token: 'dummy-jwt',
     };
-    const jwtToken = 'dummy-jwt';
-    await PCPCreditCardTokenizer.create(config, jwtToken);
+    await PCPCreditCardTokenizer.create(config);
     button.click();
     expect(submitFormMock).toHaveBeenCalledWith(
       expect.any(Function),
@@ -140,11 +150,11 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
       environment: 'test',
+      token: 'dummy-jwt',
     };
-    const jwtToken = 'dummy-jwt';
-    await expect(
-      PCPCreditCardTokenizer.create(config, jwtToken),
-    ).rejects.toThrow('Failed to initialize Hosted Tokenization SDK.');
+    await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
+      'Failed to initialize Hosted Tokenization SDK.',
+    );
   });
 
   it('should reject if the SDK script fails to load', async () => {
@@ -178,11 +188,11 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       tokenizationSuccessCallback: successCallback,
       tokenizationFailureCallback: failureCallback,
       environment: 'test',
+      token: 'dummy-jwt',
     };
-    const jwtToken = 'dummy-jwt';
-    await expect(
-      PCPCreditCardTokenizer.create(config, jwtToken),
-    ).rejects.toThrow('Failed to load the Hosted Tokenization SDK script.');
+    await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
+      'Failed to load the Hosted Tokenization SDK script.',
+    );
     createElementSpy.mockRestore();
   });
 });
