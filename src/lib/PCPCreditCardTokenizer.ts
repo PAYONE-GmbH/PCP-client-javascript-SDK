@@ -58,7 +58,7 @@ export class PCPCreditCardTokenizer {
       },
       uiConfig: this.config.uiConfig || {},
       locale: this.config.locale || 'de_DE',
-      mode: this.config.mode || 'live',
+      mode: this.config.mode || 'test',
     };
 
     if (window.HostedTokenizationSdk) {
@@ -92,7 +92,7 @@ export class PCPCreditCardTokenizer {
       }
 
       // Determine script infos via mode
-      const SDK_SCRIPT = SDK_SCRIPT_ENV[this.config.mode || 'live'];
+      const SDK_SCRIPT = SDK_SCRIPT_ENV[this.config.mode || 'test'];
 
       const script = document.createElement('script');
       script.type = 'text/javascript';
