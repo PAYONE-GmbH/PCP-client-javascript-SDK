@@ -36,7 +36,7 @@ export class PCPFingerprintingTokenizer {
     partnerMerchantId: string,
     sessionId?: string,
     paylaScriptId?: string,
-    paylaStylesheetId?: string
+    paylaStylesheetId?: string,
   ) {
     const instance = new PCPFingerprintingTokenizer(
       selector,
@@ -45,7 +45,7 @@ export class PCPFingerprintingTokenizer {
       partnerMerchantId,
       sessionId,
       paylaScriptId,
-      paylaStylesheetId
+      paylaStylesheetId,
     );
     await instance.initialize();
     return instance;
@@ -58,7 +58,7 @@ export class PCPFingerprintingTokenizer {
     partnerMerchantId: string,
     sessionId?: string,
     paylaScriptId?: string,
-    paylaStylesheetId?: string
+    paylaStylesheetId?: string,
   ) {
     this.selector = selector;
     this.environment = environment;

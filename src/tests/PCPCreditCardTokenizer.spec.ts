@@ -16,7 +16,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   beforeEach(async () => {
     const { window: jsdomWindow } = new JSDOM(
       '<!DOCTYPE html><body><div id="payment-IFrame"></div><button id="submit"></button><pre id="jsonResponsePre"></pre></body>',
-      { url: 'http://localhost' }
+      { url: 'http://localhost' },
     );
     document = jsdomWindow.document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,7 +73,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         uiConfig: {},
         locale: 'de_DE',
         token: 'dummy-jwt',
-      })
+      }),
     );
   });
 
@@ -110,7 +110,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     };
 
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
-      'Submit Button not present. Please provide a valid selector or element.'
+      'Submit Button not present. Please provide a valid selector or element.',
     );
   });
 
@@ -146,7 +146,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       token: 'dummy-jwt',
     };
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
-      'Failed to initialize Hosted Tokenization SDK.'
+      'Failed to initialize Hosted Tokenization SDK.',
     );
   });
 
@@ -167,7 +167,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         setTimeout(
           // biome-ignore lint/complexity/useOptionalChain: <ok>
           () => (script as any).onerror && (script as any).onerror(),
-          0
+          0,
         );
         return script;
       }
@@ -184,7 +184,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       token: 'dummy-jwt',
     };
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
-      'Failed to load the Hosted Tokenization SDK script.'
+      'Failed to load the Hosted Tokenization SDK script.',
     );
     createElementSpy.mockRestore();
   });
@@ -289,7 +289,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
             }),
           }),
         }),
-      })
+      }),
     );
   });
 
@@ -311,7 +311,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     expect(getPaymentPageMock).toHaveBeenCalledWith(
       expect.objectContaining({
         allowedCardSchemes: ['visa', 'mastercard', 'amex'],
-      })
+      }),
     );
   });
 
@@ -338,7 +338,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         iframe: expect.objectContaining({
           height: 'auto',
         }),
-      })
+      }),
     );
   });
 
@@ -360,7 +360,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       expect.objectContaining({
         mode: 'live',
         token: 'live-jwt-token',
-      })
+      }),
     );
   });
 
@@ -396,7 +396,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
           btnBgColor: '#007bff',
           inputBorderRadius: '4px',
         }),
-      })
+      }),
     );
   });
 });

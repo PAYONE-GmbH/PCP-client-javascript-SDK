@@ -78,7 +78,7 @@ class MyGooglePayButton extends HTMLElement {
   }
 
   onPaymentDataChanged(
-    paymentDataChange: google.payments.api.IntermediatePaymentData
+    paymentDataChange: google.payments.api.IntermediatePaymentData,
   ): google.payments.api.PaymentDataRequestUpdate {
     // This is where you can handle changes to the payment data, such as shipping address, options or coupon codes
     console.log('payment data changed', paymentDataChange);

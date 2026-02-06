@@ -21,11 +21,11 @@ app.get('/.well-known/apple-developer-merchantid-domain-association.txt', (_req,
 // Paths to merchant identity certificate and private key
 const certificate = fs.readFileSync(
   path.join(__dirname, 'certificates', 'your-certificate.crt.pem'),
-  'utf8'
+  'utf8',
 );
 const privateKey = fs.readFileSync(
   path.join(__dirname, 'certificates', 'your-certificate.key.pem'),
-  'utf8'
+  'utf8',
 );
 
 // Validate merchant
@@ -74,7 +74,7 @@ app.post('/validate-merchant', (req, res) => {
       JSON.stringify({
         error: 'Internal Server Error',
         details: error.message,
-      })
+      }),
     );
   });
 

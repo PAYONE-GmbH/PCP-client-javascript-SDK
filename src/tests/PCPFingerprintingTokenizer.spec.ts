@@ -49,7 +49,7 @@ describe('PCPFingerprintingTokenizer', () => {
         '#mock-selector',
         'environment',
         'paylaPartnerId',
-        'partnerMerchantId'
+        'partnerMerchantId',
       );
     });
 
@@ -79,8 +79,8 @@ describe('PCPFingerprintingTokenizer', () => {
           '#mock-selector',
           'environment',
           'paylaPartnerId',
-          'partnerMerchantId'
-        )
+          'partnerMerchantId',
+        ),
       ).toBeDefined();
     });
   });
@@ -92,8 +92,8 @@ describe('PCPFingerprintingTokenizer', () => {
           '#non-existent-selector',
           'environment',
           'paylaPartnerId',
-          'partnerMerchantId'
-        )
+          'partnerMerchantId',
+        ),
       ).rejects.toThrow('Selector #non-existent-selector does not exist.');
     });
   });

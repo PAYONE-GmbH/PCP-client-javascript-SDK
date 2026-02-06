@@ -147,7 +147,7 @@ describe('PCPApplePaySession', () => {
         PCPApplePaySession.create(mockApplePaySessionConfig, {
           selector: '#non-existent-selector',
           config: mockApplePayButton.config,
-        })
+        }),
       ).rejects.toThrow('Selector #non-existent-selector does not exist.');
     });
 
@@ -369,7 +369,7 @@ describe('PCPApplePaySession', () => {
     // @ts-expect-error globalThis has no property ApplePaySession
     globalThis.ApplePaySession = undefined;
     await expect(
-      PCPApplePaySession.create(mockApplePaySessionConfig, mockApplePayButton)
+      PCPApplePaySession.create(mockApplePaySessionConfig, mockApplePayButton),
     ).rejects.toThrow('Apple Pay is not available');
   });
 });

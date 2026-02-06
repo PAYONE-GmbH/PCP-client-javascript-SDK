@@ -75,7 +75,7 @@ export interface PCPApplePaySessionConfig extends ApplePayJS.ApplePayPaymentRequ
    * @returns {Promise<ApplePayJS.ApplePayPaymentMethodUpdate>}
    */
   paymentMethodSelectedCallback?: (
-    paymentMethod: ApplePayJS.ApplePayPaymentMethod
+    paymentMethod: ApplePayJS.ApplePayPaymentMethod,
   ) => Promise<ApplePayJS.ApplePayPaymentMethodUpdate>;
   /**
    * Callback function that is called when the user enters or updates a coupon code.
@@ -89,7 +89,7 @@ export interface PCPApplePaySessionConfig extends ApplePayJS.ApplePayPaymentRequ
    * @returns {Promise<ApplePayJS.ApplePayShippingMethodUpdate>}
    */
   shippingMethodSelectedCallback?: (
-    shippingMethod: ApplePayJS.ApplePayShippingMethod
+    shippingMethod: ApplePayJS.ApplePayShippingMethod,
   ) => Promise<ApplePayJS.ApplePayShippingMethodUpdate>;
   /**
    * Callback function that is called when the user selects a shipping contact in the payment sheet.
@@ -97,7 +97,7 @@ export interface PCPApplePaySessionConfig extends ApplePayJS.ApplePayPaymentRequ
    * @returns {Promise<ApplePayJS.ApplePayShippingContactUpdate>}
    */
   shippingContactAddressSelectedCallback?: (
-    shippingContact: ApplePayJS.ApplePayPaymentContact
+    shippingContact: ApplePayJS.ApplePayPaymentContact,
   ) => Promise<ApplePayJS.ApplePayShippingContactUpdate>;
   /**
    * Callback function that is called when the payment UI is dismissed.

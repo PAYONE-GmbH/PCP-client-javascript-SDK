@@ -70,7 +70,7 @@ export class PCPCreditCardTokenizer {
       this.submitButtonElement.onclick = () => {
         window.HostedTokenizationSdk.submitForm(
           this.config.tokenizationSuccessCallback,
-          this.config.tokenizationFailureCallback
+          this.config.tokenizationFailureCallback,
         );
       };
     }

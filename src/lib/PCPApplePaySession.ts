@@ -22,7 +22,7 @@ export class PCPApplePaySession {
    */
   public static async create(
     config: PCPApplePaySessionConfig,
-    button: ApplePayButton
+    button: ApplePayButton,
   ): Promise<PCPApplePaySession> {
     const instance = new PCPApplePaySession(config);
     await instance.initialize(button);
@@ -79,7 +79,7 @@ export class PCPApplePaySession {
         try {
           const success = await this.processPayment(payment);
           this.session!.completePayment(
-            success ? ApplePaySession.STATUS_SUCCESS : ApplePaySession.STATUS_FAILURE
+            success ? ApplePaySession.STATUS_SUCCESS : ApplePaySession.STATUS_FAILURE,
           );
         } catch (error) {
           this.session!.completePayment(ApplePaySession.STATUS_FAILURE);
