@@ -7,39 +7,40 @@ declare global {
   }
 }
 
+/**
+ * calculate integrity with:
+ * curl -s https://sdk.preprod.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js | openssl dgst -sha384 -binary | openssl base64 -A
+ *
+ */
 const SDK_SCRIPT_ENV = {
   test: {
-    src: 'https://sdk.preprod.tokenization.secure.payone.com/1.0.2/hosted-tokenization-sdk.js',
+    src: 'https://sdk.preprod.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js',
     integrity:
-      'sha384-JavLFVzhH2fmwhTeBqVkXIiKlGAMbvznkievdJ4VHNpc02zWI0djUJS6J9LVI9L3',
+      'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
   },
   live: {
-    src: 'https://sdk.tokenization.secure.payone.com/1.0.2/hosted-tokenization-sdk.js',
+    src: 'https://sdk.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js',
     integrity:
-      'sha384-JavLFVzhH2fmwhTeBqVkXIiKlGAMbvznkievdJ4VHNpc02zWI0djUJS6J9LVI9L3',
+      'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
   },
 };
 
 export class PCPCreditCardTokenizer {
   private readonly config: Config;
-  private readonly jwtToken: string;
   private readonly submitButtonElement: HTMLElement;
 
   /**
    * Creates a new instance of the PCPCreditCardTokenizer, initializes the Hosted Tokenization SDK, and attaches event handlers to the submit button.
-   * @param {Config} config - The configuration object for UI and callbacks
-   * @param {string} jwtToken - The JWT token from your backend (CommercePlatform-API)
-   * @returns {Promise<PCPCreditCardTokenizer>} A new instance of the PCPCreditCardTokenizer
+   * @param config - The configuration object for UI and callbacks
    */
-  public static async create(config: Config, jwtToken: string) {
-    const instance = new PCPCreditCardTokenizer(config, jwtToken);
+  public static async create(config: Config) {
+    const instance = new PCPCreditCardTokenizer(config);
     await instance.initialize();
     return instance;
   }
 
-  private constructor(config: Config, jwtToken: string) {
+  private constructor(config: Config) {
     this.config = config;
-    this.jwtToken = jwtToken;
     this.submitButtonElement =
       this.checkForRequiredElementsAndReturnSubmitButtonElement();
   }
@@ -47,17 +48,17 @@ export class PCPCreditCardTokenizer {
   private async initialize() {
     await this.loadHostedTokenizationSdk();
 
-    const sdkConfig = {
+    const sdkConfig: Config = {
+      ...this.config,
       iframe: {
-        iframeWrapperId:
-          this.config.iframe?.iframeWrapperId || 'payment-IFrame',
-        height: this.config.iframe?.height || 400,
-        width: this.config.iframe?.width || 400,
-        zIndex: this.config.iframe?.zIndex || 9999,
+        ...this.config.iframe,
+        height: this.config.iframe.height || 'auto',
+        width: this.config.iframe.width || 400,
+        zIndex: this.config.iframe.zIndex || 9999,
       },
       uiConfig: this.config.uiConfig || {},
       locale: this.config.locale || 'de_DE',
-      token: this.jwtToken,
+      mode: this.config.mode || 'test',
     };
 
     if (window.HostedTokenizationSdk) {
@@ -90,8 +91,8 @@ export class PCPCreditCardTokenizer {
         return;
       }
 
-      // Determine script infos via environment
-      const SDK_SCRIPT = SDK_SCRIPT_ENV[this.config.environment];
+      // Determine script infos via mode
+      const SDK_SCRIPT = SDK_SCRIPT_ENV[this.config.mode || 'test'];
 
       const script = document.createElement('script');
       script.type = 'text/javascript';
@@ -108,8 +109,10 @@ export class PCPCreditCardTokenizer {
 
   private checkForRequiredElementsAndReturnSubmitButtonElement() {
     const submitButtonElement =
-      this.config.submitButton?.element ||
-      document.querySelector(this.config.submitButton?.selector as string);
+      this.config.submitButton.element ||
+      (this.config.submitButton.selector
+        ? document.querySelector(this.config.submitButton.selector)
+        : undefined);
 
     if (!submitButtonElement) {
       throw new Error(
