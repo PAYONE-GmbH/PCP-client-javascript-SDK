@@ -1,7 +1,5 @@
 // see https://github.com/google-pay/google-pay-button for more examples
-import GooglePayButton, {
-  type ReadyToPayChangeResponse,
-} from '@google-pay/button-element';
+import GooglePayButton, { type ReadyToPayChangeResponse } from '@google-pay/button-element';
 
 class MyGooglePayButton extends HTMLElement {
   constructor() {
@@ -62,11 +60,7 @@ class MyGooglePayButton extends HTMLElement {
         currencyCode: 'EUR',
         countryCode: 'DE',
       },
-      callbackIntents: [
-        'PAYMENT_AUTHORIZATION',
-        'SHIPPING_ADDRESS',
-        'SHIPPING_OPTION',
-      ],
+      callbackIntents: ['PAYMENT_AUTHORIZATION', 'SHIPPING_ADDRESS', 'SHIPPING_OPTION'],
     };
     button.onLoadPaymentData = this.onLoadPaymentData;
     button.onPaymentDataChanged = this.onPaymentDataChanged;
@@ -84,7 +78,7 @@ class MyGooglePayButton extends HTMLElement {
   }
 
   onPaymentDataChanged(
-    paymentDataChange: google.payments.api.IntermediatePaymentData,
+    paymentDataChange: google.payments.api.IntermediatePaymentData
   ): google.payments.api.PaymentDataRequestUpdate {
     // This is where you can handle changes to the payment data, such as shipping address, options or coupon codes
     console.log('payment data changed', paymentDataChange);

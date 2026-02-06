@@ -5,7 +5,7 @@ const init = async () => {
     'body',
     't',
     import.meta.env.VITE_PAYLA_PARTNER_ID,
-    import.meta.env.VITE_PARTNER_MERCHANT_ID,
+    import.meta.env.VITE_PARTNER_MERCHANT_ID
   );
 
   const snippetToken = fingerprintingTokenizer.getSnippetToken();

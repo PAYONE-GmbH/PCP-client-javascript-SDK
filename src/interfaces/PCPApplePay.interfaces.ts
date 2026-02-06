@@ -51,8 +51,7 @@ export interface ApplePayButton {
   config: ApplePayButtonConfig;
 }
 
-export interface PCPApplePaySessionConfig
-  extends ApplePayJS.ApplePayPaymentRequest {
+export interface PCPApplePaySessionConfig extends ApplePayJS.ApplePayPaymentRequest {
   /**
    * The version of Apple Pay on the Web that your website supports.
    * see: https://developer.apple.com/documentation/apple_pay_on_the_web/apple_pay_on_the_web_version_history
@@ -76,23 +75,21 @@ export interface PCPApplePaySessionConfig
    * @returns {Promise<ApplePayJS.ApplePayPaymentMethodUpdate>}
    */
   paymentMethodSelectedCallback?: (
-    paymentMethod: ApplePayJS.ApplePayPaymentMethod,
+    paymentMethod: ApplePayJS.ApplePayPaymentMethod
   ) => Promise<ApplePayJS.ApplePayPaymentMethodUpdate>;
   /**
    * Callback function that is called when the user enters or updates a coupon code.
    * @param {string} couponCode
    * @returns {Promise<ApplePayJS.ApplePayCouponCodeUpdate>}
    */
-  couponCodeChangedCallback?: (
-    couponCode: string,
-  ) => Promise<ApplePayJS.ApplePayCouponCodeUpdate>;
+  couponCodeChangedCallback?: (couponCode: string) => Promise<ApplePayJS.ApplePayCouponCodeUpdate>;
   /**
    * Callback function that is called when the user selects a shipping method.
    * @param {ApplePayJS.ApplePayShippingMethod} shippingMethod
    * @returns {Promise<ApplePayJS.ApplePayShippingMethodUpdate>}
    */
   shippingMethodSelectedCallback?: (
-    shippingMethod: ApplePayJS.ApplePayShippingMethod,
+    shippingMethod: ApplePayJS.ApplePayShippingMethod
   ) => Promise<ApplePayJS.ApplePayShippingMethodUpdate>;
   /**
    * Callback function that is called when the user selects a shipping contact in the payment sheet.
@@ -100,7 +97,7 @@ export interface PCPApplePaySessionConfig
    * @returns {Promise<ApplePayJS.ApplePayShippingContactUpdate>}
    */
   shippingContactAddressSelectedCallback?: (
-    shippingContact: ApplePayJS.ApplePayPaymentContact,
+    shippingContact: ApplePayJS.ApplePayPaymentContact
   ) => Promise<ApplePayJS.ApplePayShippingContactUpdate>;
   /**
    * Callback function that is called when the payment UI is dismissed.

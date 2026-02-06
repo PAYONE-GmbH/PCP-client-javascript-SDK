@@ -1,8 +1,4 @@
-import {
-  Config,
-  PCPCreditCardTokenizer,
-  UIConfig,
-} from 'pcp-client-javascript-sdk';
+import { type Config, PCPCreditCardTokenizer, type UIConfig } from 'pcp-client-javascript-sdk';
 
 // Example UI config for the new SDK
 const uiConfig: UIConfig = {

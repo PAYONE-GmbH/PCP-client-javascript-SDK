@@ -1,8 +1,8 @@
-import { Config } from '../interfaces/index.js';
+import type { Config } from '../interfaces/index.js';
 
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: <ok>
     HostedTokenizationSdk: any;
   }
 }
@@ -15,13 +15,11 @@ declare global {
 const SDK_SCRIPT_ENV = {
   test: {
     src: 'https://sdk.preprod.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js',
-    integrity:
-      'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
+    integrity: 'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
   },
   live: {
     src: 'https://sdk.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js',
-    integrity:
-      'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
+    integrity: 'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
   },
 };
 
@@ -41,8 +39,7 @@ export class PCPCreditCardTokenizer {
 
   private constructor(config: Config) {
     this.config = config;
-    this.submitButtonElement =
-      this.checkForRequiredElementsAndReturnSubmitButtonElement();
+    this.submitButtonElement = this.checkForRequiredElementsAndReturnSubmitButtonElement();
   }
 
   private async initialize() {
@@ -73,7 +70,7 @@ export class PCPCreditCardTokenizer {
       this.submitButtonElement.onclick = () => {
         window.HostedTokenizationSdk.submitForm(
           this.config.tokenizationSuccessCallback,
-          this.config.tokenizationFailureCallback,
+          this.config.tokenizationFailureCallback
         );
       };
     }
@@ -115,9 +112,7 @@ export class PCPCreditCardTokenizer {
         : undefined);
 
     if (!submitButtonElement) {
-      throw new Error(
-        `Submit Button not present. Please provide a valid selector or element.`,
-      );
+      throw new Error(`Submit Button not present. Please provide a valid selector or element.`);
     }
     return submitButtonElement as HTMLElement;
   }

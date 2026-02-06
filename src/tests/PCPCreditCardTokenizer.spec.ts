@@ -1,6 +1,7 @@
 import { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Config, PCPCreditCardTokenizer } from '../index.js';
+
+import { type Config, PCPCreditCardTokenizer } from '../index.js';
 
 describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   let document: Document;
@@ -15,7 +16,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   beforeEach(async () => {
     const { window: jsdomWindow } = new JSDOM(
       '<!DOCTYPE html><body><div id="payment-IFrame"></div><button id="submit"></button><pre id="jsonResponsePre"></pre></body>',
-      { url: 'http://localhost' },
+      { url: 'http://localhost' }
     );
     document = jsdomWindow.document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -72,7 +73,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         uiConfig: {},
         locale: 'de_DE',
         token: 'dummy-jwt',
-      }),
+      })
     );
   });
 
@@ -93,10 +94,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     const submitButton = document.querySelector('#submit') as HTMLButtonElement;
     submitButton.click();
 
-    expect(submitFormMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(submitFormMock).toHaveBeenCalledWith(expect.any(Function), expect.any(Function));
   });
 
   it('should throw if the submit button is not found', async () => {
@@ -112,7 +110,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     };
 
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
-      'Submit Button not present. Please provide a valid selector or element.',
+      'Submit Button not present. Please provide a valid selector or element.'
     );
   });
 
@@ -132,16 +130,11 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     };
     await PCPCreditCardTokenizer.create(config);
     button.click();
-    expect(submitFormMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(submitFormMock).toHaveBeenCalledWith(expect.any(Function), expect.any(Function));
   });
 
   it('should throw if HostedTokenizationSdk.init throws', async () => {
-    window.HostedTokenizationSdk.init = vi
-      .fn()
-      .mockRejectedValue(new Error('init fail'));
+    window.HostedTokenizationSdk.init = vi.fn().mockRejectedValue(new Error('init fail'));
     const config: Config = {
       iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
       uiConfig: {},
@@ -153,7 +146,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       token: 'dummy-jwt',
     };
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
-      'Failed to initialize Hosted Tokenization SDK.',
+      'Failed to initialize Hosted Tokenization SDK.'
     );
   });
 
@@ -172,9 +165,9 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (script as any).setAttribute('id', 'hosted-tokenization-sdk');
         setTimeout(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // biome-ignore lint/complexity/useOptionalChain: <ok>
           () => (script as any).onerror && (script as any).onerror(),
-          0,
+          0
         );
         return script;
       }
@@ -191,7 +184,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       token: 'dummy-jwt',
     };
     await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
-      'Failed to load the Hosted Tokenization SDK script.',
+      'Failed to load the Hosted Tokenization SDK script.'
     );
     createElementSpy.mockRestore();
   });
@@ -296,7 +289,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
             }),
           }),
         }),
-      }),
+      })
     );
   });
 
@@ -318,7 +311,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     expect(getPaymentPageMock).toHaveBeenCalledWith(
       expect.objectContaining({
         allowedCardSchemes: ['visa', 'mastercard', 'amex'],
-      }),
+      })
     );
   });
 
@@ -345,7 +338,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         iframe: expect.objectContaining({
           height: 'auto',
         }),
-      }),
+      })
     );
   });
 
@@ -367,7 +360,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       expect.objectContaining({
         mode: 'live',
         token: 'live-jwt-token',
-      }),
+      })
     );
   });
 
@@ -403,7 +396,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
           btnBgColor: '#007bff',
           inputBorderRadius: '4px',
         }),
-      }),
+      })
     );
   });
 });

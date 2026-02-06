@@ -1,39 +1,31 @@
-/* eslint-disable no-undef */
-/* eslint-disable @typescript-eslint/no-require-imports */
 const express = require('express');
 const app = express();
-const fs = require('fs');
-const https = require('https');
+const fs = require('node:fs');
+const https = require('node:https');
 const bodyParser = require('body-parser');
-const path = require('path');
+const path = require('node:path');
 const cors = require('cors');
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
-app.get('/apple-pay-button-demo', (req, res) => {
+app.get('/apple-pay-button-demo', (_req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
 });
 
-app.get(
-  '/.well-known/apple-developer-merchantid-domain-association.txt',
-  (req, res) => {
-    res.sendFile(
-      __dirname +
-        '/.well-known/apple-developer-merchantid-domain-association.txt',
-    );
-  },
-);
+app.get('/.well-known/apple-developer-merchantid-domain-association.txt', (_req, res) => {
+  res.sendFile(`${__dirname}/.well-known/apple-developer-merchantid-domain-association.txt`);
+});
 
 // Paths to merchant identity certificate and private key
 const certificate = fs.readFileSync(
   path.join(__dirname, 'certificates', 'your-certificate.crt.pem'),
-  'utf8',
+  'utf8'
 );
 const privateKey = fs.readFileSync(
   path.join(__dirname, 'certificates', 'your-certificate.key.pem'),
-  'utf8',
+  'utf8'
 );
 
 // Validate merchant
@@ -82,7 +74,7 @@ app.post('/validate-merchant', (req, res) => {
       JSON.stringify({
         error: 'Internal Server Error',
         details: error.message,
-      }),
+      })
     );
   });
 

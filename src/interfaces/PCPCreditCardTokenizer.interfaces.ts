@@ -156,7 +156,7 @@ export interface Config {
       expiryDate: string;
       cardType: string;
     },
-    inputMode: string,
+    inputMode: string
   ) => void;
 
   /**
@@ -164,6 +164,6 @@ export interface Config {
    */
   tokenizationFailureCallback: (
     statusCode: number,
-    errorResponse: { error?: string; [key: string]: unknown },
+    errorResponse: { error?: string; [key: string]: unknown }
   ) => void;
 }
