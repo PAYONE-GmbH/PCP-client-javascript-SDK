@@ -1,6 +1,6 @@
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: <ok>
     paylaDcs: any;
   }
 }
@@ -118,14 +118,11 @@ export class PCPFingerprintingTokenizer {
         if (typeof window.paylaDcs !== 'undefined' && window.paylaDcs.init) {
           window.paylaDcs.init(this.environment, this.snippetToken);
         } else {
-          throw new Error(
-            'paylaDcs is not defined or does not have an init method.',
-          );
+          throw new Error('paylaDcs is not defined or does not have an init method.');
         }
         return resolve();
       };
-      script.onerror = () =>
-        reject(new Error('Failed to load the Payla script.'));
+      script.onerror = () => reject(new Error('Failed to load the Payla script.'));
       document.querySelector(this.selector)!.appendChild(script);
     });
   }
@@ -142,8 +139,7 @@ export class PCPFingerprintingTokenizer {
       link.rel = 'stylesheet';
       link.href = `https://d.payla.io/dcs/dcs.css?st=${this.snippetToken}&pi=${this.paylaPartnerId}&psi=${this.partnerMerchantId}&e=${this.environment}`;
       link.onload = () => resolve();
-      link.onerror = () =>
-        reject(new Error('Failed to load the Payla stylesheet.'));
+      link.onerror = () => reject(new Error('Failed to load the Payla stylesheet.'));
       document.querySelector(this.selector)!.appendChild(link);
     });
   }
@@ -161,9 +157,7 @@ export class PCPFingerprintingTokenizer {
     array[8] = (array[8] & 0x3f) | 0x80;
 
     // Convert the array to a string in the format of a UUID
-    const hex = Array.from(array, (byte) =>
-      byte.toString(16).padStart(2, '0'),
-    ).join('');
+    const hex = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 
     return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20, 32)}`;
   }

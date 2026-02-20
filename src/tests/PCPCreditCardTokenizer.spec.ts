@@ -1,6 +1,7 @@
 import { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Config, PCPCreditCardTokenizer } from '../index.js';
+
+import { type Config, PCPCreditCardTokenizer } from '../index.js';
 
 describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   let document: Document;
@@ -93,10 +94,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     const submitButton = document.querySelector('#submit') as HTMLButtonElement;
     submitButton.click();
 
-    expect(submitFormMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(submitFormMock).toHaveBeenCalledWith(expect.any(Function), expect.any(Function));
   });
 
   it('should throw if the submit button is not found', async () => {
@@ -132,16 +130,11 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     };
     await PCPCreditCardTokenizer.create(config);
     button.click();
-    expect(submitFormMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(submitFormMock).toHaveBeenCalledWith(expect.any(Function), expect.any(Function));
   });
 
   it('should throw if HostedTokenizationSdk.init throws', async () => {
-    window.HostedTokenizationSdk.init = vi
-      .fn()
-      .mockRejectedValue(new Error('init fail'));
+    window.HostedTokenizationSdk.init = vi.fn().mockRejectedValue(new Error('init fail'));
     const config: Config = {
       iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
       uiConfig: {},
@@ -172,7 +165,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (script as any).setAttribute('id', 'hosted-tokenization-sdk');
         setTimeout(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // biome-ignore lint/complexity/useOptionalChain: <ok>
           () => (script as any).onerror && (script as any).onerror(),
           0,
         );

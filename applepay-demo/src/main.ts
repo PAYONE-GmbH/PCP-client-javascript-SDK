@@ -1,8 +1,8 @@
 import {
-  ApplePayButton,
+  type ApplePayButton,
   encodeToBase64,
   PCPApplePaySession,
-  PCPApplePaySessionConfig,
+  type PCPApplePaySessionConfig,
 } from 'pcp-client-javascript-sdk';
 
 const init = async () => {
@@ -39,25 +39,29 @@ const init = async () => {
     processPaymentURL: import.meta.env.VITE_APPLE_PAY_PROCESS_PAYMENT_URL,
     // This data is completely custom and needs to be sent to your server for merchant validation and must be used as a base64 encoded string here for the apple pay server
     applicationData: encodeToBase64(JSON.stringify({ foo: 'bar' })),
-    paymentMethodSelectedCallback: async (paymentMethod) => {
+    // biome-ignore lint/suspicious/noExplicitAny: <ok>
+    paymentMethodSelectedCallback: async (paymentMethod: any) => {
       console.log('paymentMethodSelectedCallback', paymentMethod);
       return {
         newTotal: applePaySessionConfig.total,
       };
     },
-    couponCodeChangedCallback: async (couponCode) => {
+    // biome-ignore lint/suspicious/noExplicitAny: <ok>
+    couponCodeChangedCallback: async (couponCode: any) => {
       console.log('couponCodeChangedCallback', couponCode);
       return {
         newTotal: applePaySessionConfig.total,
       };
     },
-    shippingMethodSelectedCallback: async (shippingMethod) => {
+    // biome-ignore lint/suspicious/noExplicitAny: <ok>
+    shippingMethodSelectedCallback: async (shippingMethod: any) => {
       console.log('shippingMethodSelectedCallback', shippingMethod);
       return {
         newTotal: applePaySessionConfig.total,
       };
     },
-    shippingContactAddressSelectedCallback: async (shippingContact) => {
+    // biome-ignore lint/suspicious/noExplicitAny: <ok>
+    shippingContactAddressSelectedCallback: async (shippingContact: any) => {
       console.log('shippingContactAddressSelectedCallback', shippingContact);
       return {
         newTotal: applePaySessionConfig.total,

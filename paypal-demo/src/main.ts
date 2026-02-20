@@ -1,4 +1,5 @@
 import { loadScript } from '@paypal/paypal-js';
+
 loadScript({
   clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID,
   merchantId: import.meta.env.VITE_PAYPAL_MERCHANT_ID,
@@ -52,24 +53,19 @@ loadScript({
           });
 
           if (!response.ok) {
-            throw new Error(
-              `Server responded with ${response.status}: ${response.statusText}`,
-            );
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
           }
           const responseData = await response.json();
           console.log('Order captured successfully:', responseData);
-          document.getElementById('message')!.textContent =
-            `Success - OrderId: ${data.orderID}`;
+          document.getElementById('message')!.textContent = `Success - OrderId: ${data.orderID}`;
         },
         onError: (error) => {
           console.error('PayPal error:', error);
-          document.getElementById('error')!.textContent =
-            error.message as string;
+          document.getElementById('error')!.textContent = error.message as string;
         },
         onCancel: () => {
           console.log('Payment cancelled');
-          document.getElementById('message')!.textContent =
-            'Payment cancelled by user';
+          document.getElementById('message')!.textContent = 'Payment cancelled by user';
         },
         style: {
           layout: 'vertical',
