@@ -9,17 +9,17 @@ declare global {
 
 /**
  * calculate integrity with:
- * curl -s https://sdk.preprod.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js | openssl dgst -sha384 -binary | openssl base64 -A
+ * curl -s https://sdk.preprod.tokenization.secure.payone.com/1.4.0/hosted-tokenization-sdk.js | openssl dgst -sha384 -binary | openssl base64 -A
  *
  */
 const SDK_SCRIPT_ENV = {
   test: {
-    src: 'https://sdk.preprod.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js',
-    integrity: 'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
+    src: 'https://sdk.preprod.tokenization.secure.payone.com/1.4.0/hosted-tokenization-sdk.js',
+    integrity: 'sha384-gLgHigakYvqqMAmx6FuAl2EaUoWvG24i0xCyDH8YC7+mWpqgFjuzPM0xD3orrMZ4',
   },
   live: {
-    src: 'https://sdk.tokenization.secure.payone.com/1.3.0/hosted-tokenization-sdk.js',
-    integrity: 'sha384-2mqrh4mWkGZN9XmQeJFzKX5t+i9at3NYnUT9qvS2GiMRe8a6pigcsaxGh5y7KwbG',
+    src: 'https://sdk.tokenization.secure.payone.com/1.4.0/hosted-tokenization-sdk.js',
+    integrity: 'sha384-gLgHigakYvqqMAmx6FuAl2EaUoWvG24i0xCyDH8YC7+mWpqgFjuzPM0xD3orrMZ4',
   },
 };
 
