@@ -19,6 +19,11 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
     - [4. Configure the Tokenizer](#4-configure-the-tokenizer)
     - [5. Initialize the Tokenizer](#5-initialize-the-tokenizer)
     - [6. Customization and Callbacks](#6-customization-and-callbacks)
+      - [Supported Card Schemes](#supported-card-schemes)
+      - [UI Customization](#ui-customization)
+      - [Custom Text Configuration (v1.3+)](#custom-text-configuration-v13)
+      - [Custom Icons (v1.4)](#custom-icons-v14)
+      - [Click to Pay (v1.3+)](#click-to-pay-v13)
     - [7. PCI DSS & Security](#7-pci-dss--security)
     - [8. Migration Note](#8-migration-note)
   - [Fingerprinting Tokenizer](#fingerprinting-tokenizer)
@@ -94,21 +99,27 @@ pnpm add pcp-client-javascript-sdk
 
 ### Credit Card Tokenizer
 
-The Credit Card Tokenizer now uses the new PAYONE Hosted Tokenization SDK. It securely collects and processes credit or debit card information in a PCI DSS-compliant way, returning a token for use in your server-side payment process.
+The Credit Card Tokenizer uses the PAYONE Hosted Tokenization SDK (v1.4). It securely collects and processes credit or debit card information in a PCI DSS-compliant way via an iframe, returning a token for use in your server-side payment process.
 
-To integrate the Credit Card Tokenizer feature into your application, follow these steps:
+To integrate the Credit Card Tokenizer into your application, follow these steps:
 
 #### 1. **Add the Payment IFrame and Submit Button to your HTML**
 
 ```html
-<div id="payment-IFrame"></div>
-<button id="submit">Submit</button>
+<div id="payment-IFrame"></div> <button id="submit">Pay now</button>
 ```
 
 #### 2. **Import the Tokenizer and Types from the SDK**
 
 ```typescript
-import { Config, PCPCreditCardTokenizer } from 'pcp-client-javascript-sdk';
+import {
+  type Config,
+  type CustomIconsConfig, // v1.4
+  type CustomTextConfig,
+  type CTPConfig, // Click to Pay (v1.3+)
+  PCPCreditCardTokenizer,
+  type UIConfig,
+} from 'pcp-client-javascript-sdk';
 ```
 
 #### 3. **Fetch the JWT from your Backend**
@@ -139,100 +150,274 @@ const config: Config = {
     formBgColor: '#ffffff',
     fieldBgColor: '#ffffff',
     fieldBorder: '1px solid #8f8f8f',
-    fieldOutline: '#da0c1f solid 1px',
     fieldLabelColor: '#333333',
-    fieldPlaceholderColor: '#333333',
     fieldTextColor: '#333333',
-    fieldErrorCodeColor: '#8f8f8f',
-    fontFamily: 'Mozilla Headline',
-    fontUrl:
-      'https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&family=Nata+Sans:wght@100..900&display=swap',
-    labelStyle: {
-      fontSize: '20px',
-      fontWeight: '900',
-    },
+    fontFamily: 'Arial, sans-serif',
+    labelStyle: { fontSize: '16px', fontWeight: '600', fontSizeMobile: '14px' },
     inputStyle: {
-      fontSize: '20px',
-      fontWeight: '900',
-    },
-    errorValidationStyle: {
       fontSize: '16px',
       fontWeight: 'normal',
+      fontSizeMobile: '14px',
     },
+    errorValidationStyle: { fontSize: '14px', fontWeight: 'normal' },
+    btnBgColor: '#0096d6',
+    btnTextColor: '#ffffff',
+    inputBorderRadius: '8px',
+    inputBorderColorSuccess: '#22C55E',
+    inputBorderColorError: '#da0c1f',
   },
   locale: 'de_DE',
-  submitButton: {
-    selector: '#submit',
-  },
+  token,
+  mode: 'test', // Use 'live' for production
+
+  // v1.4: show or hide the cardholder name field
+  showCardholderName: true,
+
+  // v1.4: pre-fill email address (used by Click to Pay for card lookup)
+  email: '',
+
+  allowedCardSchemes: [
+    'visa',
+    'mastercard',
+    'amex',
+    'diners',
+    'discover',
+    'jcb',
+    'maestro',
+    'unionpay',
+  ],
+
+  submitButton: { selector: '#submit' },
+
   tokenizationSuccessCallback: (statusCode, token, cardDetails, inputMode) => {
-    console.log('Tokenized card successfully');
-    console.log('Status:', statusCode);
+    console.log('Status:', statusCode); // 201 on success
     console.log('Token:', token);
-    console.log('Card Details:', cardDetails);
-    console.log('Input Mode:', inputMode);
+    console.log('Card Details:', cardDetails); // { cardholderName, cardNumber, expiryDate, cardType }
+    console.log('Input Mode:', inputMode); // 'manual', 'register', or 'ClickToPay'
   },
   tokenizationFailureCallback: (statusCode, errorResponse) => {
-    console.error('Tokenization of card failed');
-    console.error('Status:', statusCode);
+    console.error('Status:', statusCode); // e.g. 400
     console.error('Error:', errorResponse.error);
   },
-  mode: 'test', // Use 'live' for production
-  token: token, // JWT from your backend
 };
 ```
 
 #### 5. **Initialize the Tokenizer**
 
 ```typescript
-const init = async () => {
-  await PCPCreditCardTokenizer.create(config);
-};
-
-init();
+await PCPCreditCardTokenizer.create(config);
 ```
 
 #### 6. **Customization and Callbacks**
 
-**Configuration Properties:**
+**Core configuration properties:**
 
-- `iframe`: Configure the container and size for the payment iframe
-  - `iframeWrapperId`: (required) ID of the HTML element where the iframe will be rendered
-  - `height`: (optional) Height in pixels or 'auto', defaults to 'auto'
-  - `width`: (optional) Width in pixels, defaults to 400
-  - `zIndex`: (optional) CSS z-index for the iframe, defaults to 9999
+| Property                      | Required | Description                                                                                                        |
+| ----------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| `iframe.iframeWrapperId`      | Yes      | ID of the HTML container for the iframe                                                                            |
+| `iframe.height`               | No       | Height in pixels or `'auto'` (default: `'auto'`)                                                                   |
+| `iframe.width`                | No       | Max width in pixels (default: `400`)                                                                               |
+| `iframe.zIndex`               | No       | CSS z-index (default: `9999`)                                                                                      |
+| `token`                       | Yes      | JWT obtained from your backend                                                                                     |
+| `mode`                        | No       | `'test'` or `'live'` (default: `'test'`)                                                                           |
+| `locale`                      | No       | Form language, e.g. `'de_DE'`, `'en_US'` (default: `'de_DE'`)                                                      |
+| `submitButton`                | Yes      | `{ selector: '#id' }` or `{ element: HTMLElement }`                                                                |
+| `tokenizationSuccessCallback` | Yes      | Called with `statusCode`, `token`, `cardDetails`, `inputMode`                                                      |
+| `tokenizationFailureCallback` | Yes      | Called with `statusCode`, `errorResponse`                                                                          |
+| `allowedCardSchemes`          | No       | Limit accepted card brands (see [Supported Card Schemes](#supported-card-schemes))                                 |
+| `showCardholderName`          | No       | Show/hide the cardholder name field — **v1.4**                                                                     |
+| `email`                       | No       | Pre-fill email for Click to Pay card lookup — **v1.4**                                                             |
+| `uiConfig`                    | No       | Form styling (see [UI Customization](#ui-customization))                                                           |
+| `customTextConfig`            | No       | Custom labels, placeholders, aria-labels and errors per locale (see [Custom Text](#custom-text-configuration-v13)) |
+| `customIconsConfig`           | No       | Custom validation icons — **v1.4** (see [Custom Icons](#custom-icons-v14))                                         |
+| `CTPConfig`                   | No       | Click to Pay configuration — **v1.3+** (see [Click to Pay](#click-to-pay-v13))                                     |
 
-- `token`: (required) JWT obtained from your backend via the CommercePlatform-API
+---
 
-- `mode`: (required) Either 'test' or 'live', defaults to 'live'
+#### Supported Card Schemes
 
-- `uiConfig`: (optional) Customize the look and feel of the form fields including colors, fonts, borders, and styling for labels, inputs, and error messages
+Pass any subset to `allowedCardSchemes`. If omitted or empty, all cards are accepted.
 
-- `locale`: (optional) Set the language/locale for the form (e.g., 'de_DE', 'en_US'), defaults to 'de_DE'
+```typescript
+allowedCardSchemes: [
+  'amex',
+  'diners',
+  'discover',
+  'jcb',
+  'maestro',
+  'mastercard',
+  'visa',
+  'unionpay',
+];
+```
 
-- `submitButton`: Provide a selector or element for the submit button
+---
 
-- `allowedCardSchemes`: (optional) Array of allowed card types: 'amex', 'diners', 'discover', 'maestro', 'mastercard', 'visa', 'unionpay'
+#### UI Customization
 
-- `customTextConfig`: (optional) Customize labels, placeholders, aria-labels, and error messages for different locales
+`uiConfig` accepts the following properties:
 
-- `tokenizationSuccessCallback`: (required) Handle the token and card details on success. Receives:
-  - `statusCode`: HTTP status code
-  - `token`: The tokenized card token
-  - `cardDetails`: Object containing `cardholderName`, `cardNumber`, `expiryDate`, and `cardType`
-  - `inputMode`: The input method used (e.g., 'manual', 'scan')
+| Property                                                                               | Type        | Description                                            |
+| -------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------ |
+| `formBgColor`                                                                          | `string`    | Background color of the entire form                    |
+| `formMarginLeft` / `formMarginRight`                                                   | `string`    | Outer margin of the form                               |
+| `fieldBgColor`                                                                         | `string`    | Background color of input fields                       |
+| `fieldBorder`                                                                          | `string`    | CSS border for input fields                            |
+| `fieldOutline`                                                                         | `string`    | CSS outline on focus/active                            |
+| `fieldLabelColor`                                                                      | `string`    | Label text color                                       |
+| `fieldPlaceholderColor`                                                                | `string`    | Placeholder text color                                 |
+| `fieldTextColor`                                                                       | `string`    | User-entered text color                                |
+| `fieldErrorCodeColor`                                                                  | `string`    | Validation error message color                         |
+| `fontFamily`                                                                           | `string`    | Font family name                                       |
+| `fontUrl`                                                                              | `string`    | URL of a custom or Google font                         |
+| `labelStyle`                                                                           | `FontStyle` | `{ fontSize, fontWeight, fontSizeMobile }`             |
+| `inputStyle`                                                                           | `FontStyle` | `{ fontSize, fontWeight, fontSizeMobile }`             |
+| `errorValidationStyle`                                                                 | `FontStyle` | `{ fontSize, fontWeight, fontSizeMobile }`             |
+| `manualEntryFormLabelStyle`                                                            | `FontStyle` | Style for the "Manually enter your card details" label |
+| `checkboxLabelStyle`                                                                   | `FontStyle` | Checkbox label font style                              |
+| `termsTextStyle`                                                                       | `FontStyle` | Terms text font style                                  |
+| `btnBgColor` / `btnTextColor` / `btnBorderColor`                                       | `string`    | Submit button colors                                   |
+| `separatorColor` / `separatorTextColor`                                                | `string`    | "Or" separator styling                                 |
+| `inputBorderRadius`                                                                    | `string`    | Input field border radius (e.g. `'8px'`)               |
+| `inputBorderColorDefault` / `inputBorderColorSuccess` / `inputBorderColorError`        | `string`    | Border colors by state                                 |
+| `inputFocusOutline`                                                                    | `string`    | Outline when an input is focused                       |
+| `inputPadding`                                                                         | `string`    | Inner padding of input fields                          |
+| `iconWidth` / `iconPaddingRight`                                                       | `string`    | Icon sizing                                            |
+| `fieldSpacingVertical`                                                                 | `string`    | Gap between form elements                              |
+| `labelMarginBottom` / `inputMarginBottom` / `errorMarginBottom` / `buttonMarginBottom` | `string`    | Per-element spacing                                    |
 
-- `tokenizationFailureCallback`: (required) Handle errors on failure. Receives:
-  - `statusCode`: HTTP status code
-  - `errorResponse`: Object containing error details
+---
+
+#### Custom Text Configuration (v1.3+)
+
+Customize labels, placeholders, aria-labels and error messages per locale:
+
+```typescript
+const customTextConfig: CustomTextConfig = {
+  en: {
+    labels: {
+      cardNumber: 'Card Number',
+      cardholderName: 'Cardholder Name',
+      expiryDate: 'Expiry Date',
+      securityCode: 'Security Code',
+      // CTP fields: separatorText, manualCardEntryBtnText, formTitle,
+      //             email, country, firstName, lastName, mobileNumber,
+      //             selectedCountry, addresslevel1, stateProvince, city, zipCode
+    },
+    placeholders: {
+      cardNumber: '1234 5678 9012 3456',
+      cardholderName: 'John Doe',
+      expiryDate: 'MM/YY',
+      securityCode: 'CVV',
+      // additional: email, firstName, lastName, mobileNumber,
+      //             addressLevel1, stateProvince, city, zipCode
+    },
+    arialabels: {
+      cardNumber: 'Enter your card number',
+      cardholderName: 'Enter the name on the card',
+      // additional: expiryDate, securityCode, email, country, firstName,
+      //             lastName, mobile, addressLevel1, city, stateProvince, zipCode
+    },
+    errors: {
+      cardNumber: {
+        isRequired: '...',
+        isInvalid: '...',
+        isTooShort: '...',
+        notSupported: '...',
+      },
+      cardholderName: { isRequired: '...', isInvalid: '...' },
+      expiryDate: { isRequired: '...', isInvalid: '...' },
+      securityCode: {
+        isRequired: '...',
+        amexCardSecurityCodeError: '...',
+        generalSecurityCodeError: '...',
+      },
+      // CTP fields: email, firstName, lastName, country, mobileNumber,
+      //             addressLevel1, city, stateProvince, zipCode
+    },
+  },
+  de: {
+    /* ... */
+  },
+  // Any ISO language code is supported via the index signature
+};
+```
+
+---
+
+#### Custom Icons (v1.4)
+
+Display custom validation icons inside form fields. Supported formats: `svg`, `png`, `jpeg`, `jpg`, `webp`.
+
+```typescript
+const customIconsConfig: CustomIconsConfig = {
+  // Enable or disable custom validation icons
+  useCustomValidationIcons: true,
+  // If true (and useCustomValidationIcons is true), the card number field shows
+  // the detected card brand icon instead of the validation icon
+  showCardBrandIcons: true,
+  successIcon: '/icons/valid.svg',
+  errorIcon: '/icons/invalid.svg',
+};
+```
+
+---
+
+#### Click to Pay (v1.3+)
+
+Integrate the Click to Pay wallet payment method. Requires prior onboarding with the card schemes via PAYONE.
+
+```typescript
+const ctpConfig: CTPConfig = {
+  enableCTP: true,
+  enableCustomerOnboarding: true,
+  schemeConfig: {
+    merchantPresentationName: 'My Shop',
+    visaConfig: {
+      srcInitiatorId: '<PAYONE-VISA-UUID>',
+      srcDpaId: '<MERCHANT-UUID>',
+      encryptionKey: '<STRING>',
+      nModulus: '<STRING>',
+    },
+    mastercardConfig: {
+      srcInitiatorId: '<PAYONE-MC-UUID>',
+      srcDpaId: '<MERCHANT-UUID>',
+    },
+  },
+  transactionAmount: {
+    amount: '1999', // in smallest currency unit or decimal — as provided by PAYONE
+    currencyCode: 'EUR',
+  },
+  uiConfig: {
+    buttonStyle: 'solid',
+    buttonTextCase: 'capitalize',
+    buttonAndBadgeColor: '#0096d6',
+    buttonAndBadgeTextColor: '#ffffff',
+    fontFamily: 'Arial, sans-serif',
+    buttonAndInputRadius: '8px',
+    cardItemRadius: '8px',
+  },
+};
+```
+
+Add `CTPConfig` to your main config object:
+
+```typescript
+const config: Config = {
+  // ... other properties
+  CTPConfig: ctpConfig,
+};
+```
 
 #### 7. **PCI DSS & Security**
 
 - The SDK uses a JWT from your backend for secure initialization.
-- All card data is handled inside the iframe and never touches your application code.
+- All card data is collected inside the hosted iframe — it never touches your application code.
+- The Hosted Tokenization SDK script is loaded with [Subresource Integrity (SRI)](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) verification.
 
 #### 8. **Migration Note**
 
-If you previously used the classic PAYONE Hosted IFrames, update your integration to use the new Hosted Tokenization SDK as shown above. The old `fields`, `defaultStyle`, and related config are no longer used.
+If you previously used the classic PAYONE Hosted IFrames, update your integration to use the Hosted Tokenization SDK as shown above. The old `fields`, `defaultStyle`, and related config properties are no longer used.
 
 **For more details, see the [demo project](./creditcard-tokenizer-demo/).**
 
