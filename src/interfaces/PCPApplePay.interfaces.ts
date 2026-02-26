@@ -51,8 +51,7 @@ export interface ApplePayButton {
   config: ApplePayButtonConfig;
 }
 
-export interface PCPApplePaySessionConfig
-  extends ApplePayJS.ApplePayPaymentRequest {
+export interface PCPApplePaySessionConfig extends ApplePayJS.ApplePayPaymentRequest {
   /**
    * The version of Apple Pay on the Web that your website supports.
    * see: https://developer.apple.com/documentation/apple_pay_on_the_web/apple_pay_on_the_web_version_history
@@ -83,9 +82,7 @@ export interface PCPApplePaySessionConfig
    * @param {string} couponCode
    * @returns {Promise<ApplePayJS.ApplePayCouponCodeUpdate>}
    */
-  couponCodeChangedCallback?: (
-    couponCode: string,
-  ) => Promise<ApplePayJS.ApplePayCouponCodeUpdate>;
+  couponCodeChangedCallback?: (couponCode: string) => Promise<ApplePayJS.ApplePayCouponCodeUpdate>;
   /**
    * Callback function that is called when the user selects a shipping method.
    * @param {ApplePayJS.ApplePayShippingMethod} shippingMethod

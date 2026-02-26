@@ -1,6 +1,12 @@
 import { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Config, PCPCreditCardTokenizer } from '../index.js';
+
+import {
+  type Config,
+  type CTPConfig,
+  type CustomIconsConfig,
+  PCPCreditCardTokenizer,
+} from '../index.js';
 
 describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   let document: Document;
@@ -93,10 +99,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     const submitButton = document.querySelector('#submit') as HTMLButtonElement;
     submitButton.click();
 
-    expect(submitFormMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(submitFormMock).toHaveBeenCalledWith(expect.any(Function), expect.any(Function));
   });
 
   it('should throw if the submit button is not found', async () => {
@@ -132,16 +135,11 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     };
     await PCPCreditCardTokenizer.create(config);
     button.click();
-    expect(submitFormMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(submitFormMock).toHaveBeenCalledWith(expect.any(Function), expect.any(Function));
   });
 
   it('should throw if HostedTokenizationSdk.init throws', async () => {
-    window.HostedTokenizationSdk.init = vi
-      .fn()
-      .mockRejectedValue(new Error('init fail'));
+    window.HostedTokenizationSdk.init = vi.fn().mockRejectedValue(new Error('init fail'));
     const config: Config = {
       iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
       uiConfig: {},
@@ -172,7 +170,7 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (script as any).setAttribute('id', 'hosted-tokenization-sdk');
         setTimeout(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // biome-ignore lint/complexity/useOptionalChain: <ok>
           () => (script as any).onerror && (script as any).onerror(),
           0,
         );
@@ -403,6 +401,145 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
           btnBgColor: '#007bff',
           inputBorderRadius: '4px',
         }),
+      }),
+    );
+  });
+
+  it('should pass customIconsConfig to the payment page (v1.4)', async () => {
+    const customIconsConfig: CustomIconsConfig = {
+      useCustomValidationIcons: true,
+      showCardBrandIcons: false,
+      successIcon: '/icons/valid.svg',
+      errorIcon: '/icons/invalid.svg',
+    };
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      locale: 'en_US',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+      customIconsConfig,
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customIconsConfig: expect.objectContaining({
+          useCustomValidationIcons: true,
+          showCardBrandIcons: false,
+          successIcon: '/icons/valid.svg',
+          errorIcon: '/icons/invalid.svg',
+        }),
+      }),
+    );
+  });
+
+  it('should pass showCardholderName and email to the payment page (v1.4)', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      locale: 'en_US',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+      showCardholderName: true,
+      email: 'test@example.com',
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showCardholderName: true,
+        email: 'test@example.com',
+      }),
+    );
+  });
+
+  it('should pass CTPConfig to the payment page (v1.4)', async () => {
+    const ctpConfig: CTPConfig = {
+      enableCTP: true,
+      enableCustomerOnboarding: true,
+      schemeConfig: {
+        merchantPresentationName: 'TestMerchant',
+        visaConfig: {
+          srcInitiatorId: 'visa-initiator-uuid',
+          srcDpaId: 'visa-dpa-uuid',
+          encryptionKey: 'enc-key',
+          nModulus: 'modulus',
+        },
+        mastercardConfig: {
+          srcInitiatorId: 'mc-initiator-uuid',
+          srcDpaId: 'mc-dpa-uuid',
+        },
+      },
+      transactionAmount: {
+        amount: '1999',
+        currencyCode: 'EUR',
+      },
+      uiConfig: {
+        buttonStyle: 'solid',
+        buttonAndBadgeColor: '#3B82F6',
+        fontFamily: 'Sansation',
+      },
+    };
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      locale: 'en_US',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+      CTPConfig: ctpConfig,
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        CTPConfig: expect.objectContaining({
+          enableCTP: true,
+          enableCustomerOnboarding: true,
+          transactionAmount: expect.objectContaining({
+            amount: '1999',
+            currencyCode: 'EUR',
+          }),
+          schemeConfig: expect.objectContaining({
+            merchantPresentationName: 'TestMerchant',
+            visaConfig: expect.objectContaining({
+              srcInitiatorId: 'visa-initiator-uuid',
+            }),
+            mastercardConfig: expect.objectContaining({
+              srcDpaId: 'mc-dpa-uuid',
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('should pass jcb in allowedCardSchemes (v1.2+)', async () => {
+    const config: Config = {
+      iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
+      locale: 'en_US',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+      mode: 'test',
+      token: 'dummy-jwt',
+      allowedCardSchemes: ['visa', 'mastercard', 'amex', 'jcb'],
+    };
+
+    await PCPCreditCardTokenizer.create(config);
+
+    expect(getPaymentPageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowedCardSchemes: ['visa', 'mastercard', 'amex', 'jcb'],
       }),
     );
   });

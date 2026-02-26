@@ -1,9 +1,11 @@
 import { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { PCPFingerprintingTokenizer } from '../index.js';
 
 describe('PCPFingerprintingTokenizer', () => {
   let document: Document;
+  // biome-ignore lint/suspicious/noImplicitAnyLet: <ok>
   let window;
 
   const paylaDcsInitMockFn = vi.fn();
@@ -11,12 +13,9 @@ describe('PCPFingerprintingTokenizer', () => {
   const partnerMerchantId = 'partnerMerchantId';
 
   beforeEach(() => {
-    const { window: jsdomWindow } = new JSDOM(
-      '<!DOCTYPE html><head></head><body></body>',
-      {
-        url: 'http://localhost',
-      },
-    );
+    const { window: jsdomWindow } = new JSDOM('<!DOCTYPE html><head></head><body></body>', {
+      url: 'http://localhost',
+    });
     document = jsdomWindow.document;
     window = jsdomWindow as unknown as Window & typeof globalThis;
     global.document = document;
@@ -64,9 +63,7 @@ describe('PCPFingerprintingTokenizer', () => {
       it('should return the snippetToken', async () => {
         const uniqueId = tokenizer.getUniqueId();
         const snippetToken = tokenizer.getSnippetToken();
-        expect(snippetToken).toEqual(
-          `${paylaPartnerId}_${partnerMerchantId}_${uniqueId}`,
-        );
+        expect(snippetToken).toEqual(`${paylaPartnerId}_${partnerMerchantId}_${uniqueId}`);
       });
     });
   });
