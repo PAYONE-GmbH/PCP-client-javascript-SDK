@@ -44,10 +44,10 @@ Create an Apple Pay Merchant Identity Certificate via the Apple Developer Portal
 
 ```sh
 # Generate .cert.pem
-openssl pkcs12 -in /path/to/MerchantIdCertificate.p12 -out /path/to/cert.crt.pem -nokeys -legacy
+openssl pkcs12 -in /path/to/MerchantIdCertificate.p12 -out certificates/PayOneApplePay.crt.pem -clcerts -nokeys -legacy
 
 # Generate .key.pem
-openssl pkcs12 -in /path/to/MerchantIdCertificate.p12 -out /path/to/cert.key.pem -nocerts -legacy -nodes
+openssl pkcs12 -in /path/to/MerchantIdCertificate.p12 -out certificates/PayOneApplePay.key.pem -nocerts -legacy -nodes
 ```
 
 These files are required for making validation requests against the Apple Pay server.
@@ -133,7 +133,6 @@ const applePayButton: ApplePayButton = {
 ```typescript
 import {
   ApplePayButton,
-  encodeToBase64,
   PCPApplePaySession,
   PCPApplePaySessionConfig,
 } from 'pcp-client-javascript-sdk';
@@ -171,7 +170,7 @@ const init = async () => {
     validateMerchantURL: import.meta.env.VITE_APPLE_PAY_VALIDATE_MERCHANT_URL,
     processPaymentURL: import.meta.env.VITE_APPLE_PAY_PROCESS_PAYMENT_URL,
     // This data is completely custom and can be sent to your server for merchant validation and must be used as a base64 encoded string here for the apple pay server (see: https://developer.apple.com/documentation/apple_pay_on_the_web/applepayrequest/2951834-applicationdata)
-    applicationData: encodeToBase64(JSON.stringify({ foo: 'bar' })),
+    applicationData: btoa(JSON.stringify({ foo: 'bar' })),
     paymentMethodSelectedCallback: async (paymentMethod) => {
       console.log('paymentMethodSelectedCallback', paymentMethod);
       return {
@@ -224,6 +223,9 @@ This example demonstrates how to initialize and configure the Apple Pay session 
 </details>
 
 ## Installation and Build
+
+For the AWS deployment, certificate rotation, and operational checks, see
+[the Pulumi deployment guide](infrastructure/README.md).
 
 ### Install Dependencies
 
