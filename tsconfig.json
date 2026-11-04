@@ -13,5 +13,5 @@
     "noImplicitOverride": true
   },
   "include": ["src"],
-  "exclude": ["**/__tests__/*"]
+  "exclude": ["src/tests/**", "**/__tests__/**", "**/*.spec.ts", "**/*.test.ts"]
 }
