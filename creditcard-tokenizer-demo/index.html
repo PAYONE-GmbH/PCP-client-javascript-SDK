@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Credit Card Tokenizer Demo</title>
     <style>
       header svg {
@@ -47,17 +49,26 @@
 
     <script type="module" src="src/main.ts"></script>
 
+    <form id="setup">
+      <p>Enter a fresh tokenization JWT from your backend. No payment is submitted by this demo.</p>
+      <label for="token">Tokenization JWT</label>
+      <input id="token" name="token" type="password" required autocomplete="off" />
+      <label for="mode">Environment</label>
+      <select id="mode" name="mode"><option value="test">Test</option><option value="live">Live</option></select>
+      <button id="initialize" type="submit">Initialize card form</button>
+    </form>
     <!-- Container for the Hosted Tokenization iframe -->
     <div id="payment-IFrame"></div>
 
     <!-- Submit form -->
     <form name="paymentform" action="#" method="post">
-      <input id="submit" type="button" value="Pay now" />
+      <input id="submit" type="button" value="Tokenize card" disabled />
     </form>
 
     <!-- Tokenization result output -->
     <div
       id="result"
+      aria-live="polite"
       style="margin-top: 1rem; font-family: monospace; white-space: pre-wrap"
     ></div>
   </body>

@@ -100,7 +100,7 @@ pnpm add pcp-client-javascript-sdk
 
 ### Credit Card Tokenizer
 
-The Credit Card Tokenizer uses the PAYONE Hosted Tokenization SDK (v1.4). It securely collects and processes credit or debit card information in a PCI DSS-compliant way via an iframe, returning a token for use in your server-side payment process.
+The Credit Card Tokenizer uses the PAYONE Hosted Tokenization SDK (v1.6.0). It securely collects and processes credit or debit card information in a PCI DSS-compliant way via an iframe, returning a token for use in your server-side payment process.
 
 To integrate the Credit Card Tokenizer into your application, follow these steps:
 
@@ -130,7 +130,7 @@ You must obtain a JWT from your backend before initializing the tokenizer. This 
 ```typescript
 const fetchJwt = async (): Promise<string> => {
   // Fetch the JWT from your backend (CommercePlatform-API)
-  // Use the /v1/{merchantId}/authentication-token endpoint
+  // Use your backend's authentication-token endpoint
   return '<Token to be retrieved from the CommercePlatform-API>';
 };
 ```
@@ -368,6 +368,10 @@ const customIconsConfig: CustomIconsConfig = {
 
 Integrate the Click to Pay wallet payment method. Requires prior onboarding with the card schemes via PAYONE.
 
+The wrapper loads Hosted Tokenization SDK **1.6.0** with the PAYONE-provided SRI hash. Since vendor SDK 1.5, `schemeConfig` can be omitted entirely to retrieve the configuration from PAYONE; do not supply an empty object or placeholder IDs. The vendor falls back to manual card entry if that lookup fails or exceeds two seconds. The explicit configuration below remains supported.
+
+Set `isSecurityCodeMasked: true` on `Config` to mask the security-code field. Optional `paymentPageCallback(statusCode, response)` receives vendor rendering/readiness events (including string statuses). `create()` waits for script loading and vendor initialization; rendering events are delivered separately.
+
 ```typescript
 const ctpConfig: CTPConfig = {
   enableCTP: true,
@@ -422,6 +426,8 @@ If you previously used the classic PAYONE Hosted IFrames, update your integratio
 
 **For more details, see the [demo project](./creditcard-tokenizer-demo/).**
 
+Use one active card tokenizer per document because the vendor SDK is a singleton. Call `tokenizer.destroy()` before replacing a form or unmounting it; remove the old iframe container contents in your UI. This detaches the wrapper's click handler and suppresses late tokenization callbacks. It does not unload the vendor SDK. Reload the page to switch the SDK's test/live environment. Vendor string errors are normalized to `{ error: string }` in `tokenizationFailureCallback`.
+
 **[back to top](#table-of-contents)**
 
 ---
@@ -458,7 +464,7 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
   const environment = 't'; // 't' for test, 'p' for production
   const paylaPartnerId = 'your-payla-partner-id';
   const partnerMerchantId = 'your-partner-merchant-id';
-  const sessionId = yourUniqueSessionId || generateGUIDv4() || undefined; // Optional: You can pass a unique session ID or let the SDK generate one
+  const sessionId = undefined; // Optional: supply your checkout session ID, or let the SDK generate a UUIDv4
 
   const paylaScriptId = 'your-payla-script-id'; // Optional: The ID for the Payla script element. Default is "paylaDcs"
   const paylaStylesheetId = 'your-payla-stylesheet-id'; // Optional: The ID for the Payla stylesheet element. Default is "paylaDcsStylesheet"
@@ -490,6 +496,10 @@ import { PCPFingerprintingTokenizer } from 'pcp-client-javascript-sdk';
   ```
 
 For further information see: https://docs.payone.com/pcp/commerce-platform-payment-methods/payone-bnpl/payone-secured-invoice
+
+Use `t` for test and `p` for production (`test` and `live` are also accepted aliases). Initialization rejects script/stylesheet failures and missing vendor APIs; loads time out after 30 seconds. Only one fingerprinting session can be active per document. Call `fingerprintingTokenizer.destroy()` when the checkout session ends before creating the next instance. The next instance reuses the script, initializes its own token, and loads a new session stylesheet. Keep the same session ID and token for the corresponding backend payment attempt. Initialization confirms that resources loaded and Payla initialization ran; it is not a payment authorization or a signal that asynchronous device collection has finished.
+
+See the [fingerprinting demo setup](./fingerprinting-tokenizer-demo/README.md) for a runnable example.
 
 **[back to top](#table-of-contents)**
 
