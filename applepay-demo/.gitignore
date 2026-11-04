@@ -3,4 +3,5 @@
 /dist/
 /certificates/
 .env.local
+.env.*.local
 .env

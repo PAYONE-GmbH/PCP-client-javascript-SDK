@@ -1,3 +1,7 @@
+/// <reference types="applepayjs" preserve="true" />
+
+import type { ExpressPaymentResult } from './PCPExpressCheckout.interfaces.js';
+
 export interface ApplePayButtonConfig {
   /**
    * The appearance of the Apple Pay button, such as a black button with white lettering.
@@ -64,7 +68,11 @@ export interface PCPApplePaySessionConfig extends ApplePayJS.ApplePayPaymentRequ
   /**
    * The URL your server must use to process the payment.
    */
-  processPaymentURL: string;
+  processPaymentURL?: string;
+  /** Alternative to processPaymentURL. Receives the final token and full contacts. */
+  processPaymentCallback?: (payment: ApplePayJS.ApplePayPayment) => Promise<ExpressPaymentResult>;
+  /** Called after closing the payment sheet, including pending / further-action results. */
+  resultCallback?: (result: ExpressPaymentResult) => void;
   /**
    * The ID for the Apple Pay button element. Default is "apple-pay-button-script".
    */

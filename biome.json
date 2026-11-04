@@ -1,6 +1,9 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
-  "files": { "ignoreUnknown": false },
+  "$schema": "https://biomejs.dev/schemas/2.6.5/schema.json",
+  "files": {
+    "ignoreUnknown": false,
+    "includes": ["**", "!api-definition.yaml"]
+  },
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "formatter": {
     "enabled": true,
@@ -18,7 +21,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
         "noNonNullAssertion": "off"
       }
@@ -64,6 +67,11 @@
     "formatter": {
       "indentScriptAndStyle": false,
       "selfCloseVoidElements": "always"
+    }
+  },
+  "markdown": {
+    "formatter": {
+      "enabled": false
     }
   },
   "overrides": [

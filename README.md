@@ -69,6 +69,7 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
 - **Credit Card Tokenizer**: Securely tokenize credit and debit card information.
 - **Fingerprinting Tokenizer**: Generate unique tokens for device fingerprinting.
 - **Apple Pay Session Integration**: Seamlessly integrate Apple Pay into your payment workflow.
+- **Apple Pay demos**: One [Standard Checkout](applepay-demo/STANDARD_CHECKOUT.md) page and one [Express Checkout](applepay-demo/EXPRESS_CHECKOUT.md) page, with shared parameterized client modules and an [integration guide](applepay-demo/README.md).
 - **PayPal Integration**: Enable PayPal payment options on your website.
 
 ## Installation
@@ -1104,24 +1105,22 @@ This command compiles the SDK and creates the `dist` folder, making it available
 
 ### Environment Variables
 
-All the demos are using `.env` files for passing in sensitive information such as Keys, Identifier, URLs, and other configuration details. If you want to try out these demos, you must add an `.env` (or `.env.local`) file according to the given `.env.example` with your own credentials.
+The demos use `.env` / `.env.local` files for public client configuration. Follow each demo's `.env.example`. Private keys and server credentials belong in your backend, not in a client environment file.
 
 #### VITE\_ Prefix
 
-Each demo app uses Vite as the build tool. Vite exposes environment variables on the special `import.meta.env` object, which are statically replaced at build time. This ensures that the configuration is securely managed and tailored for different environments (development, production, etc.).
+Each demo app uses Vite as the build tool. Vite exposes environment variables on `import.meta.env`, replacing them at build time.
 
-Environment variables with the `VITE_` prefix are exposed to your client-side code. This is a security measure to prevent accidental exposure of sensitive data. Vite will only expose variables prefixed with `VITE_`, which ensures that server-only variables are not included in the client bundle.
+Variables with the `VITE_` prefix are included in the public client bundle. Use them only for public settings such as endpoint URLs.
 
 Example `.env` file for the apple pay demo:
 
 ```env
-# client demo environment variables
-VITE_APPLE_PAY_VALIDATE_MERCHANT_URL=https://your-merchant-domain.de/validate-merchant
-VITE_APPLE_PAY_PROCESS_PAYMENT_URL=https://your-merchant-domain.de/process-payment
-# server demo environment variables
-APPLE_PAY_MERCHANT_IDENTIFIER=merchant.de.your.project
-MERCHANT_DOMAIN_WITHOUT_PROTOCOL_OR_WWW=your-merchant-domain.de
+VITE_BACKEND_BASE_URL=https://your-backend.example/api/
+VITE_VALIDATE_MERCHANT_URL=https://your-merchant-domain.de/validate-merchant
 ```
+
+See the [Apple client guide](./applepay-demo/README.md) for both checkout flows, runtime URL parameters and instructions for serving the generated HTML/assets in your own setup. Supply your own Commerce API and Apple merchant-validation endpoints using the documented client HTTP contracts.
 
 **[back to top](#table-of-contents)**
 

@@ -28,6 +28,12 @@ jobs:
         run: npm run lint
       - name: Run Tests
         run: npm run test:coverage
+      - name: Build public SDK
+        run: npm run build
+      - name: Build Apple Pay Standard and Express demos
+        run: |
+          npm --prefix applepay-demo ci
+          npm --prefix applepay-demo run build
       - name: Run SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.2.0
         env:
