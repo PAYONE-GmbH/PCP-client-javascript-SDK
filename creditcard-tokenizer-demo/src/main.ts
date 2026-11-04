@@ -152,19 +152,7 @@ const customTextConfig: CustomTextConfig = {
 const ctpConfig: CTPConfig = {
   enableCTP: false,
   enableCustomerOnboarding: true,
-  schemeConfig: {
-    merchantPresentationName: 'My Demo Shop',
-    visaConfig: {
-      srcInitiatorId: '<PAYONE-VISA-UUID>',
-      srcDpaId: '<MERCHANT-UUID>',
-      encryptionKey: '<STRING>',
-      nModulus: '<STRING>',
-    },
-    mastercardConfig: {
-      srcInitiatorId: '<PAYONE-MC-UUID>',
-      srcDpaId: '<MERCHANT-UUID>',
-    },
-  },
+  // Omit schemeConfig entirely: SDK 1.6.0 retrieves it from PAYONE when CTP is enabled.
   transactionAmount: {
     amount: '1999',
     currencyCode: 'EUR',
@@ -182,28 +170,26 @@ const ctpConfig: CTPConfig = {
 };
 
 // ---------------------------------------------------------------------------
-// JWT fetch — replace with your actual backend call
+// Supply a short-lived JWT issued by your backend, never a merchant API secret.
 // ---------------------------------------------------------------------------
-const fetchJwt = async (): Promise<string> => {
-  // Start one of the Server SDKs or call /v1/{merchantId}/authentication-token
-  // directly to obtain a JWT, then return it here.
-  return '<Token to be retrieved from the CommercePlatform-API>';
-};
+const setup = document.querySelector<HTMLFormElement>('#setup')!;
+const submit = document.querySelector<HTMLInputElement>('#submit')!;
+const initialize = document.querySelector<HTMLButtonElement>('#initialize')!;
+let tokenizer: PCPCreditCardTokenizer | undefined;
 
 // ---------------------------------------------------------------------------
 // Helpers to display results in the UI
 // ---------------------------------------------------------------------------
-function showResult(html: string) {
+function showResult(text: string) {
   const el = document.getElementById('result');
-  if (el) el.innerHTML = html;
+  if (el) el.textContent = text;
 }
 
 // ---------------------------------------------------------------------------
 // Initialization
 // ---------------------------------------------------------------------------
-const init = async () => {
-  const token = await fetchJwt();
-
+const init = async (token: string, mode: 'test' | 'live') => {
+  let renderFailed = false;
   const config: Config = {
     iframe: {
       iframeWrapperId: 'payment-IFrame',
@@ -214,7 +200,15 @@ const init = async () => {
     uiConfig,
     locale: 'de_DE',
     token,
-    mode: 'test',
+    mode,
+    isSecurityCodeMasked: true,
+    paymentPageCallback: (status, response) => {
+      if (typeof status === 'number' && (status === 0 || status >= 400)) {
+        renderFailed = true;
+        submit.disabled = true;
+        showResult(`Card form failed (${status}): ${JSON.stringify(response)}`);
+      }
+    },
 
     // v1.4: show the cardholder name field
     showCardholderName: true,
@@ -247,34 +241,43 @@ const init = async () => {
     },
 
     tokenizationSuccessCallback: (statusCode, tokenValue, cardDetails, inputMode) => {
-      console.log('Tokenization succeeded');
-      console.log('Status:', statusCode);
-      console.log('Token:', tokenValue);
-      console.log('Card Details:', cardDetails);
-      console.log('Input Mode:', inputMode);
-      showResult(`
-        <strong>Success (${statusCode})</strong><br>
-        Token: <code>${tokenValue}</code><br>
-        Cardholder: ${cardDetails.cardholderName}<br>
-        Card: ${cardDetails.cardNumber}<br>
-        Expiry: ${cardDetails.expiryDate}<br>
-        Type: ${cardDetails.cardType}<br>
-        Input Mode: ${inputMode}
-      `);
+      showResult(
+        JSON.stringify({ statusCode, token: tokenValue, cardDetails, inputMode }, null, 2),
+      );
     },
 
     tokenizationFailureCallback: (statusCode, errorResponse) => {
-      console.error('Tokenization failed');
-      console.error('Status:', statusCode);
-      console.error('Error:', errorResponse.error);
-      showResult(`
-        <strong>Failure (${statusCode})</strong><br>
-        Error: ${errorResponse.error ?? JSON.stringify(errorResponse)}
-      `);
+      showResult(
+        `Tokenization failed (${statusCode}): ${errorResponse.error ?? JSON.stringify(errorResponse)}`,
+      );
     },
   };
 
-  await PCPCreditCardTokenizer.create(config);
+  tokenizer = await PCPCreditCardTokenizer.create(config);
+  return !renderFailed;
 };
 
-init();
+setup.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const data = new FormData(setup);
+  initialize.disabled = true;
+  submit.disabled = true;
+  tokenizer?.destroy();
+  document.getElementById('payment-IFrame')!.replaceChildren();
+  showResult('Initializing hosted card form…');
+  try {
+    const initialized = await init(
+      String(data.get('token')).trim(),
+      data.get('mode') === 'live' ? 'live' : 'test',
+    );
+    if (initialized) {
+      showResult('Card form initialized. Tokenization creates a token, not a payment.');
+      submit.disabled = false;
+    }
+  } catch (error) {
+    showResult(error instanceof Error ? error.message : 'Initialization failed.');
+  } finally {
+    initialize.disabled = false;
+  }
+});
+window.addEventListener('pagehide', () => tokenizer?.destroy());
