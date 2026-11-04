@@ -15,8 +15,8 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   let initMock: ReturnType<typeof vi.fn>;
   let getPaymentPageMock: ReturnType<typeof vi.fn>;
   let submitFormMock: ReturnType<typeof vi.fn>;
-  let successCallback: ReturnType<typeof vi.fn>;
-  let failureCallback: ReturnType<typeof vi.fn>;
+  let successCallback: ReturnType<typeof vi.fn<Config['tokenizationSuccessCallback']>>;
+  let failureCallback: ReturnType<typeof vi.fn<Config['tokenizationFailureCallback']>>;
 
   beforeEach(async () => {
     const { window: jsdomWindow } = new JSDOM(
@@ -26,8 +26,8 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
     document = jsdomWindow.document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     window = jsdomWindow as any;
-    global.document = document;
-    global.window = window;
+    vi.stubGlobal('document', document);
+    vi.stubGlobal('window', window);
 
     // Mock HostedTokenizationSdk
     initMock = vi.fn().mockResolvedValue(undefined);
@@ -45,6 +45,86 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    window.close();
+    vi.unstubAllGlobals();
+  });
+
+  function minimalConfig(): Config {
+    return {
+      iframe: { iframeWrapperId: 'payment-IFrame' },
+      token: 'dummy-jwt',
+      submitButton: { selector: '#submit' },
+      tokenizationSuccessCallback: successCallback,
+      tokenizationFailureCallback: failureCallback,
+    };
+  }
+
+  it('normalizes vendor string errors, blocks duplicate submits and preserves application handlers', async () => {
+    const button = document.querySelector<HTMLButtonElement>('#submit')!;
+    const appHandler = vi.fn();
+    button.onclick = appHandler;
+    const tokenizer = await PCPCreditCardTokenizer.create(minimalConfig());
+    button.click();
+    button.click();
+    expect(appHandler).toHaveBeenCalledTimes(2);
+    expect(submitFormMock).toHaveBeenCalledTimes(1);
+    submitFormMock.mock.calls[0][1](400, 'Expired JWT');
+    expect(failureCallback).toHaveBeenCalledWith(400, { error: 'Expired JWT' });
+    button.click();
+    expect(submitFormMock).toHaveBeenCalledTimes(2);
+    tokenizer.destroy();
+    submitFormMock.mock.calls[1][1](400, 'Late callback');
+    button.click();
+    expect(failureCallback).toHaveBeenCalledTimes(1);
+    expect(submitFormMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('forwards 1.6.0 masking and rendering events without leaking wrapper configuration', async () => {
+    const paymentPageCallback = vi.fn();
+    await PCPCreditCardTokenizer.create({
+      ...minimalConfig(),
+      isSecurityCodeMasked: true,
+      paymentPageCallback,
+      iframe: { iframeWrapperId: 'payment-IFrame', width: '100%', zIndex: 0 },
+      CTPConfig: {
+        enableCTP: true,
+        enableCustomerOnboarding: true,
+        transactionAmount: { amount: '1999', currencyCode: 'EUR' },
+      },
+    });
+    const [config, callback] = getPaymentPageMock.mock.calls[0];
+    expect(config.isSecurityCodeMasked).toBe(true);
+    expect(config.iframe).toMatchObject({ width: '100%', zIndex: 0, height: 'auto' });
+    expect(config).not.toHaveProperty('submitButton');
+    expect(config).not.toHaveProperty('tokenizationSuccessCallback');
+    expect(config.CTPConfig).not.toHaveProperty('schemeConfig');
+    callback('customReadyToPay', true);
+    expect(paymentPageCallback).toHaveBeenCalledWith('customReadyToPay', true);
+  });
+
+  it('rejects concurrent forms and allows reinitialization after destroy', async () => {
+    const first = await PCPCreditCardTokenizer.create(minimalConfig());
+    await expect(PCPCreditCardTokenizer.create(minimalConfig())).rejects.toThrow(
+      'Destroy the active',
+    );
+    first.destroy();
+    await PCPCreditCardTokenizer.create(minimalConfig());
+  });
+
+  it('waits for the real script load and uses the documented 1.6.0 integrity', async () => {
+    const sdk = window.HostedTokenizationSdk;
+    delete window.HostedTokenizationSdk;
+    const pending = PCPCreditCardTokenizer.create(minimalConfig());
+    const script = document.getElementById('hosted-tokenization-sdk') as HTMLScriptElement;
+    expect(initMock).not.toHaveBeenCalled();
+    expect(script.src).toContain('/1.6.0/');
+    expect(script.integrity).toBe(
+      'sha384-LyveXKhhHLdY1+hrDFdGnVt+rH6LRqqn4MYhBzdSnOfYgDhKJk/6aapnGqvxSZLF',
+    );
+    window.HostedTokenizationSdk = sdk;
+    script.dispatchEvent(new window.Event('load'));
+    await pending;
+    expect(initMock).toHaveBeenCalledOnce();
   });
 
   it('should initialize the SDK and render the payment page', async () => {
@@ -158,26 +238,6 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
   it('should reject if the SDK script fails to load', async () => {
     // Remove the SDK from window to force script loading
     delete window.HostedTokenizationSdk;
-    // Remove any existing script
-    const existing = document.getElementById('hosted-tokenization-sdk');
-    if (existing) existing.remove();
-    // Mock script creation to trigger error
-    const originalCreateElement = document.createElement.bind(document);
-    const createElementSpy = vi.spyOn(document, 'createElement');
-    createElementSpy.mockImplementation((tagName: string) => {
-      if (tagName === 'script') {
-        const script = originalCreateElement('div');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (script as any).setAttribute('id', 'hosted-tokenization-sdk');
-        setTimeout(
-          // biome-ignore lint/complexity/useOptionalChain: <ok>
-          () => (script as any).onerror && (script as any).onerror(),
-          0,
-        );
-        return script;
-      }
-      return originalCreateElement(tagName);
-    });
     const config: Config = {
       iframe: { iframeWrapperId: 'payment-IFrame', height: 400, width: 400 },
       uiConfig: {},
@@ -188,10 +248,11 @@ describe('PCPCreditCardTokenizer (Hosted Tokenization SDK)', () => {
       tokenizationFailureCallback: failureCallback,
       token: 'dummy-jwt',
     };
-    await expect(PCPCreditCardTokenizer.create(config)).rejects.toThrow(
-      'Failed to load the Hosted Tokenization SDK script.',
-    );
-    createElementSpy.mockRestore();
+    const pending = PCPCreditCardTokenizer.create(config);
+    const rejected = expect(pending).rejects.toThrow('Failed to load tokenizer script.');
+    document.getElementById('hosted-tokenization-sdk')!.dispatchEvent(new window.Event('error'));
+    await rejected;
+    expect(document.getElementById('hosted-tokenization-sdk')).toBeNull();
   });
 
   it('should pass customTextConfig with multiple locales', async () => {

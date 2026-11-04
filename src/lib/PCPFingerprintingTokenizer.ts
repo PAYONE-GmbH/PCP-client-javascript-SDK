@@ -1,11 +1,14 @@
+import { loadTokenizerResource, removeTokenizerResource } from './loadTokenizerResource.js';
+
 declare global {
   interface Window {
-    // biome-ignore lint/suspicious/noExplicitAny: <ok>
-    paylaDcs: any;
+    paylaDcs?: { init?: (environment: string, snippetToken: string) => void | Promise<void> };
   }
 }
 
 export class PCPFingerprintingTokenizer {
+  private stylesheet: Element | null = null;
+  private static readonly active = new WeakMap<Document, PCPFingerprintingTokenizer>();
   private selector: string;
   private environment: string;
 
@@ -21,7 +24,7 @@ export class PCPFingerprintingTokenizer {
   /**
    * Creates a new instance of the PCPFingerprintingTokenizer, initializes the Payla fingerprinting snippet, and attaches the Payla stylesheet.
    * @param {string} selector - The selector of the container element in which to mount the Payla fingerprinting snippet.
-   * @param {string} environment - The environment in which the Payla fingerprinting snippet should run. Possible values are "live" and "test".
+   * @param {string} environment - Payla environment: "t" (test) or "p" (production). "test" and "live" are accepted aliases.
    * @param {string} paylaPartnerId - The Payla Partner ID.
    * @param {string} partnerMerchantId - The Partner Merchant ID.
    * @param {string} sessionId - The session ID. If not provided, a random GUID(v4) will be generated.
@@ -47,7 +50,12 @@ export class PCPFingerprintingTokenizer {
       paylaScriptId,
       paylaStylesheetId,
     );
-    await instance.initialize();
+    try {
+      await instance.initialize();
+    } catch (error) {
+      instance.destroy();
+      throw error;
+    }
     return instance;
   }
 
@@ -61,7 +69,12 @@ export class PCPFingerprintingTokenizer {
     paylaStylesheetId?: string,
   ) {
     this.selector = selector;
-    this.environment = environment;
+    this.environment = environment === 'test' ? 't' : environment === 'live' ? 'p' : environment;
+    if (!['t', 'p'].includes(this.environment))
+      throw new Error('Payla environment must be t or p.');
+    if (!paylaPartnerId?.trim() || !partnerMerchantId?.trim()) {
+      throw new Error('Payla partner and merchant IDs are required.');
+    }
 
     this.paylaPartnerId = paylaPartnerId;
     this.partnerMerchantId = partnerMerchantId;
@@ -99,49 +112,53 @@ export class PCPFingerprintingTokenizer {
       throw new Error(`Selector ${this.selector} does not exist.`);
     }
 
-    window.paylaDcs = window.paylaDcs || {};
+    if (PCPFingerprintingTokenizer.active.has(document)) {
+      throw new Error(
+        'Destroy the active fingerprinting tokenizer before starting another session.',
+      );
+    }
+    PCPFingerprintingTokenizer.active.set(document, this);
     await this.loadScript();
+    if (typeof window.paylaDcs?.init !== 'function') {
+      removeTokenizerResource(this.paylaScriptId, document.getElementById(this.paylaScriptId));
+      throw new Error('paylaDcs is not defined or does not have an init method.');
+    }
+    await window.paylaDcs.init(this.environment, this.snippetToken);
     await this.loadStylesheet();
   }
 
   private async loadScript() {
-    return new Promise<void>((resolve, reject) => {
-      if (document.getElementById(this.paylaScriptId)) {
-        resolve(); // Script already loaded
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = this.paylaScriptId;
-      script.type = 'text/javascript';
-      script.src = `https://d.payla.io/dcs/${this.paylaPartnerId}/${this.partnerMerchantId}/dcs.js`;
-      script.onload = () => {
-        if (typeof window.paylaDcs !== 'undefined' && window.paylaDcs.init) {
-          window.paylaDcs.init(this.environment, this.snippetToken);
-        } else {
-          throw new Error('paylaDcs is not defined or does not have an init method.');
-        }
-        return resolve();
-      };
-      script.onerror = () => reject(new Error('Failed to load the Payla script.'));
-      document.querySelector(this.selector)!.appendChild(script);
+    return loadTokenizerResource({
+      id: this.paylaScriptId,
+      kind: 'script',
+      url: `https://d.payla.io/dcs/${encodeURIComponent(this.paylaPartnerId)}/${encodeURIComponent(this.partnerMerchantId)}/dcs.js`,
+      parent: document.querySelector(this.selector)!,
     });
   }
 
   private async loadStylesheet() {
-    return new Promise<void>((resolve, reject) => {
-      if (document.getElementById(this.paylaStylesheetId)) {
-        resolve(); // Stylesheet already loaded
-        return;
-      }
-      const link = document.createElement('link');
-      link.id = this.paylaStylesheetId;
-      link.type = 'text/css';
-      link.rel = 'stylesheet';
-      link.href = `https://d.payla.io/dcs/dcs.css?st=${this.snippetToken}&pi=${this.paylaPartnerId}&psi=${this.partnerMerchantId}&e=${this.environment}`;
-      link.onload = () => resolve();
-      link.onerror = () => reject(new Error('Failed to load the Payla stylesheet.'));
-      document.querySelector(this.selector)!.appendChild(link);
+    const query = new URLSearchParams({
+      st: this.snippetToken,
+      pi: this.paylaPartnerId,
+      psi: this.partnerMerchantId,
+      e: this.environment,
     });
+    const pending = loadTokenizerResource({
+      id: this.paylaStylesheetId,
+      kind: 'stylesheet',
+      url: `https://d.payla.io/dcs/dcs.css?${query}`,
+      parent: document.querySelector(this.selector)!,
+    });
+    this.stylesheet = document.getElementById(this.paylaStylesheetId);
+    await pending;
+  }
+
+  /** Release the session stylesheet. The vendor script remains cached for the next session. */
+  public destroy(): void {
+    if (PCPFingerprintingTokenizer.active.get(document) === this) {
+      removeTokenizerResource(this.paylaStylesheetId, this.stylesheet);
+      PCPFingerprintingTokenizer.active.delete(document);
+    }
   }
 
   private guidv4() {

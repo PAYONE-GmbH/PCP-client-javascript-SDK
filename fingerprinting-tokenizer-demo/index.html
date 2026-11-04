@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>body { max-width: 50rem; margin: 2rem auto; padding: 1rem; font-family: sans-serif; } header svg { width: 100px; } label { display: block; margin-top: 1rem; } pre { white-space: pre-wrap; overflow-wrap: anywhere; }</style>
     <title>Fingerprinting Tokenizer Demo</title>
   </head>
   <body>
@@ -24,5 +27,16 @@
     </header>
 
     <script type="module" src="/src/main.ts"></script>
+    <h1>Fingerprinting Tokenizer Demo</h1>
+    <form id="setup">
+      <label for="partner">Payla partner ID</label><input id="partner" name="partner" required />
+      <label for="merchant">Partner merchant ID</label><input id="merchant" name="merchant" required />
+      <label for="environment">Environment</label>
+      <select id="environment" name="environment"><option value="t">Test</option><option value="p">Production</option></select>
+      <label for="session">Session ID (optional; generated when empty)</label><input id="session" name="session" />
+      <button id="initialize" type="submit">Initialize fingerprinting</button>
+    </form>
+    <div id="fingerprinting"></div>
+    <pre id="result" aria-live="polite"></pre>
   </body>
 </html>
