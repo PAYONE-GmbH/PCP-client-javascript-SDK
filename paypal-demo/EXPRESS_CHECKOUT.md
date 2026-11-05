@@ -39,7 +39,7 @@ The final order uses the [shared CommerceCase shape](README.md#standard-order-ex
 
 ## Factory and public SDK
 
-`createExpressCheckout(options)` in `src/checkout.ts` specializes the public `PCPPayPalExpress<PaymentIntentResponse>` state machine with correlation checks and product-840 mapping.
+`createExpressCheckout(options)` in `src/checkout.ts` is a local demo helper, not a package export. It specializes the public `PCPPayPalExpress<PaymentIntentResponse>` state machine with correlation checks and product-840 mapping. The following table describes that local helper's options:
 
 | Option | Purpose |
 | --- | --- |
@@ -52,27 +52,33 @@ The final order uses the [shared CommerceCase shape](README.md#standard-order-ex
 | `onResult`, `onCancel`, `onError` | Optional callbacks for application UI |
 | `navigate(url)` | Optional navigation override; defaults to `location.assign` after HTTP(S) validation |
 
-Example wiring (the review form is filled after `resume`):
+In your own project, import the published SDK directly and inject your backend, review and persistence logic. The review form is filled after `resume`:
 
 ```ts
-import { createExpressCheckout } from './src/checkout';
-import { CommerceBackend, backendConfig } from './src/backend';
-import { formContact } from './src/payment';
+import {
+  PCPPayPalExpress,
+  type PCPPayPalExpressConfig,
+  type PaymentIntentResponse,
+} from 'pcp-client-javascript-sdk';
 
-const backend = new CommerceBackend(backendConfig(location.href, import.meta.env));
-const key = `${backend.storageKey}:intent`;
-const form = document.querySelector<HTMLFormElement>('#contact')!;
-const shipping = document.querySelector<HTMLSelectElement>('#shipping')!;
-const checkout = createExpressCheckout({
-  returnUrl: backend.config.returnUrl,
-  createIntent: () => backend.createIntent(),
-  loadIntent: (id) => backend.loadIntent(id),
-  persist: (context) => {
+// Application-owned adapters. loadIntent validates both correlation IDs,
+// product 840 and the returned address. confirmPayment reads the explicitly
+// reviewed form and submits the final order linked to context.paymentId.
+declare const createIntent: PCPPayPalExpressConfig<PaymentIntentResponse>['createIntent'];
+declare const loadIntent: PCPPayPalExpressConfig<PaymentIntentResponse>['loadIntent'];
+declare const confirmPayment: PCPPayPalExpressConfig<PaymentIntentResponse>['confirmPayment'];
+declare const displayResult: PCPPayPalExpressConfig<PaymentIntentResponse>['resultCallback'];
+
+const key = 'shop:checkout:paypal-intent'; // Scope to your checkout/attempt.
+const checkout = PCPPayPalExpress.create<PaymentIntentResponse>({
+  createIntent,
+  loadIntent,
+  confirmPayment,
+  contextChangedCallback: (context) => {
     if (context) sessionStorage.setItem(key, JSON.stringify(context));
     else sessionStorage.removeItem(key);
   },
-  review: () => ({ shippingAddress: formContact(form).shippingAddress, shippingOptionId: shipping.value }),
-  submit: (input, contact, optionId) => backend.createOrder(input, contact.customer, contact.shippingAddress, optionId),
+  resultCallback: displayResult,
 });
 // Bind checkout.start() to the initial button. After redirect, restore saved
 // context and await checkout.resume(context), then prefill and validate the form.
