@@ -1,87 +1,71 @@
-import {
-  type ApplePayButton,
-  encodeToBase64,
-  PCPApplePaySession,
-  type PCPApplePaySessionConfig,
-} from 'pcp-client-javascript-sdk';
+import type { PCPApplePaySession } from 'pcp-client-javascript-sdk';
+import { show, showError } from './ui';
+import { createStandardCheckout } from './checkout';
+import { checkoutPage } from './page';
+import './style.css';
 
-const init = async () => {
-  const applePaySessionConfig: PCPApplePaySessionConfig = {
-    applePayVersion: 3,
-    countryCode: 'DE',
-    currencyCode: 'EUR',
-    merchantCapabilities: [
-      'supports3DS', // mandatory
-    ],
-    supportedNetworks: ['visa', 'masterCard', 'amex', 'girocard'],
-    total: {
-      label: 'Demo',
-      type: 'final',
-      amount: '200.99',
-    },
-    requiredBillingContactFields: ['postalAddress', 'name', 'email'],
-    requiredShippingContactFields: ['postalAddress', 'name', 'email'],
-    shippingMethods: [
+function main() {
+  const page = checkoutPage();
+  const form = document.querySelector<HTMLFormElement>('#checkout')!;
+  const fields = form.querySelector<HTMLFieldSetElement>('fieldset')!;
+  if (!page) {
+    fields.disabled = true;
+    return;
+  }
+  const edit = document.querySelector<HTMLButtonElement>('#edit')!;
+  let instance: PCPApplePaySession | undefined;
+  let preparing = false;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (preparing || !form.reportValidity()) return;
+    preparing = true;
+    const data = new FormData(form);
+    const value = (key: string) => String(data.get(key) ?? '').trim();
+    fields.disabled = true;
+    void createStandardCheckout(
+      page.options,
       {
-        label: 'Standard Shipping',
-        amount: '5.00',
-        detail: 'Arrives in 5-7 days',
-        identifier: 'standard',
+        givenName: value('givenName'),
+        familyName: value('familyName'),
+        emailAddress: value('email'),
+        phoneNumber: value('phone'),
+        addressLines: [value('street')],
+        postalCode: value('postalCode'),
+        locality: value('city'),
+        countryCode: 'DE',
       },
-      {
-        label: 'Express Shipping',
-        amount: '10.00',
-        detail: 'Arrives in 2-3 days',
-        identifier: 'express',
-      },
-    ],
-    validateMerchantURL: import.meta.env.VITE_APPLE_PAY_VALIDATE_MERCHANT_URL,
-    processPaymentURL: import.meta.env.VITE_APPLE_PAY_PROCESS_PAYMENT_URL,
-    // This data is completely custom and needs to be sent to your server for merchant validation and must be used as a base64 encoded string here for the apple pay server
-    applicationData: encodeToBase64(JSON.stringify({ foo: 'bar' })),
-    // biome-ignore lint/suspicious/noExplicitAny: <ok>
-    paymentMethodSelectedCallback: async (paymentMethod: any) => {
-      console.log('paymentMethodSelectedCallback', paymentMethod);
-      return {
-        newTotal: applePaySessionConfig.total,
-      };
-    },
-    // biome-ignore lint/suspicious/noExplicitAny: <ok>
-    couponCodeChangedCallback: async (couponCode: any) => {
-      console.log('couponCodeChangedCallback', couponCode);
-      return {
-        newTotal: applePaySessionConfig.total,
-      };
-    },
-    // biome-ignore lint/suspicious/noExplicitAny: <ok>
-    shippingMethodSelectedCallback: async (shippingMethod: any) => {
-      console.log('shippingMethodSelectedCallback', shippingMethod);
-      return {
-        newTotal: applePaySessionConfig.total,
-      };
-    },
-    // biome-ignore lint/suspicious/noExplicitAny: <ok>
-    shippingContactAddressSelectedCallback: async (shippingContact: any) => {
-      console.log('shippingContactAddressSelectedCallback', shippingContact);
-      return {
-        newTotal: applePaySessionConfig.total,
-      };
-    },
-    cancelCallback: () => {
-      console.log('cancelCallback');
-    },
-  };
+      value('shipping'),
+    )
+      .then((checkout) => {
+        instance = checkout;
+        edit.hidden = false;
+        show('Address and shipping confirmed. Choose Apple Pay to authorize payment.');
+      })
+      .catch((error) => {
+        fields.disabled = false;
+        showError(error);
+      })
+      .finally(() => {
+        preparing = false;
+      });
+  });
+  edit.addEventListener('click', () => {
+    if (page.backend.getAttempt()) {
+      show('An order was already submitted. Check payment status before starting again.');
+      return;
+    }
+    instance?.destroy();
+    instance = undefined;
+    fields.disabled = false;
+    edit.hidden = true;
+    show('Update your checkout details and continue again.');
+  });
+  window.addEventListener('pagehide', () => instance?.destroy(), { once: true });
+  show('Enter billing/shipping details and choose shipping before opening Apple Pay.');
+}
 
-  const applePayButton: ApplePayButton = {
-    selector: '#apple-pay-button',
-    config: {
-      buttonstyle: 'black',
-      type: 'plain',
-      locale: 'de-DE',
-    },
-  };
-
-  await PCPApplePaySession.create(applePaySessionConfig, applePayButton);
-};
-
-init();
+try {
+  main();
+} catch (error) {
+  showError(error);
+}

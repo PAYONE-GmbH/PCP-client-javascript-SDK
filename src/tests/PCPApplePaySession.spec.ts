@@ -10,17 +10,17 @@ import {
 
 describe('PCPApplePaySession', () => {
   let document: Document;
-  // biome-ignore lint/suspicious/noImplicitAnyLet: <ok>
-  let window;
+  let window: Window & typeof globalThis;
 
   beforeEach(() => {
+    vi.resetAllMocks();
     const { window: jsdomWindow } = new JSDOM('<!DOCTYPE html><head></head><body></body>', {
       url: 'http://localhost',
     });
     document = jsdomWindow.document;
     window = jsdomWindow as unknown as Window & typeof globalThis;
-    global.document = document;
-    global.window = window;
+    vi.stubGlobal('document', document);
+    vi.stubGlobal('window', window);
 
     const selector = document.createElement('div');
     selector.id = 'mock-button-selector';
@@ -29,6 +29,8 @@ describe('PCPApplePaySession', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    window.close();
+    vi.unstubAllGlobals();
   });
 
   const errorCallbackMockFn = vi.fn();
@@ -87,6 +89,8 @@ describe('PCPApplePaySession', () => {
     let session: PCPApplePaySession;
     beforeEach(async () => {
       class MockApplePaySession {
+        static STATUS_SUCCESS = 0;
+        static STATUS_FAILURE = 1;
         static canMakePayments() {
           return true;
         }
@@ -158,7 +162,14 @@ describe('PCPApplePaySession', () => {
       });
 
       it('should initialize a new ApplePaySession when the button is clicked', async () => {
-        expect(applePaySessionConstructorMockFn).toHaveBeenCalledWith(3, mockApplePaySessionConfig);
+        expect(applePaySessionConstructorMockFn).toHaveBeenCalledWith(3, {
+          countryCode: 'DE',
+          currencyCode: 'EUR',
+          merchantCapabilities: ['supports3DS'],
+          supportedNetworks: ['visa', 'masterCard', 'amex', 'girocard'],
+          total: { label: 'Demo', type: 'final', amount: '200.99' },
+          applicationData: JSON.stringify({ foo: 'bar' }),
+        });
         expect(beginSessionMockFn).toHaveBeenCalled();
       });
 
@@ -174,7 +185,7 @@ describe('PCPApplePaySession', () => {
           global.fetch = fetchMockFn;
 
           // @ts-expect-error session is not null
-          session.session!.onvalidatemerchant({ validationURL: 'mock-url' });
+          await session.session!.onvalidatemerchant({ validationURL: 'mock-url' });
 
           expect(fetchMockFn).toHaveBeenCalledWith(mockApplePaySessionConfig.validateMerchantURL, {
             method: 'POST',
@@ -200,7 +211,7 @@ describe('PCPApplePaySession', () => {
           });
 
           // @ts-expect-error session is not null
-          session.session!.onvalidatemerchant({
+          await session.session!.onvalidatemerchant({
             validationURL: 'mock-url',
           });
         });
@@ -217,7 +228,7 @@ describe('PCPApplePaySession', () => {
           });
           global.fetch = fetchMockFn;
           // @ts-expect-error session is not null
-          session.session!.onpaymentauthorized({ payment: 'mock-payment' });
+          await session.session!.onpaymentauthorized({ payment: 'mock-payment' });
 
           expect(fetchMockFn).toHaveBeenCalledWith(mockApplePaySessionConfig.processPaymentURL, {
             method: 'POST',
@@ -245,10 +256,12 @@ describe('PCPApplePaySession', () => {
             });
             global.fetch = fetchMockFn;
 
-            expect.assertions(0);
-
             // @ts-expect-error session is not null
-            session.session!.onpaymentauthorized({ payment: 'mock-payment' });
+            await session.session!.onpaymentauthorized({ payment: 'mock-payment' });
+            await vi.waitFor(() => {
+              // @ts-expect-error inspect the private native session mock
+              expect(session.session!.completePayment).toHaveBeenCalledWith(1);
+            });
           });
           it('should call the errorCallback if the payment fails', async () => {
             const fetchMockFn = vi.fn().mockResolvedValue({
@@ -259,7 +272,7 @@ describe('PCPApplePaySession', () => {
             expect.hasAssertions();
 
             // @ts-expect-error session is not null
-            session.session!.onpaymentauthorized({ payment: 'mock-payment' });
+            await session.session!.onpaymentauthorized({ payment: 'mock-payment' });
           });
         });
       });
@@ -273,14 +286,14 @@ describe('PCPApplePaySession', () => {
         });
         it('should handle onpaymentmethodselected event', async () => {
           // @ts-expect-error session is not null
-          session.session!.onpaymentmethodselected({ paymentMethod: 'mock' });
+          await session.session!.onpaymentmethodselected({ paymentMethod: 'mock' });
           expect.assertions(1);
           expect(paymentMethodSelectedCallbackMockFn).toHaveBeenCalledWith('mock');
         });
         it('should invoke the errorCallback if the payment method selection fails', async () => {
           paymentMethodSelectedCallbackMockFn.mockRejectedValueOnce(new Error());
           // @ts-expect-error session is not null
-          session.session!.onpaymentmethodselected({ paymentMethod: 'mock' });
+          await session.session!.onpaymentmethodselected({ paymentMethod: 'mock' });
           expect.assertions(2);
         });
       });
@@ -294,14 +307,14 @@ describe('PCPApplePaySession', () => {
         });
         it('should handle oncouponcodechanged event', async () => {
           // @ts-expect-error session is not null
-          session.session!.oncouponcodechanged({ couponCode: 'mock' });
+          await session.session!.oncouponcodechanged({ couponCode: 'mock' });
           expect.assertions(1);
           expect(couponCodeChangedCallbackMockFn).toHaveBeenCalledWith('mock');
         });
         it('should invoke the errorCallback if the coupon code change fails', async () => {
           couponCodeChangedCallbackMockFn.mockRejectedValueOnce(new Error());
           // @ts-expect-error session is not null
-          session.session!.oncouponcodechanged({ couponCode: 'mock' });
+          await session.session!.oncouponcodechanged({ couponCode: 'mock' });
           expect.assertions(2);
         });
       });
@@ -315,14 +328,14 @@ describe('PCPApplePaySession', () => {
         });
         it('should handle onshippingmethodselected event', async () => {
           // @ts-expect-error session is not null
-          session.session!.onshippingmethodselected({ shippingMethod: 'mock' });
+          await session.session!.onshippingmethodselected({ shippingMethod: 'mock' });
           expect.assertions(1);
           expect(shippingMethodSelectedCallbackMockFn).toHaveBeenCalledWith('mock');
         });
         it('should invoke the errorCallback if the shipping method selection fails', async () => {
           shippingMethodSelectedCallbackMockFn.mockRejectedValueOnce(new Error());
           // @ts-expect-error session is not null
-          session.session!.onshippingmethodselected({ shippingMethod: 'mock' });
+          await session.session!.onshippingmethodselected({ shippingMethod: 'mock' });
           expect.assertions(2);
         });
       });
@@ -336,7 +349,7 @@ describe('PCPApplePaySession', () => {
         });
         it('should handle onshippingcontactselected event', async () => {
           // @ts-expect-error session is not null
-          session.session!.onshippingcontactselected({
+          await session.session!.onshippingcontactselected({
             // @ts-expect-error property does not exist on type
             shippingContact: 'mock',
           });
@@ -346,7 +359,7 @@ describe('PCPApplePaySession', () => {
         it('should invoke the errorCallback if the shipping contact address selection fails', async () => {
           shippingContactAddressSelectedCallbackMockFn.mockRejectedValueOnce(new Error());
           // @ts-expect-error session is not null
-          session.session!.onshippingcontactselected({
+          await session.session!.onshippingcontactselected({
             // @ts-expect-error property does not exist on type
             shippingContact: 'mock',
           });
@@ -365,9 +378,12 @@ describe('PCPApplePaySession', () => {
   });
 
   it('should throw an error if ApplePaySession is not available in the window object', async () => {
-    window!.ApplePaySession = undefined;
+    Object.defineProperty(window, 'ApplePaySession', { value: undefined, configurable: true });
     // @ts-expect-error globalThis has no property ApplePaySession
     globalThis.ApplePaySession = undefined;
+    setTimeout(() => {
+      document.querySelector('#apple-pay-button-script')!.dispatchEvent(new Event('load'));
+    }, 0);
     await expect(
       PCPApplePaySession.create(mockApplePaySessionConfig, mockApplePayButton),
     ).rejects.toThrow('Apple Pay is not available');

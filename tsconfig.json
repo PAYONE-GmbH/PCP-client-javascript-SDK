@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES6",
     "module": "NodeNext",
+    "types": ["node"],
     "declaration": true,
+    "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
     "sourceMap": true,
@@ -11,5 +13,5 @@
     "noImplicitOverride": true
   },
   "include": ["src"],
-  "exclude": ["**/__tests__/*"]
+  "exclude": ["src/tests/**", "**/__tests__/**", "**/*.spec.ts", "**/*.test.ts"]
 }

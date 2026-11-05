@@ -1,12 +1,40 @@
 <!doctype html>
-<head>
-    <title>Apple Pay Button Demo</title>
-</head>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apple Pay Standard Checkout · PAYONE</title>
+  </head>
   <body>
-   
-  <div id="apple-pay-button"></div>
-  
-  <script type="module" src="src/main.ts"></script>
-
+    <main>
+      <nav><a href="./express.html">Express Checkout</a></nav>
+      <h1>Apple Pay Standard Checkout</h1>
+      <p>Demo item €19.90 · Germany · tax included. Enter your checkout details before paying.</p>
+      <form id="checkout">
+        <fieldset>
+          <legend>Billing and shipping address</legend>
+          <label>First name <input name="givenName" autocomplete="given-name" required /></label>
+          <label>Last name <input name="familyName" autocomplete="family-name" required /></label>
+          <label>Email <input name="email" type="email" autocomplete="email" required /></label>
+          <label>Phone <input name="phone" type="tel" autocomplete="tel" required /></label>
+          <label>Street and house number <input name="street" autocomplete="street-address" required /></label>
+          <label>Postal code <input name="postalCode" autocomplete="postal-code" pattern="[0-9]{5}" required /></label>
+          <label>City <input name="city" autocomplete="address-level2" required /></label>
+          <p>Country: Germany (DE)</p>
+          <label>Shipping
+            <select name="shipping">
+              <option value="standard">Standard €4.90 — total €24.80</option>
+              <option value="express">Express €9.90 — total €29.80</option>
+            </select>
+          </label>
+          <button type="submit">Continue to Apple Pay</button>
+        </fieldset>
+      </form>
+      <button id="edit" type="button" hidden>Edit checkout details</button>
+      <div id="wallet"></div>
+      <p id="status" role="status">Loading …</p>
+      <button id="check-status" type="button">Check payment status</button>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

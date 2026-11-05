@@ -3,6 +3,7 @@ import {
   ErrorType,
   type PCPApplePaySessionConfig,
 } from '../interfaces/index.js';
+import { loadWalletScript } from './loadWalletScript.js';
 
 declare global {
   interface Window {
@@ -13,6 +14,9 @@ declare global {
 export class PCPApplePaySession {
   private config?: PCPApplePaySessionConfig;
   private session: ApplePaySession | null = null;
+  private button?: HTMLElement;
+  private destroyed = false;
+  private active = false;
 
   /**
    * Creates a new Apple Pay session, displays the Apple Pay button.
@@ -44,45 +48,80 @@ export class PCPApplePaySession {
   }
 
   private async initialize(button: ApplePayButton) {
-    this.checkForRequiredElements(button);
+    if (this.config?.processPaymentCallback && this.config?.processPaymentURL) {
+      throw new Error('Provide only one of processPaymentCallback and processPaymentURL.');
+    }
+    if (!this.config?.processPaymentCallback && !this.config?.processPaymentURL) {
+      throw new Error('Provide processPaymentCallback or processPaymentURL.');
+    }
     await this.loadApplePayButtonScript();
+    this.checkForRequiredElements(button);
     await this.displayApplePayButton(button);
   }
 
   private async startApplePaySession() {
-    this.session = new window.ApplePaySession(this.config!.applePayVersion, this.config!);
+    if (this.destroyed || this.active) return;
+    // The cross-browser SDK sends this request through postMessage. Keep wrapper
+    // callbacks and endpoint configuration out of that structured-clone payload.
+    const {
+      applePayVersion,
+      validateMerchantURL: _validateMerchantURL,
+      processPaymentURL: _processPaymentURL,
+      processPaymentCallback: _processPaymentCallback,
+      resultCallback: _resultCallback,
+      applePayButtonId: _applePayButtonId,
+      paymentMethodSelectedCallback: _paymentMethodSelectedCallback,
+      couponCodeChangedCallback: _couponCodeChangedCallback,
+      shippingMethodSelectedCallback: _shippingMethodSelectedCallback,
+      shippingContactAddressSelectedCallback: _shippingContactAddressSelectedCallback,
+      cancelCallback: _cancelCallback,
+      errorCallback: _errorCallback,
+      ...paymentRequest
+    } = this.config!;
+    this.session = new window.ApplePaySession(applePayVersion, paymentRequest);
+    this.active = true;
+    const current = this.session;
 
-    const validateSession = () => {
-      if (!this.session) {
-        throw new Error('Apple Pay session is not available.');
-      }
-    };
+    const isCurrent = () => !this.destroyed && this.session === current && this.active;
+    let processing = false;
 
     this.session.onvalidatemerchant = (event) => {
-      (async () => {
-        validateSession();
+      void (async () => {
+        if (!isCurrent()) return;
         const validationURL = event.validationURL;
         try {
           const merchantSession = await this.validateMerchant(validationURL);
+          if (!isCurrent()) return;
           this.session!.completeMerchantValidation(merchantSession);
         } catch (error) {
+          if (!isCurrent()) return;
           this.session!.abort();
+          this.active = false;
           this.config!.errorCallback?.(ErrorType.VALIDATE_MERCHANT, error as Error);
         }
       })();
     };
 
     this.session.onpaymentauthorized = (event) => {
-      (async () => {
-        validateSession();
+      void (async () => {
+        if (!isCurrent() || processing) return;
+        processing = true;
         const payment = event.payment;
         try {
-          const success = await this.processPayment(payment);
+          const result = this.config!.processPaymentCallback
+            ? await this.config!.processPaymentCallback(payment)
+            : undefined;
+          const success = result ? result.status !== 'failed' : await this.processPayment(payment);
+          if (!isCurrent()) return;
           this.session!.completePayment(
             success ? ApplePaySession.STATUS_SUCCESS : ApplePaySession.STATUS_FAILURE,
           );
+          this.active = false;
+          if (result) this.config!.resultCallback?.(result);
         } catch (error) {
+          if (!isCurrent()) return;
           this.session!.completePayment(ApplePaySession.STATUS_FAILURE);
+          this.active = false;
           this.config!.errorCallback?.(ErrorType.PROCESS_PAYMENT, error as Error);
         }
       })();
@@ -90,15 +129,18 @@ export class PCPApplePaySession {
 
     if (this.config?.paymentMethodSelectedCallback !== undefined) {
       this.session.onpaymentmethodselected = (event) => {
-        (async () => {
-          validateSession();
+        void (async () => {
+          if (!isCurrent()) return;
           const paymentMethod = event.paymentMethod;
           try {
             const paymentMethodUpdate =
               await this.config!.paymentMethodSelectedCallback!(paymentMethod);
+            if (!isCurrent()) return;
             this.session!.completePaymentMethodSelection(paymentMethodUpdate);
           } catch (error) {
+            if (!isCurrent()) return;
             this.session!.abort();
+            this.active = false;
             this.config!.errorCallback?.(ErrorType.ON_PAYMENT_METHOD_SELECTED, error as Error);
           }
         })();
@@ -107,14 +149,17 @@ export class PCPApplePaySession {
 
     if (this.config?.couponCodeChangedCallback !== undefined) {
       this.session.oncouponcodechanged = (event) => {
-        (async () => {
-          validateSession();
+        void (async () => {
+          if (!isCurrent()) return;
           const couponCode = event.couponCode;
           try {
             const couponCodeUpdate = await this.config!.couponCodeChangedCallback!(couponCode);
+            if (!isCurrent()) return;
             this.session!.completeCouponCodeChange(couponCodeUpdate);
           } catch (error) {
+            if (!isCurrent()) return;
             this.session!.abort();
+            this.active = false;
             this.config!.errorCallback?.(ErrorType.ON_COUPON_CODE_CHANGED, error as Error);
           }
         })();
@@ -123,15 +168,18 @@ export class PCPApplePaySession {
 
     if (this.config?.shippingMethodSelectedCallback !== undefined) {
       this.session.onshippingmethodselected = (event) => {
-        (async () => {
-          validateSession();
+        void (async () => {
+          if (!isCurrent()) return;
           const shippingMethod = event.shippingMethod;
           try {
             const shippingMethodUpdate =
               await this.config!.shippingMethodSelectedCallback!(shippingMethod);
+            if (!isCurrent()) return;
             this.session!.completeShippingMethodSelection(shippingMethodUpdate);
           } catch (error) {
+            if (!isCurrent()) return;
             this.session!.abort();
+            this.active = false;
             this.config!.errorCallback?.(ErrorType.ON_SHIPPING_METHOD_SELECTED, error as Error);
           }
         })();
@@ -140,26 +188,29 @@ export class PCPApplePaySession {
 
     if (this.config?.shippingContactAddressSelectedCallback !== undefined) {
       this.session.onshippingcontactselected = (event) => {
-        (async () => {
-          validateSession();
+        void (async () => {
+          if (!isCurrent()) return;
           const shippingContact = event.shippingContact;
           try {
             const shippingContactUpdate =
               await this.config!.shippingContactAddressSelectedCallback!(shippingContact);
+            if (!isCurrent()) return;
             this.session!.completeShippingContactSelection(shippingContactUpdate);
           } catch (error) {
+            if (!isCurrent()) return;
             this.session!.abort();
+            this.active = false;
             this.config!.errorCallback?.(ErrorType.ON_SHIPPING_CONTACT_SELECTED, error as Error);
           }
         })();
       };
     }
 
-    if (this.config?.cancelCallback !== undefined) {
-      this.session.oncancel = () => {
-        this.config!.cancelCallback!();
-      };
-    }
+    this.session.oncancel = () => {
+      if (!isCurrent()) return;
+      this.active = false;
+      this.config!.cancelCallback?.();
+    };
 
     this.session.begin();
   }
@@ -189,7 +240,7 @@ export class PCPApplePaySession {
 
   private async processPayment(payment: ApplePayJS.ApplePayPayment): Promise<boolean> {
     // Send payment to merchant server for processing
-    const response = await fetch(this.config!.processPaymentURL, {
+    const response = await fetch(this.config!.processPaymentURL!, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -206,26 +257,27 @@ export class PCPApplePaySession {
   }
 
   private async loadApplePayButtonScript(): Promise<void> {
-    const scriptId = this.config?.applePayButtonId || 'apple-pay-button-script';
-    return new Promise((resolve, reject) => {
-      if (document.getElementById(scriptId)) {
-        resolve(); // Script already loaded
-        return;
-      }
+    // An application may already have evaluated the official SDK before creating this adapter.
+    // The native Safari ApplePaySession global alone is not evidence that the web SDK was loaded.
+    if (window.ApplePaySession && customElements.get('apple-pay-button')) return;
+    return loadWalletScript(
+      this.config?.applePayButtonId || 'apple-pay-button-script',
+      'https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js',
+    );
+  }
 
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      script.src = 'https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js';
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load the Apple Pay button script.'));
-      document.body.appendChild(script);
-    });
+  /** Removes this instance's button and aborts an open sheet. Does not unload the shared script. */
+  public destroy(): void {
+    this.destroyed = true;
+    if (this.active) this.session?.abort();
+    this.active = false;
+    this.session = null;
+    this.button?.remove();
   }
 
   private async displayApplePayButton(button: ApplePayButton) {
     const applePayButton = document.createElement('apple-pay-button');
+    this.button = applePayButton;
 
     applePayButton.setAttribute('buttonstyle', button.config.buttonstyle);
     applePayButton.setAttribute('type', button.config.type);
@@ -238,7 +290,12 @@ export class PCPApplePaySession {
     applePayButton.style.boxSizing = button.config.style?.boxSizing || 'border-box';
 
     applePayButton.onclick = async () => {
-      await this.startApplePaySession();
+      try {
+        await this.startApplePaySession();
+      } catch (error) {
+        this.active = false;
+        this.config!.errorCallback?.(ErrorType.PROCESS_PAYMENT, error as Error);
+      }
     };
 
     document.querySelector(button.selector)!.appendChild(applePayButton);

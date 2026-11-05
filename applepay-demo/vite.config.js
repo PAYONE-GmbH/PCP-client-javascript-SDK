@@ -3,6 +3,7 @@ const defineConfig = {
     include: [],
   },
   build: {
+    rollupOptions: { input: { main: 'index.html', express: 'express.html' } },
     commonjsOptions: {
       include: [/node_modules/],
     },
