@@ -86,7 +86,7 @@ export class PCPApplePaySession {
     let processing = false;
 
     this.session.onvalidatemerchant = (event) => {
-      (async () => {
+      void (async () => {
         if (!isCurrent()) return;
         const validationURL = event.validationURL;
         try {
@@ -103,7 +103,7 @@ export class PCPApplePaySession {
     };
 
     this.session.onpaymentauthorized = (event) => {
-      (async () => {
+      void (async () => {
         if (!isCurrent() || processing) return;
         processing = true;
         const payment = event.payment;
@@ -129,7 +129,7 @@ export class PCPApplePaySession {
 
     if (this.config?.paymentMethodSelectedCallback !== undefined) {
       this.session.onpaymentmethodselected = (event) => {
-        (async () => {
+        void (async () => {
           if (!isCurrent()) return;
           const paymentMethod = event.paymentMethod;
           try {
@@ -149,7 +149,7 @@ export class PCPApplePaySession {
 
     if (this.config?.couponCodeChangedCallback !== undefined) {
       this.session.oncouponcodechanged = (event) => {
-        (async () => {
+        void (async () => {
           if (!isCurrent()) return;
           const couponCode = event.couponCode;
           try {
@@ -168,7 +168,7 @@ export class PCPApplePaySession {
 
     if (this.config?.shippingMethodSelectedCallback !== undefined) {
       this.session.onshippingmethodselected = (event) => {
-        (async () => {
+        void (async () => {
           if (!isCurrent()) return;
           const shippingMethod = event.shippingMethod;
           try {
@@ -188,7 +188,7 @@ export class PCPApplePaySession {
 
     if (this.config?.shippingContactAddressSelectedCallback !== undefined) {
       this.session.onshippingcontactselected = (event) => {
-        (async () => {
+        void (async () => {
           if (!isCurrent()) return;
           const shippingContact = event.shippingContact;
           try {
