@@ -12,41 +12,54 @@ For installation, endpoint parameters, backend contract, shared options and Appl
 4. Authorize. Only now does the payment callback receive the final token and full contacts and submit one Commerce order.
 5. Follow the backend result, redirect if required, and reconcile status after return/reload.
 
-## Reuse the factory
+## Integrate the public SDK
+
+Import the published SDK directly. The callbacks below are supplied by your application; the complete shipping/pricing implementation is shown in [`src/checkout.ts`](src/checkout.ts). `createExpressCheckout` and `AppleCheckoutOptions` are local demo helpers, not package exports.
 
 ```ts
-import { createExpressCheckout } from './src/checkout';
-import type { AppleCheckoutOptions } from './src/checkout';
+import { PCPApplePaySession, type PCPApplePaySessionConfig } from 'pcp-client-javascript-sdk';
 
-declare const submitOrder: AppleCheckoutOptions['submit'];
-declare const displayResult: AppleCheckoutOptions['onResult'];
-declare const displayError: AppleCheckoutOptions['onError'];
+declare const submitOrder: PCPApplePaySessionConfig['processPaymentCallback'];
+declare const displayResult: PCPApplePaySessionConfig['resultCallback'];
+declare const displayError: PCPApplePaySessionConfig['errorCallback'];
+declare const updateShippingContact: PCPApplePaySessionConfig['shippingContactAddressSelectedCallback'];
+declare const updateShippingMethod: PCPApplePaySessionConfig['shippingMethodSelectedCallback'];
 
-const instance = await createExpressCheckout({
+const instance = await PCPApplePaySession.create({
   validateMerchantURL: 'https://shop.example/validate-merchant',
-  label: 'My shop',
+  countryCode: 'DE',
+  currencyCode: 'EUR',
+  merchantCapabilities: ['supports3DS'],
+  total: { label: 'My shop', amount: '24.80', type: 'final' },
   applePayVersion: 4,
   supportedNetworks: ['visa', 'masterCard', 'girocard'],
-  button: {
-    selector: '#wallet',
-    config: {
-      buttonstyle: 'black',
-      type: 'check-out',
-      locale: 'de-DE',
-      style: { width: '240px', height: '44px' },
-    },
+  requiredShippingContactFields: ['postalAddress', 'name', 'email', 'phone'],
+  requiredBillingContactFields: ['postalAddress', 'name'],
+  shippingMethods: [
+    { identifier: 'standard', label: 'Standard', detail: 'Delivery in Germany', amount: '4.90' },
+    { identifier: 'express', label: 'Express', detail: 'Delivery in Germany', amount: '9.90' },
+  ],
+  shippingContactAddressSelectedCallback: updateShippingContact,
+  shippingMethodSelectedCallback: updateShippingMethod,
+  processPaymentCallback: submitOrder,
+  resultCallback: displayResult,
+  cancelCallback: () => { /* Restore your checkout UI. */ },
+  errorCallback: displayError,
+}, {
+  selector: '#wallet',
+  config: {
+    buttonstyle: 'black',
+    type: 'check-out',
+    locale: 'de-DE',
+    style: { width: '240px', height: '44px' },
   },
-  submit: submitOrder,
-  onResult: displayResult,
-  onCancel: () => { /* Restore your checkout UI. */ },
-  onError: displayError,
 });
 
 // When your application removes this checkout:
 // instance.destroy();
 ```
 
-The typed options and total/line-item construction are shared with Standard Checkout. No backend URL, DOM status element or navigation implementation is hardcoded into the factory. `src/page.ts` supplies the included Commerce adapter and status UI.
+The shipping callbacks must return matching totals, line items and available methods, and retain the selected method for final submission. In the demo, the local factory shares that logic with Standard Checkout; `src/page.ts` supplies the Commerce adapter and status UI. These application helpers are not part of the SDK.
 
 ## Callback behavior
 

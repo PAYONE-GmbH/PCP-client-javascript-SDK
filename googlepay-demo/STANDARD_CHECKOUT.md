@@ -18,32 +18,32 @@ The **Edit checkout details** action destroys/removes the owned button and unloc
 
 `createStandardCheckout(options, contact, email, shippingOptionId)` returns `Promise<CheckoutHandle>`. The handle exposes `destroy()`. `contact` is a Google-shaped address supplied by the **merchant**, not an address selected in the Google sheet. It is cloned before button creation, so later form mutations do not affect the authorization.
 
-Minimal use in another TypeScript/Vite page (paths assume a file inside `src/`):
+For your own application, use Google's official button package and the public PAYONE result type. `createStandardCheckout`, `GoogleCheckoutOptions` and `checkoutPage` are local demo helpers, not exports of `pcp-client-javascript-sdk`. The following integration skeleton expects your application to provide a final payment request and authorization/result handlers; see [`src/checkout.ts`](src/checkout.ts) for the complete implementation:
 
 ```typescript
-import { createStandardCheckout } from './checkout';
-import { checkoutPage } from './page';
+import GooglePayButton from '@google-pay/button-element';
+import type { ExpressPaymentResult } from 'pcp-client-javascript-sdk';
 
-// The host page supplies #wallet, #status and #check-status elements.
-const page = checkoutPage();
-if (page) {
-  const checkout = await createStandardCheckout(page.options, {
-    name: 'Example Buyer',
-    phoneNumber: '+49123456789',
-    countryCode: 'DE',
-    locality: 'Berlin',
-    administrativeArea: 'BE',
-    postalCode: '10115',
-    sortingCode: '',
-    address1: 'Example 1',
-    address2: '',
-    address3: '',
-  }, 'buyer@example.test', 'standard');
-  window.addEventListener('pagehide', () => checkout.destroy(), { once: true });
-}
+declare const paymentRequest: google.payments.api.PaymentDataRequest;
+declare const authorizePayment: (
+  payment: google.payments.api.PaymentData,
+) => Promise<google.payments.api.PaymentAuthorizationResult>;
+declare const displayResult: (result: ExpressPaymentResult) => void;
+declare const readBackendResult: () => ExpressPaymentResult;
+
+const button = new GooglePayButton();
+button.environment = 'TEST';
+button.buttonType = 'pay';
+button.paymentRequest = paymentRequest;
+// Attach the immutable merchant contact, submit once and map backend failures
+// to Google's ERROR result inside this application-owned handler.
+button.onPaymentAuthorized = authorizePayment;
+button.onLoadPaymentData = () => displayResult(readBackendResult());
+document.querySelector('#wallet')!.appendChild(button);
+window.addEventListener('pagehide', () => button.remove(), { once: true });
 ```
 
-For integration without the demo page adapter, pass `GoogleCheckoutOptions` directly:
+The demo's local `GoogleCheckoutOptions` groups the following settings (when integrating directly, map them to the Google button/request and your own handlers):
 
 | Option | Purpose |
 | --- | --- |
