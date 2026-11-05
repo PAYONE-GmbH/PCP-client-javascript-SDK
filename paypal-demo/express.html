@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayPal Express Checkout · PAYONE</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <nav aria-label="Checkout demos"><a href="./index.html">Standard Checkout</a> · <a href="./sdk.html">SDK Checkout</a> · <a href="./express.html" aria-current="page">Express Checkout</a></nav>
+      <h1>PayPal Express Checkout</h1>
+      <p>Demo item €19.90 · Germany · prices include tax</p>
+      <p>Select your delivery address on PayPal, then review your order here.</p>
+      <button id="start" type="button" disabled>Continue to PayPal</button>
+      <p id="account"></p>
+      <form id="contact">
+        <fieldset id="fields" disabled>
+          <legend>Review delivery address</legend>
+          <label>First name <input name="firstName" autocomplete="given-name" required /></label>
+          <label>Last name <input name="surname" autocomplete="family-name" required /></label>
+          <label>Street and house number <input name="street" autocomplete="address-line1" required /></label>
+          <label>Additional address information <input name="additionalInfo" autocomplete="address-line2" /></label>
+          <label>Postal code <input name="zip" autocomplete="postal-code" pattern="[0-9]{5}" required /></label>
+          <label>City <input name="city" autocomplete="address-level2" required /></label>
+          <p>Country: Germany (DE)</p>
+          <label>Shipping <select id="shipping" name="shipping"><option value="standard">Standard €4.90</option><option value="express">Express €9.90</option></select></label>
+          <p id="total"></p>
+          <button type="submit">Place order and pay</button>
+        </fieldset>
+      </form>
+      <button id="cancel" type="button" disabled>Cancel local review</button>
+      <p id="status" role="status">Loading …</p>
+      <button id="check-status" type="button">Check payment status</button>
+    </main>
+    <script type="module" src="/src/express.ts"></script>
+  </body>
+</html>
