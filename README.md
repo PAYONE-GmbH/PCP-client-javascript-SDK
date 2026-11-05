@@ -15,7 +15,7 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
   - [Credit Card Tokenizer](#credit-card-tokenizer)
     - [1. Add the Payment IFrame and Submit Button to your HTML](#1-add-the-payment-iframe-and-submit-button-to-your-html)
     - [2. Import the Tokenizer and Types from the SDK](#2-import-the-tokenizer-and-types-from-the-sdk)
-    - [3. Fetch the JWT from your Backend](#3-fetch-the-jwt-token-from-your-backend)
+    - [3. Fetch the JWT from your Backend](#3-fetch-the-jwt-from-your-backend)
     - [4. Configure the Tokenizer](#4-configure-the-tokenizer)
     - [5. Initialize the Tokenizer](#5-initialize-the-tokenizer)
     - [6. Customization and Callbacks](#6-customization-and-callbacks)
@@ -46,13 +46,8 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
     - [4. Configure and Render PayPal Buttons](#4-configure-and-render-paypal-buttons)
     - [5. Integration with PAYONE Commerce Platform](#5-integration-with-payone-commerce-platform)
     - [6. Customize Button Appearance](#6-customize-button-appearance)
-    - [PayPal Checkout Demos](#paypal-checkout-demos)
   - [Google Pay Integration](#google-pay-integration)
-    - [Setup Google Pay Integration](#setup-google-pay-integration-web-component-example)
-      - [1. Install Dependencies](#1-install-dependencies)
-      - [2. Create a Web Component](#2-create-a-web-component)
-      - [3. Add the Component to your HTML](#3-add-the-component-to-your-html)
-    - [Button Configuration Options](#button-configuration-options)
+    - [Google Pay Configuration](#google-pay-configuration)
   - [PAYONE Commerce Platform Compliant Interfaces](#payone-commerce-platform-compliant-interfaces)
 - [Demonstration Projects](#demonstration-projects)
 - [Contributing](#contributing)
@@ -70,7 +65,6 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
 - **Credit Card Tokenizer**: Securely tokenize credit and debit card information.
 - **Fingerprinting Tokenizer**: Generate unique tokens for device fingerprinting.
 - **Apple Pay Session Integration**: Seamlessly integrate Apple Pay into your payment workflow.
-- **Apple Pay demos**: One [Standard Checkout](applepay-demo/STANDARD_CHECKOUT.md) page and one [Express Checkout](applepay-demo/EXPRESS_CHECKOUT.md) page, with shared parameterized client modules and an [integration guide](applepay-demo/README.md).
 - **PayPal Integration**: Enable PayPal payment options on your website.
 
 ## Installation
@@ -947,21 +941,13 @@ For more information about PayPal integration, refer to:
 - [PayPal JavaScript SDK Configuration](https://developer.paypal.com/sdk/js/configuration/)
 - [PayPal JavaScript SDK Reference](https://developer.paypal.com/sdk/js/reference/)
 
-#### PayPal Checkout Demos
-
-The demos factories, environment variables and backend adapter are demo-local and are not part of the published SDK API. Setup instructions for running those applications are in their own guides:
-
-- [Standard Checkout demo](./paypal-demo/STANDARD_CHECKOUT.md)
-- [SDK Checkout demo](./paypal-demo/SDK_CHECKOUT.md)
-- [Express Checkout demo](./paypal-demo/EXPRESS_CHECKOUT.md)
-
 **[back to top](#table-of-contents)**
 
 ---
 
 ### Google Pay Integration
 
-The PAYONE Commerce Platform Client JavaScript SDK provides a demonstration project for Google Pay integration. The integration uses the official Google Pay Button libraries which are available for various frameworks:
+For Google Pay integration, use the official Google Pay Button libraries, which are available for various frameworks:
 
 - Web Components ([@google-pay/button-element](https://github.com/google-pay/google-pay-button))
 - React ([@google-pay/button-react](https://github.com/google-pay/google-pay-button))
@@ -989,27 +975,13 @@ npm install @google-pay/button-react
 npm install @google-pay/button-angular
 ```
 
-The [Google Pay demo](./googlepay-demo/README.md) provides two independent entry pages with shared, typed configuration and payment mapping:
+#### Google Pay Configuration
 
-- [Standard Checkout](./googlepay-demo/STANDARD_CHECKOUT.md): merchant-owned address and shipping form, followed by the official `@google-pay/button-element` payment button.
-- [Express Checkout](./googlepay-demo/EXPRESS_CHECKOUT.md): `PCPGooglePayExpress` requests address, email and shipping selection directly inside Google Pay and updates the total via callbacks.
+Configure Google Pay API v2 with gateway `payonegmbh`, `gatewayMerchantId` (the PAYONE gateway merchant ID), Visa/Mastercard and the authentication methods supported by your merchant setup. `CRYPTOGRAM_3DS` requires a compatible device/card; enable `PAN_ONLY` only where supported by your PAYONE configuration. For `PRODUCTION`, also provide the separate Google `merchantId` and complete Google's production onboarding.
 
-#### Setup Google Pay Integration (Web Component Example)
+For Standard Checkout, collect customer and shipping data in your shop and supply the final amount to the Google Pay button. For Express Checkout, `PCPGooglePayExpress` collects the requested contacts and shipping selection in the payment sheet and updates the amount through callbacks.
 
-Run the demos from the repository root:
-
-```bash
-npm ci
-npm run build
-npm --prefix googlepay-demo ci
-cp googlepay-demo/.env.example googlepay-demo/.env.local
-# Configure the public merchant settings in googlepay-demo/.env.local.
-npm --prefix googlepay-demo run dev
-```
-
-Open `/index.html` for Standard or `/express.html` for Express. Configure `backendUrl`, `gatewayMerchantId` (the PAYONE ID) and, for `PRODUCTION`, `merchantId` (the separate Google merchant ID), using the URL or Vite environment variables documented in the [demo setup](./googlepay-demo/README.md#configuration).
-
-Both flows use Google Pay API v2, gateway `payonegmbh`, Visa/Mastercard and default to `CRYPTOGRAM_3DS`. Authentication methods are configurable for explicit desktop tests; see the demo's availability troubleshooting before enabling `PAN_ONLY`. The original Google token is UTF-8/Base64 encoded exactly once for PAYONE product **320**, with `SALE` and a short 3DS return URL. The merchant backend performs the payment; opening or closing the Google sheet is not confirmation of capture. The demo documentation includes the exact Commerce request/response mapping, 3DS/status handling, module API and manual test steps.
+Encode the original Google token as UTF-8/Base64 exactly once for PAYONE product **320**. Use the PAYONE Server SDK to process the payment with the appropriate authorization mode (`SALE` for immediate capture) and a 3DS return URL. Opening or closing the Google sheet is not confirmation of capture; reconcile the payment status after any required redirect.
 
 - [Customize your Google Pay button](https://developers.google.com/pay/api/web/guides/resources/customize)
 - [Google Pay Button Element Documentation](https://github.com/google-pay/google-pay-button)
@@ -1037,44 +1009,13 @@ const createCheckoutRequest: CreateCheckoutRequest = {...}
 
 ## Demonstration Projects
 
-You can find demonstration projects for each feature in the corresponding directories:
+Each demo's README contains its installation, configuration, build and run instructions:
 
-- **Credit Card Tokenizer**: Check out the [creditcard-tokenizer-demo](./creditcard-tokenizer-demo/) folder.
-- **Fingerprinting Tokenizer**: See the [fingerprinting-tokenizer-demo](./fingerprinting-tokenizer-demo/) folder.
-- **Apple Pay Session Integration**: Refer to the [applepay-demo](./applepay-demo/) folder.
-- **PayPal Integration**: Refer to the [paypal-demo](./paypal-demo/) folder.
-- **Google Pay Integration**: Refer to the [googlepay-demo](./googlepay-demo/) folder.
-
-### Building the SDK
-
-Before running a demo project, you need to build the SDK in the root folder. This is necessary because the `dist` folder that gets created during the build process is targeted by the dependency with `file:..` that is referenced in the credit card tokenizer and fingerprinting tokenizer demo projects.
-
-To build the SDK, run the following command in the root folder:
-
-```sh
-npm run build
-```
-
-This command compiles the SDK and creates the `dist` folder, making it available for the demo projects to use.
-
-### Environment Variables
-
-The demos use `.env` / `.env.local` files for public client configuration. Follow each demo's `.env.example`. Private keys and server credentials belong in your backend, not in a client environment file.
-
-#### VITE\_ Prefix
-
-Each demo app uses Vite as the build tool. Vite exposes environment variables on `import.meta.env`, replacing them at build time.
-
-Variables with the `VITE_` prefix are included in the public client bundle. Use them only for public settings such as endpoint URLs.
-
-Example `.env` file for the apple pay demo:
-
-```env
-VITE_BACKEND_BASE_URL=https://your-backend.example/api/
-VITE_VALIDATE_MERCHANT_URL=https://your-merchant-domain.de/validate-merchant
-```
-
-See the [Apple client guide](./applepay-demo/README.md) for both checkout flows, runtime URL parameters and instructions for serving the generated HTML/assets in your own setup. Supply your own Commerce API and Apple merchant-validation endpoints using the documented client HTTP contracts.
+- **[Credit Card Tokenizer](./creditcard-tokenizer-demo/README.md)**
+- **[Fingerprinting Tokenizer](./fingerprinting-tokenizer-demo/README.md)**
+- **[Apple Pay](./applepay-demo/README.md)**: Standard and Express Checkout.
+- **[PayPal](./paypal-demo/README.md)**: Standard, SDK and Express Checkout.
+- **[Google Pay](./googlepay-demo/README.md)**: Standard and Express Checkout.
 
 **[back to top](#table-of-contents)**
 
