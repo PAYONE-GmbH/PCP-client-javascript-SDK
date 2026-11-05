@@ -14,43 +14,36 @@ Open `/index.html` (or `/`). The shop collects the customer's contact, billing/d
 
 There is no PaymentIntent in this flow. The shop's address is supplied with the order, rather than being fetched for a review page from PayPal.
 
-## Reuse the factory
+## Integrate with public SDK types
 
-`src/checkout.ts` exports a headless factory with no DOM selectors or global environment reads:
+Standard redirect checkout uses your merchant backend directly. The package provides payment input/result types; `createStandardCheckout`, `CommerceBackend` and `backendConfig` are local demo helpers, not package exports. Supply your own backend adapter:
 
 ```ts
-import { createStandardCheckout } from './src/checkout';
-import { CommerceBackend, backendConfig } from './src/backend';
+import type { ExpressPaymentResult, PaymentMethodSpecificInput } from 'pcp-client-javascript-sdk';
 
-const config = backendConfig(location.href, import.meta.env);
-const backend = new CommerceBackend(config);
-const checkout = createStandardCheckout(
-  {
-    returnUrl: config.returnUrl,
-    submit: (input, contact, shipping) =>
-      backend.createOrder(input, contact.customer, contact.shippingAddress, shipping),
-    onResult: (payment) => {
-      // Render the backend result; follow redirectUrl for requires-action.
-      document.querySelector('#status')!.textContent = payment.status;
+// Your backend adapter includes the validated merchant contact, shipping and
+// cart snapshot, persists the attempt and prevents duplicate order creation.
+declare const submitOrder: (input: PaymentMethodSpecificInput) => Promise<ExpressPaymentResult>;
+declare const displayResult: (result: ExpressPaymentResult) => void;
+
+const input: PaymentMethodSpecificInput = {
+  redirectPaymentMethodSpecificInput: {
+    paymentProductId: 840,
+    requiresApproval: false,
+    tokenize: false,
+    redirectionData: { returnUrl: 'https://shop.example/checkout?returned=1' },
+    paymentProduct840SpecificInput: {
+      addressSelectionAtPayPal: false,
+      javaScriptSdkFlow: false,
     },
   },
-  {
-    customer: {
-      personalInformation: { name: { firstName: 'Ada', surname: 'Example' } },
-      contactDetails: { emailAddress: 'ada@example.test' },
-      billingAddress: { countryCode: 'DE', street: 'Example Street 1', zip: '10115', city: 'Berlin' },
-    },
-    shippingAddress: {
-      name: { firstName: 'Ada', surname: 'Example' },
-      countryCode: 'DE', street: 'Example Street 1', zip: '10115', city: 'Berlin',
-    },
-  },
-  'standard',
-);
-await checkout.pay();
+};
+const result = await submitOrder(input);
+displayResult(result);
+if (result.status === 'requires-action') window.location.assign(result.redirectUrl);
 ```
 
-`returnUrl` is required. `submit(input, contact, shippingOptionId)` is required and returns `Promise<ExpressPaymentResult>`. Optional `onResult` receives the result once. The factory clones the merchant contact and memoizes its payment promise, including failures: repeated `pay()` calls do not repeat the POST. `CommerceBackend` additionally guards reloads and page changes. Create a new handle only for a genuinely new, reconciled payment attempt.
+In the complete demo, `createStandardCheckout(options, contact, shippingOptionId)` wraps this submission. `returnUrl` and `submit(input, contact, shippingOptionId)` are required; optional `onResult` receives the result once. The local factory clones the merchant contact and memoizes its payment promise, including failures: repeated `pay()` calls do not repeat the POST. `CommerceBackend` additionally guards reloads and page changes. Create a new handle only for a genuinely new, reconciled payment attempt.
 
 For an application with different billing/delivery addresses, pass them independently through `CheckoutContact`. The bundled merchant form deliberately keeps them equal. Pricing belongs in `pricing.ts` and ultimately in your authoritative backend, not in the page entrypoint.
 

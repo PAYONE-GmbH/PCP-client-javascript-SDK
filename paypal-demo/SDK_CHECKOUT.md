@@ -29,38 +29,49 @@ There is no PaymentIntent, PayPal-address retrieval or Express review step on th
 
 URL values override environment values. Currency and country are deliberately fixed to EUR/DE in the demo catalogue and backend payload. Change both together when adapting the example. `.env.example` contains the fixed sandbox SDK IDs; copying those does not configure the API wrapper's merchant or enable PayPal for it. Existing `.env.local` files need the SDK variables added explicitly.
 
-## Reuse the factory
+## Integrate the official PayPal SDK
 
-`src/sdk-checkout.ts` exports `createSdkCheckout(options, contact, shippingOptionId)`. SDK-only options extend the public `PayPalSdkConfig`; all backend operations are injected:
+This flow uses the official `@paypal/paypal-js` package, with payment result types from `pcp-client-javascript-sdk`. `createSdkCheckout`, `PayPalSdkConfig`, `CommerceBackend`, `paypalConfig` and `formContact` are local demo helpers, not PAYONE package exports. Supply backend callbacks implementing the sequence above:
 
 ```ts
-import { CommerceBackend, backendConfig } from './src/backend';
-import { paypalConfig } from './src/config';
-import { formContact } from './src/payment';
-import { createSdkCheckout } from './src/sdk-checkout';
+import { loadScript, type PayPalButtonsComponentOptions } from '@paypal/paypal-js';
+import type { ExpressPaymentResult } from 'pcp-client-javascript-sdk';
 
-const config = backendConfig(location.href, import.meta.env);
-const backend = new CommerceBackend(config);
-const form = document.querySelector<HTMLFormElement>('#contact')!;
-if (!form.reportValidity()) throw new Error('Complete the merchant form first.');
-const shipping = new FormData(form).get('shipping')!.toString();
-const checkout = await createSdkCheckout({
-  ...paypalConfig(location.href, import.meta.env),
-  selector: '#paypal-button',
-  returnUrl: config.returnUrl,
-  createOrder: (input, contact, option) =>
-    backend.createSdkOrder(input, contact.customer, contact.shippingAddress, option),
-  completeOrder: (order) => backend.completeSdkOrder(order),
-  onResult: (payment) => { document.querySelector('#status')!.textContent = payment.status; },
-  onCancel: () => { document.querySelector('#status')!.textContent = 'Cancelled; reconcile checkout status.'; },
-  onError: (error) => { document.querySelector('#status')!.textContent = error.message; },
-}, formContact(form), shipping);
+// Application-owned adapters retain and validate the PayPal order ID and
+// PAYONE checkout IDs, snapshot contact/cart data and prevent duplicate POSTs.
+declare const createOrder: NonNullable<PayPalButtonsComponentOptions['createOrder']>;
+declare const completeOrder: () => Promise<ExpressPaymentResult>;
+declare const onApprove: NonNullable<PayPalButtonsComponentOptions['onApprove']>;
+declare const onCancel: NonNullable<PayPalButtonsComponentOptions['onCancel']>;
+declare const onError: NonNullable<PayPalButtonsComponentOptions['onError']>;
+// onApprove/onCancel/onError reconcile any known order via completeOrder;
+// onApprove first verifies data.orderID. They never call actions.order.capture().
+
+const paypal = await loadScript({
+  clientId: 'YOUR_PAYPAL_CLIENT_ID',
+  merchantId: 'YOUR_PAYPAL_MERCHANT_ID',
+  currency: 'EUR',
+  intent: 'capture',
+  locale: 'de_DE',
+  components: 'buttons',
+  commit: true,
+  vault: false,
+});
+if (!paypal?.Buttons) throw new Error('PayPal buttons are unavailable.');
+const button = paypal.Buttons({
+  fundingSource: paypal.FUNDING?.PAYPAL,
+  createOrder,
+  onApprove,
+  onCancel,
+  onError,
+});
+await button.render('#paypal-button');
 
 // Before replacing/unmounting the page:
-await checkout.destroy();
+await button.close();
 ```
 
-Required options: `clientId`, `merchantId`, `intent`, `locale`, `selector`, `returnUrl`, `createOrder(input, contact, shipping)` and `completeOrder(order)`. `createOrder` returns `{ commerceCaseId, checkoutId, orderId, paymentId? }`, where `orderId` is the PayPal transaction/order ID. Completion returns `Promise<ExpressPaymentResult>`.
+The complete adapter is in [`src/sdk-checkout.ts`](src/sdk-checkout.ts). Its local `createSdkCheckout(options, contact, shippingOptionId)` factory requires `clientId`, `merchantId`, `intent`, `locale`, `selector`, `returnUrl`, `createOrder(input, contact, shipping)` and `completeOrder(order)`. The local `createOrder` callback returns `{ commerceCaseId, checkoutId, orderId, paymentId? }`, where `orderId` is the PayPal transaction/order ID; the adapter returns only that `orderId` to PayPal's SDK `createOrder`. Completion returns `Promise<ExpressPaymentResult>`.
 
 Optional options: `onResult`, `onCancel`, `onError`, `buttonStyle` (official SDK button style) and `loadPayPal` (SDK-loader injection, useful for tests). Default button style is vertical/gold/rect/PayPal. `onCancel` receives the reconciled result when a known order existed; no result is available if cancelled before order creation. `onError` can report an initial SDK error and a subsequent synchronization failure. Status synchronization after an SDK error can additionally emit `onResult`; use the backend result to determine the payment state.
 
