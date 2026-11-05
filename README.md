@@ -15,7 +15,7 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
   - [Credit Card Tokenizer](#credit-card-tokenizer)
     - [1. Add the Payment IFrame and Submit Button to your HTML](#1-add-the-payment-iframe-and-submit-button-to-your-html)
     - [2. Import the Tokenizer and Types from the SDK](#2-import-the-tokenizer-and-types-from-the-sdk)
-    - [3. Fetch the JWT from your Backend](#3-fetch-the-jwt-token-from-your-backend)
+    - [3. Fetch the JWT from your Backend](#3-fetch-the-jwt-from-your-backend)
     - [4. Configure the Tokenizer](#4-configure-the-tokenizer)
     - [5. Initialize the Tokenizer](#5-initialize-the-tokenizer)
     - [6. Customization and Callbacks](#6-customization-and-callbacks)
@@ -40,18 +40,14 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
     - [5. Apple Pay Button Configuration](#5-apple-pay-button-configuration)
     - [6. Integrating the Apple Pay Session](#6-integrating-the-apple-pay-session)
   - [PayPal Integration](#paypal-integration)
-    - [1. Install Dependencies](#1-install-paypal-dependencies)
+    - [1. Install PayPal Dependencies](#1-install-paypal-dependencies)
     - [2. Add the PayPal Button Container](#2-add-the-paypal-button-container)
     - [3. Load the PayPal JavaScript SDK](#3-load-the-paypal-javascript-sdk)
     - [4. Configure and Render PayPal Buttons](#4-configure-and-render-paypal-buttons)
-    - [5. Handle Payment Processing](#5-handle-payment-processing)
+    - [5. Integration with PAYONE Commerce Platform](#5-integration-with-payone-commerce-platform)
     - [6. Customize Button Appearance](#6-customize-button-appearance)
   - [Google Pay Integration](#google-pay-integration)
-    - [Setup Google Pay Integration](#setup-google-pay-integration-web-component-example)
-      - [1. Install Dependencies](#1-install-dependencies)
-      - [2. Create a Web Component](#2-create-a-web-component)
-      - [3. Add the Component to your HTML](#3-add-the-component-to-your-html)
-    - [Button Configuration Options](#button-configuration-options)
+    - [Google Pay Configuration](#google-pay-configuration)
   - [PAYONE Commerce Platform Compliant Interfaces](#payone-commerce-platform-compliant-interfaces)
 - [Demonstration Projects](#demonstration-projects)
 - [Contributing](#contributing)
@@ -69,7 +65,6 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
 - **Credit Card Tokenizer**: Securely tokenize credit and debit card information.
 - **Fingerprinting Tokenizer**: Generate unique tokens for device fingerprinting.
 - **Apple Pay Session Integration**: Seamlessly integrate Apple Pay into your payment workflow.
-- **Apple Pay demos**: One [Standard Checkout](applepay-demo/STANDARD_CHECKOUT.md) page and one [Express Checkout](applepay-demo/EXPRESS_CHECKOUT.md) page, with shared parameterized client modules and an [integration guide](applepay-demo/README.md).
 - **PayPal Integration**: Enable PayPal payment options on your website.
 
 ## Installation
@@ -695,11 +690,27 @@ For further information see: https://docs.payone.com/payment-methods/apple-pay
 
 ### PayPal Integration
 
-The PAYONE Commerce Platform Client JavaScript SDK provides a demonstration project for PayPal integration. The integration uses the official PayPal JavaScript SDK, which allows for a seamless checkout experience.
+Integrate PayPal into your checkout using this client SDK and the official PayPal JavaScript SDK where applicable. This guide assumes that payment operations are handled through a PAYONE Commerce Platform Server SDK. Choose one of these flows:
+
+| Flow | Browser integration | PAYONE configuration |
+| --- | --- | --- |
+| Standard Checkout | Collect customer and delivery data in your shop, then navigate to the returned redirect URL. | Product `840`, `javaScriptSdkFlow: false`, `addressSelectionAtPayPal: false`. |
+| SDK Checkout | Render the official PayPal JavaScript SDK button and handle its popup callbacks. | Product `840`, `javaScriptSdkFlow: true`; complete the order after the provider callback. |
+| Express Checkout | Create a PaymentIntent, redirect to PayPal, retrieve and review its address, then submit the linked order. | Product `840`, `javaScriptSdkFlow: false`; address selection is `true` on the intent and `false` on the final order. |
+
+For Standard and Express, the browser needs no PayPal SDK client/account IDs. For SDK Checkout, use the **PAYONE-provided client ID** for your environment and the matching **PayPal merchant/account ID**. These public SDK identifiers are different from your backend's PAYONE API merchant ID and credentials. Configure them through your application's own configuration mechanism.
+
+`requiresApproval: false` requests automatic capture; `true` requires a later server-side Deliver/Capture. In SDK Checkout, match this flag to the SDK's `intent` (`capture` or `authorize`). Always provide an absolute `redirectionData.returnUrl`, including in SDK flow, with a maximum length of 200 characters.
+
+The public `PCPPayPalExpress` class is available from `pcp-client-javascript-sdk`. Its `start()`, `resume(context)`, `confirm()` and `cancel()` methods orchestrate the redirect lifecycle. Supply callbacks that connect your application's Server SDK integration, persistence, navigation and result handling.
+
+A redirect return, SDK approval or PaymentIntent approval is not payment success. Reconcile the checkout status and server-side capture webhook, and retain correlation for uncertain submissions rather than automatically retrying a financial POST.
+
+The following steps describe SDK Checkout using the official PayPal library directly. The illustrative `/api/paypal/...` URLs connect the browser to your application's PAYONE Server SDK integration; adapt these URLs and response handling to your application.
 
 #### 1. Install PayPal Dependencies
 
-To start using PayPal, install one of the following packages based on your needs:
+For the browser integration, install the official loader:
 
 **Standard JavaScript:**
 
@@ -757,8 +768,8 @@ Use the PayPal JS package to dynamically load the SDK:
 import { loadScript } from '@paypal/paypal-js';
 
 loadScript({
-  clientId: 'YOUR_PAYPAL_CLIENT_ID',
-  merchantId: 'YOUR_PAYPAL_MERCHANT_ID',
+  clientId: 'PAYONE_CLIENT_ID_FOR_YOUR_ENVIRONMENT',
+  merchantId: 'YOUR_MATCHING_PAYPAL_MERCHANT_ID',
   currency: 'EUR',
   intent: 'authorize', // Or 'capture' for immediate payment
   locale: 'de_DE', // Set to your preferred locale
@@ -797,84 +808,101 @@ The rest of this documentation focuses on integration using ES Modules. For comp
 
 #### 4. Configure and Render PayPal Buttons
 
-After loading the SDK, configure and render the PayPal buttons:
+The following example loads the SDK and renders into the HTML container above. Order creation returns `{ orderID }`; completion returns a reconciled `{ status }`. One rendered button represents one payment attempt, with duplicate callbacks reusing the same creation/completion promise.
 
 ```typescript
-paypal
-  .Buttons({
-    // Create order via your server that communicates with PAYONE Commerce Platform
-    async createOrder() {
-      const response = await fetch('YOUR_SERVER_ENDPOINT/create-paypal-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Optional: You can pass additional data needed for order creation
-        body: JSON.stringify({
-          checkoutId: 'YOUR_CHECKOUT_ID', // If already created
-        }),
-      });
+import { loadScript } from '@paypal/paypal-js';
 
-      // Your server should return the PayPal OrderID (or payPalTransactionId) from PAYONE Commerce Platform
-      const order = await response.json();
-      return order.id;
-    },
+const intent = 'authorize'; // Matches requiresApproval: true in the Server SDK order request.
+const paypal = await loadScript({
+  clientId: 'PAYONE_CLIENT_ID_FOR_YOUR_ENVIRONMENT',
+  merchantId: 'YOUR_MATCHING_PAYPAL_MERCHANT_ID',
+  currency: 'EUR',
+  intent,
+  locale: 'de_DE',
+  commit: true,
+  vault: false,
+  components: ['buttons'],
+});
+if (!paypal?.Buttons) throw new Error('PayPal SDK could not be loaded.');
 
-    // Handle payment approval
-    onApprove: async (data, actions) => {
-      // Notify your server about the approved payment
-      const response = await fetch(
-        'YOUR_SERVER_ENDPOINT/process-paypal-payment',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderID: data.orderID,
-          }),
-        },
-      );
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`Payment backend HTTP ${response.status}`);
+  return response.json();
+}
 
-      if (!response.ok) {
-        throw new Error(
-          `Server responded with ${response.status}: ${response.statusText}`,
-        );
-      }
+type PaymentResult = { status: 'succeeded' | 'pending' | 'failed' };
+let order: Promise<{ orderID: string }> | undefined;
+let completion: Promise<PaymentResult> | undefined;
+const show = (message: string) => {
+  document.querySelector('#message')!.textContent = message;
+};
+const report = (error: unknown) => {
+  document.querySelector('#error')!.textContent =
+    error instanceof Error ? error.message : String(error);
+};
+async function complete(callbackOrderID?: string) {
+  if (!order) return; // No order was created, so nothing can be completed.
+  const saved = await order;
+  if (callbackOrderID && callbackOrderID !== saved.orderID)
+    throw new Error('PayPal callback orderID mismatch.');
+  completion ??= post<PaymentResult>(
+    `/api/paypal/orders/${encodeURIComponent(saved.orderID)}/complete`, {},
+  );
+  const payment = await completion;
+  show(`Payment ${payment.status}`); // Server-reconciled status, not the browser event.
+}
 
-      const responseData = await response.json();
-      console.log('Payment processed successfully:', responseData);
+const buttons = paypal.Buttons({
+  fundingSource: paypal.FUNDING?.PAYPAL,
+  createOrder: () => {
+    order ??= post<{ orderID: string }>('/api/paypal/orders', {
+      intent,
+      returnUrl: new URL('/checkout/paypal/return', location.origin).href,
+    });
+    return order.then((saved) => saved.orderID);
+  },
+  onApprove: (data) => complete(data.orderID),
+  onCancel: () => complete(),
+  onError: (error) => {
+    report(error);
+    void complete().catch(report);
+  },
+  style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
+});
+await buttons.render('#paypal-button-container');
 
-      // Update UI or redirect to success page
-    },
-
-    // Handle errors
-    onError: (error) => {
-      console.error('PayPal error:', error);
-      document.getElementById('error').textContent = error.message;
-    },
-
-    // Handle cancellations
-    onCancel: () => {
-      console.log('Payment cancelled');
-      document.getElementById('message').textContent =
-        'Payment cancelled by user';
-    },
-
-    // Button style
-    style: {
-      layout: 'vertical',
-      color: 'gold',
-      shape: 'rect',
-      label: 'paypal',
-    },
-  })
-  .render('#paypal-button-container');
+// Register buttons.close() with your application's unmount/cleanup lifecycle.
 ```
 
 #### 5. Integration with PAYONE Commerce Platform
 
-The PayPal integration with the PAYONE Commerce Platform follows this flow:
+Use your PAYONE Server SDK for CommerceCase/Checkout, Order, PaymentIntent and Complete Order operations. The relevant handoffs for the browser are:
+
+- **SDK order ID:** `createOrder` returns **`paymentOutput.redirectPaymentMethodSpecificOutput.payPalTransactionId`**, not PAYONE's `payment.id`.
+- **SDK completion:** after approval, cancellation or error of a known order, use Complete Order with the following input, then display the reconciled checkout status. Authorization awaiting capture remains `pending`.
+
+```json
+{
+  "completePaymentMethodSpecificInput": {
+    "paymentProduct840SpecificInput": {
+      "javaScriptSdkFlow": true,
+      "action": "CONFIRM_ORDER_STATUS"
+    }
+  }
+}
+```
+
+- **Standard redirect:** navigate to `checkout.paymentResponse.merchantAction.redirectData.redirectURL` and reconcile the checkout after return.
+- **Express review:** retain the intent's `paymentIntentId` and `paymentId`, navigate to its redirect URL, then retrieve the intent after return. Show the returned address for review. The final order uses the original `paymentId` and the same `requiresApproval` setting. A changed amount can require another redirect; do not create another order on that return. Time-critical intent reads may be retried for at most two seconds.
+
+**SDK processing sequence:**
 
 1. **Create a Checkout**: First, create a checkout using the PAYONE Commerce Platform Server SDK (either together with a Commerce Case or in distinct calls).
 
@@ -882,7 +910,7 @@ The PayPal integration with the PAYONE Commerce Platform follows this flow:
 
 3. **Handle Customer Selection**: When a customer selects the PayPal button, the SDK triggers a callback to your server.
 
-4. **Generate PayPal OrderID**: Your server communicates with the PAYONE Commerce Platform using the previously created Checkout to retrieve a payPalTransactionId (also referred to as OrderID).
+4. **Generate PayPal OrderID**: The Server SDK order response provides the payPalTransactionId (also referred to as OrderID) for the button's `createOrder` callback.
 
 5. **Authenticate and Approve**: The PayPal JavaScript SDK opens a popup window where the customer logs in and approves the payment.
 
@@ -891,9 +919,9 @@ The PayPal integration with the PAYONE Commerce Platform follows this flow:
    - `onCancel`: Customer canceled the payment
    - `onError`: An error occurred during payment processing
 
-7. **Update Order Status**: Based on the callback received, send a request to the PAYONE Commerce Platform to update the order status.
+7. **Update Order Status**: For a known order, send Complete Order with `javaScriptSdkFlow: true` and `action: 'CONFIRM_ORDER_STATUS'` after approval, cancellation or error, then reconcile checkout status. Browser approval alone does not establish capture.
 
-8. **Finalize Process**: Once payment is confirmed, initialize the delivery process to capture the amount and deliver goods or services.
+8. **Finalize Process**: For `requiresApproval: true`, use Deliver/Capture through the Server SDK when appropriate. For automatic capture, delivery is a separate fulfillment step.
 
 #### 6. Customize Button Appearance
 
@@ -912,7 +940,6 @@ For more information about PayPal integration, refer to:
 
 - [PayPal JavaScript SDK Configuration](https://developer.paypal.com/sdk/js/configuration/)
 - [PayPal JavaScript SDK Reference](https://developer.paypal.com/sdk/js/reference/)
-- [PAYONE Commerce Platform PayPal SDK Documentation](https://docs.payone.com/pcp/commerce-platform-payment-methods/paypal/paypal-sdk)
 
 **[back to top](#table-of-contents)**
 
@@ -920,7 +947,7 @@ For more information about PayPal integration, refer to:
 
 ### Google Pay Integration
 
-The PAYONE Commerce Platform Client JavaScript SDK provides a demonstration project for Google Pay integration. The integration uses the official Google Pay Button libraries which are available for various frameworks:
+For Google Pay integration, use the official Google Pay Button libraries, which are available for various frameworks:
 
 - Web Components ([@google-pay/button-element](https://github.com/google-pay/google-pay-button))
 - React ([@google-pay/button-react](https://github.com/google-pay/google-pay-button))
@@ -948,27 +975,13 @@ npm install @google-pay/button-react
 npm install @google-pay/button-angular
 ```
 
-The [Google Pay demo](./googlepay-demo/README.md) provides two independent entry pages with shared, typed configuration and payment mapping:
+#### Google Pay Configuration
 
-- [Standard Checkout](./googlepay-demo/STANDARD_CHECKOUT.md): merchant-owned address and shipping form, followed by the official `@google-pay/button-element` payment button.
-- [Express Checkout](./googlepay-demo/EXPRESS_CHECKOUT.md): `PCPGooglePayExpress` requests address, email and shipping selection directly inside Google Pay and updates the total via callbacks.
+Configure Google Pay API v2 with gateway `payonegmbh`, `gatewayMerchantId` (the PAYONE gateway merchant ID), Visa/Mastercard and the authentication methods supported by your merchant setup. `CRYPTOGRAM_3DS` requires a compatible device/card; enable `PAN_ONLY` only where supported by your PAYONE configuration. For `PRODUCTION`, also provide the separate Google `merchantId` and complete Google's production onboarding.
 
-#### Setup Google Pay Integration (Web Component Example)
+For Standard Checkout, collect customer and shipping data in your shop and supply the final amount to the Google Pay button. For Express Checkout, `PCPGooglePayExpress` collects the requested contacts and shipping selection in the payment sheet and updates the amount through callbacks.
 
-Run the demos from the repository root:
-
-```bash
-npm ci
-npm run build
-npm --prefix googlepay-demo ci
-cp googlepay-demo/.env.example googlepay-demo/.env.local
-# Configure the public merchant settings in googlepay-demo/.env.local.
-npm --prefix googlepay-demo run dev
-```
-
-Open `/index.html` for Standard or `/express.html` for Express. Configure `backendUrl`, `gatewayMerchantId` (the PAYONE ID) and, for `PRODUCTION`, `merchantId` (the separate Google merchant ID), using the URL or Vite environment variables documented in the [demo setup](./googlepay-demo/README.md#configuration).
-
-Both flows use Google Pay API v2, gateway `payonegmbh`, Visa/Mastercard and default to `CRYPTOGRAM_3DS`. Authentication methods are configurable for explicit desktop tests; see the demo's availability troubleshooting before enabling `PAN_ONLY`. The original Google token is UTF-8/Base64 encoded exactly once for PAYONE product **320**, with `SALE` and a short 3DS return URL. The merchant backend performs the payment; opening or closing the Google sheet is not confirmation of capture. The demo documentation includes the exact Commerce request/response mapping, 3DS/status handling, module API and manual test steps.
+Encode the original Google token as UTF-8/Base64 exactly once for PAYONE product **320**. Use the PAYONE Server SDK to process the payment with the appropriate authorization mode (`SALE` for immediate capture) and a 3DS return URL. Opening or closing the Google sheet is not confirmation of capture; reconcile the payment status after any required redirect.
 
 - [Customize your Google Pay button](https://developers.google.com/pay/api/web/guides/resources/customize)
 - [Google Pay Button Element Documentation](https://github.com/google-pay/google-pay-button)
@@ -996,44 +1009,13 @@ const createCheckoutRequest: CreateCheckoutRequest = {...}
 
 ## Demonstration Projects
 
-You can find demonstration projects for each feature in the corresponding directories:
+Each demo's README contains its installation, configuration, build and run instructions:
 
-- **Credit Card Tokenizer**: Check out the [creditcard-tokenizer-demo](./creditcard-tokenizer-demo/) folder.
-- **Fingerprinting Tokenizer**: See the [fingerprinting-tokenizer-demo](./fingerprinting-tokenizer-demo/) folder.
-- **Apple Pay Session Integration**: Refer to the [applepay-demo](./applepay-demo/) folder.
-- **PayPal Integration**: Refer to the [paypal-demo](./paypal-demo/) folder.
-- **Google Pay Integration**: Refer to the [googlepay-demo](./googlepay-demo/) folder.
-
-### Building the SDK
-
-Before running a demo project, you need to build the SDK in the root folder. This is necessary because the `dist` folder that gets created during the build process is targeted by the dependency with `file:..` that is referenced in the credit card tokenizer and fingerprinting tokenizer demo projects.
-
-To build the SDK, run the following command in the root folder:
-
-```sh
-npm run build
-```
-
-This command compiles the SDK and creates the `dist` folder, making it available for the demo projects to use.
-
-### Environment Variables
-
-The demos use `.env` / `.env.local` files for public client configuration. Follow each demo's `.env.example`. Private keys and server credentials belong in your backend, not in a client environment file.
-
-#### VITE\_ Prefix
-
-Each demo app uses Vite as the build tool. Vite exposes environment variables on `import.meta.env`, replacing them at build time.
-
-Variables with the `VITE_` prefix are included in the public client bundle. Use them only for public settings such as endpoint URLs.
-
-Example `.env` file for the apple pay demo:
-
-```env
-VITE_BACKEND_BASE_URL=https://your-backend.example/api/
-VITE_VALIDATE_MERCHANT_URL=https://your-merchant-domain.de/validate-merchant
-```
-
-See the [Apple client guide](./applepay-demo/README.md) for both checkout flows, runtime URL parameters and instructions for serving the generated HTML/assets in your own setup. Supply your own Commerce API and Apple merchant-validation endpoints using the documented client HTTP contracts.
+- **[Credit Card Tokenizer](./creditcard-tokenizer-demo/README.md)**
+- **[Fingerprinting Tokenizer](./fingerprinting-tokenizer-demo/README.md)**
+- **[Apple Pay](./applepay-demo/README.md)**: Standard and Express Checkout.
+- **[PayPal](./paypal-demo/README.md)**: Standard, SDK and Express Checkout.
+- **[Google Pay](./googlepay-demo/README.md)**: Standard and Express Checkout.
 
 **[back to top](#table-of-contents)**
 

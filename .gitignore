@@ -5,3 +5,5 @@ coverage/
 **/infrastructure/
 **/*.env.local
 **/*.pem
+
+docs/

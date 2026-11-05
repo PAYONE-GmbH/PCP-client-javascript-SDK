@@ -2,8 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   PCPApplePaySession,
   PCPGooglePayExpress,
+  PCPPayPalExpress,
   type PCPApplePaySessionConfig,
   type PCPGooglePayExpressConfig,
+  type PayPalExpressContext,
   type ExpressPaymentResult,
 } from '../index.js';
 
@@ -328,5 +330,86 @@ describe('Google Pay Express', () => {
     expect(config.paymentDataChangedCallback).not.toHaveBeenCalled();
     expect(config.errorCallback).not.toHaveBeenCalled();
     expect(config.resultCallback).not.toHaveBeenCalled();
+  });
+});
+
+describe('PayPal Express redirect', () => {
+  const context: PayPalExpressContext = {
+    paymentIntentId: 'intent',
+    paymentId: 'payment',
+    phase: 'redirected',
+  };
+  const setup = () => {
+    const config = {
+      createIntent: vi
+        .fn()
+        .mockResolvedValue({ ...context, redirectUrl: 'https://paypal.test/approve' }),
+      loadIntent: vi.fn().mockResolvedValue({ shippingAddress: { countryCode: 'DE' } }),
+      confirmPayment: vi.fn().mockResolvedValue(success),
+      navigate: vi.fn(),
+      contextChangedCallback: vi.fn(),
+      resultCallback: vi.fn(),
+      cancelCallback: vi.fn(),
+      errorCallback: vi.fn(),
+    };
+    return { config, instance: PCPPayPalExpress.create(config) };
+  };
+  it('persists correlation before navigating to PayPal', async () => {
+    const { config, instance } = setup();
+    await instance.start();
+    expect(config.contextChangedCallback).toHaveBeenCalledWith(context);
+    expect(config.navigate).toHaveBeenCalledWith('https://paypal.test/approve');
+    expect(config.confirmPayment).not.toHaveBeenCalled();
+  });
+  it('loads the intent for review, then submits once even on double click', async () => {
+    const { config, instance } = setup();
+    const intent = await instance.resume(context);
+    expect(config.resultCallback).not.toHaveBeenCalled();
+    const first = instance.confirm();
+    expect(instance.confirm()).toBe(first);
+    await expect(first).resolves.toEqual(success);
+    expect(config.confirmPayment).toHaveBeenCalledOnce();
+    expect(config.confirmPayment).toHaveBeenCalledWith(intent, { ...context, phase: 'confirming' });
+  });
+  it('persists a second redirect without resubmitting on return', async () => {
+    const { config, instance } = setup();
+    const result: ExpressPaymentResult = {
+      status: 'requires-action',
+      redirectUrl: 'https://paypal.test/new-price',
+    };
+    config.confirmPayment.mockResolvedValue(result);
+    await instance.resume(context);
+    await instance.confirm();
+    const restored = PCPPayPalExpress.create(config);
+    await restored.resume({ ...context, phase: 'submitted', result });
+    await restored.confirm();
+    expect(config.confirmPayment).toHaveBeenCalledOnce();
+    expect(config.navigate).toHaveBeenCalledWith(result.redirectUrl);
+  });
+  it('cancels before submission and clears persisted context', async () => {
+    const { config, instance } = setup();
+    await instance.resume(context);
+    instance.cancel();
+    expect(config.contextChangedCallback).toHaveBeenLastCalledWith(null);
+    expect(config.cancelCallback).toHaveBeenCalledOnce();
+    expect(config.confirmPayment).not.toHaveBeenCalled();
+  });
+  it('keeps uncertain submissions locked rather than retrying a POST', async () => {
+    const { config, instance } = setup();
+    config.confirmPayment.mockRejectedValue(new Error('connection lost'));
+    await instance.resume(context);
+    await expect(instance.confirm()).rejects.toThrow('connection lost');
+    await expect(instance.confirm()).rejects.toThrow('connection lost');
+    expect(config.confirmPayment).toHaveBeenCalledOnce();
+    const restored = PCPPayPalExpress.create(config);
+    await restored.resume({ ...context, phase: 'confirming' });
+    await expect(restored.confirm()).rejects.toThrow('Uncertain submissions');
+  });
+  it('reports intent errors without navigation or order submission', async () => {
+    const { config, instance } = setup();
+    config.createIntent.mockRejectedValue(new Error('backend unavailable'));
+    await expect(instance.start()).rejects.toThrow('backend unavailable');
+    expect(config.errorCallback).toHaveBeenCalledOnce();
+    expect(config.navigate).not.toHaveBeenCalled();
   });
 });

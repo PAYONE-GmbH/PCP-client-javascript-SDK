@@ -1,81 +1,29 @@
-import { loadScript } from '@paypal/paypal-js';
+import { createStandardCheckout } from './checkout';
+import { missingReturnContext, setupPage } from './page';
+import { formContact } from './payment';
+import { show, showError } from './ui';
 
-loadScript({
-  clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID,
-  merchantId: import.meta.env.VITE_PAYPAL_MERCHANT_ID,
-  currency: 'EUR',
-  intent: 'authorize',
-  locale: 'de_DE',
-  commit: true,
-  vault: false,
-  disableFunding: ['card', 'sepa', 'bancontact'],
-  enableFunding: ['paylater'],
-  debug: true,
-})
-  .then((paypal) => {
-    if (!paypal) {
-      throw new Error('PayPal SDK could not be loaded.');
-    }
-    // start to use the PayPal JS SDK script
-    paypal
-      .Buttons?.({
-        async createOrder() {
-          const response = await fetch(import.meta.env.VITE_CREATE_ORDER_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              cart: [
-                {
-                  sku: 'YOUR_PRODUCT_STOCK_KEEPING_UNIT',
-                  quantity: 'YOUR_PRODUCT_QUANTITY',
-                },
-              ],
-            }),
-          });
-
-          const order = await response.json();
-
-          // get paypal order id from your server
-          return order.id;
-        },
-        onApprove: async (data, _actions) => {
-          // Call your server to capture the order
-          const response = await fetch(import.meta.env.VITE_ON_APPROVE_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              orderID: data.orderID,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-          }
-          const responseData = await response.json();
-          console.log('Order captured successfully:', responseData);
-          document.getElementById('message')!.textContent = `Success - OrderId: ${data.orderID}`;
-        },
-        onError: (error) => {
-          console.error('PayPal error:', error);
-          document.getElementById('error')!.textContent = error.message as string;
-        },
-        onCancel: () => {
-          console.log('Payment cancelled');
-          document.getElementById('message')!.textContent = 'Payment cancelled by user';
-        },
-        style: {
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'rect',
-          label: 'paypal',
-        },
-      })
-      .render('#paypal-button-container');
-  })
-  .catch((err) => {
-    console.error('failed to load the PayPal JS SDK script', err);
+function main() {
+  const { blocked, shipping, options } = setupPage();
+  if (blocked) return;
+  if (new URL(location.href).searchParams.has('returned')) return missingReturnContext();
+  const form = document.querySelector<HTMLFormElement>('#contact')!;
+  const fields = document.querySelector<HTMLFieldSetElement>('#fields')!;
+  fields.disabled = false;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    const contact = formContact(form);
+    const checkout = createStandardCheckout(options, contact, shipping.value);
+    fields.disabled = true;
+    show('Creating PayPal payment …');
+    void checkout.pay().catch(showError);
   });
+  show('Enter your billing and delivery address, then continue to PayPal.');
+}
+
+try {
+  main();
+} catch (error) {
+  showError(error);
+}
