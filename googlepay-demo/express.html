@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Google Pay Express Checkout · PAYONE</title>
+  </head>
+  <body>
+    <main>
+      <nav><a href="index.html" data-checkout-link>Try Standard Checkout</a></nav>
+      <h1>Google Pay Express Checkout</h1>
+      <p>Choose your address and shipping method directly inside Google Pay.</p>
+      <p>Demo item €19.90 · Germany / EUR · Standard shipping €4.90 / Express €9.90 · tax included.</p>
+      <div id="wallet"></div>
+      <p id="status" role="status" aria-live="polite">Loading configuration …</p>
+      <button id="check-status" type="button">Check payment status</button>
+    </main>
+    <script type="module" src="/src/express.ts"></script>
+  </body>
+</html>

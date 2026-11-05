@@ -948,126 +948,29 @@ npm install @google-pay/button-react
 npm install @google-pay/button-angular
 ```
 
-Our demo implementation uses the Web Component version (@google-pay/button-element), but you can adapt the code to use any of the framework-specific versions. The configuration options and payment request structure remain the same across all versions.
+The [Google Pay demo](./googlepay-demo/README.md) provides two independent entry pages with shared, typed configuration and payment mapping:
+
+- [Standard Checkout](./googlepay-demo/STANDARD_CHECKOUT.md): merchant-owned address and shipping form, followed by the official `@google-pay/button-element` payment button.
+- [Express Checkout](./googlepay-demo/EXPRESS_CHECKOUT.md): `PCPGooglePayExpress` requests address, email and shipping selection directly inside Google Pay and updates the total via callbacks.
 
 #### Setup Google Pay Integration (Web Component Example)
 
-##### 1. **Install Dependencies**
+Run the demos from the repository root:
 
 ```bash
-npm install @google-pay/button-element
+npm ci
+npm run build
+npm --prefix googlepay-demo ci
+cp googlepay-demo/.env.example googlepay-demo/.env.local
+# Configure the public merchant settings in googlepay-demo/.env.local.
+npm --prefix googlepay-demo run dev
 ```
 
-##### 2. **Create a Web Component**
+Open `/index.html` for Standard or `/express.html` for Express. Configure `backendUrl`, `gatewayMerchantId` (the PAYONE ID) and, for `PRODUCTION`, `merchantId` (the separate Google merchant ID), using the URL or Vite environment variables documented in the [demo setup](./googlepay-demo/README.md#configuration).
 
-Create a custom web component that encapsulates the Google Pay button:
+Both flows use Google Pay API v2, gateway `payonegmbh`, Visa/Mastercard and default to `CRYPTOGRAM_3DS`. Authentication methods are configurable for explicit desktop tests; see the demo's availability troubleshooting before enabling `PAN_ONLY`. The original Google token is UTF-8/Base64 encoded exactly once for PAYONE product **320**, with `SALE` and a short 3DS return URL. The merchant backend performs the payment; opening or closing the Google sheet is not confirmation of capture. The demo documentation includes the exact Commerce request/response mapping, 3DS/status handling, module API and manual test steps.
 
-```typescript
-import GooglePayButton from '@google-pay/button-element';
-
-class MyGooglePayButton extends HTMLElement {
-  constructor() {
-    super();
-
-    const shadow = this.attachShadow({ mode: 'open' });
-    const button = new GooglePayButton();
-
-    // Configure the button
-    button.environment = 'TEST'; // Use 'PRODUCTION' for live environment
-    button.buttonLocale = 'de';
-    button.buttonType = 'pay';
-
-    // Configure the payment request
-    button.paymentRequest = {
-      apiVersion: 2,
-      apiVersionMinor: 0,
-      allowedPaymentMethods: [
-        {
-          type: 'CARD',
-          parameters: {
-            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-            allowedCardNetworks: ['MASTERCARD', 'VISA'],
-            billingAddressParameters: {
-              format: 'FULL',
-            },
-          },
-          tokenizationSpecification: {
-            type: 'PAYMENT_GATEWAY',
-            parameters: {
-              gateway: 'payonegmbh',
-              gatewayMerchantId: 'your-merchant-id',
-            },
-          },
-        },
-      ],
-      merchantInfo: {
-        merchantId: 'your-merchant-id',
-        merchantName: 'Your Merchant Name',
-      },
-      transactionInfo: {
-        totalPriceStatus: 'FINAL',
-        totalPriceLabel: 'Total',
-        totalPrice: '100.00',
-        currencyCode: 'EUR',
-        countryCode: 'DE',
-      },
-      // Optional: Configure shipping options
-      shippingAddressRequired: true,
-      shippingOptionRequired: true,
-      shippingOptionParameters: {
-        shippingOptions: [
-          {
-            id: 'standard',
-            label: 'Standard Shipping',
-            description: 'Arrives in 5-7 days',
-          },
-          {
-            id: 'express',
-            label: 'Express Shipping',
-            description: 'Arrives in 2-3 days',
-          },
-        ],
-        defaultSelectedOptionId: 'standard',
-      },
-    };
-
-    // Handle the payment data
-    button.onLoadPaymentData = (
-      paymentData: google.payments.api.PaymentData,
-    ) => {
-      console.log('Payment Data:', paymentData);
-      // This is where you would typically send the payment data to your server for processing
-    };
-
-    shadow.appendChild(button);
-  }
-}
-
-customElements.define('my-google-pay-button', MyGooglePayButton);
-```
-
-##### 3. **Add the Component to your HTML**
-
-```html
-<my-google-pay-button></my-google-pay-button>
-```
-
-#### Button Configuration Options
-
-| Property       | Type                              | Description                                    |
-| -------------- | --------------------------------- | ---------------------------------------------- |
-| environment    | `'TEST' \| 'PRODUCTION'`          | The Google Pay environment to use              |
-| buttonLocale   | `string`                          | The language for the button (e.g., 'de', 'en') |
-| buttonType     | `string`                          | The type of button ('pay', 'buy', etc.)        |
-| buttonColor    | `'default' \| 'black' \| 'white'` | The color scheme of the button                 |
-| buttonSizeMode | `'static' \| 'fill'`              | How the button should be sized                 |
-
-For more information about customizing the Google Pay Button, refer to:
-
-- [Customize your Google Pay Button](https://developers.google.com/pay/api/web/guides/resources/customize)
-
-For more information about Google Pay integration, refer to:
-
+- [Customize your Google Pay button](https://developers.google.com/pay/api/web/guides/resources/customize)
 - [Google Pay Button Element Documentation](https://github.com/google-pay/google-pay-button)
 - [Google Pay API Documentation](https://developers.google.com/pay/api/web/overview)
 

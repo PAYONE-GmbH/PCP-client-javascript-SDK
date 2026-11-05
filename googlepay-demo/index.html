@@ -1,19 +1,37 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Google Pay Example</title>
+    <title>Google Pay Standard Checkout · PAYONE</title>
   </head>
-
   <body>
-    <div id="examples" class="examples">
-      <div class="example">
-        <div class="demo">
-          <my-google-pay-button></my-google-pay-button>
-        </div>
-      </div>
-    </div>
+    <main>
+      <nav><a href="express.html" data-checkout-link>Try Express Checkout</a></nav>
+      <h1>Google Pay Standard Checkout</h1>
+      <p>Complete the merchant checkout first. Google Pay authorizes payment only.</p>
+      <p>Demo item €19.90 · Germany / EUR · all prices include tax.</p>
+      <form id="checkout">
+        <fieldset>
+          <legend>Billing and shipping address</legend>
+          <label>First name <input name="givenName" autocomplete="given-name" required /></label>
+          <label>Last name <input name="familyName" autocomplete="family-name" required /></label>
+          <label>Email <input name="email" type="email" autocomplete="email" required /></label>
+          <label>Phone <input name="phone" type="tel" autocomplete="tel" required /></label>
+          <label>Street and house number <input name="street" autocomplete="address-line1" required /></label>
+          <label>Postal code <input name="postalCode" autocomplete="postal-code" pattern="[0-9]{5}" required /></label>
+          <label>City <input name="city" autocomplete="address-level2" required /></label>
+          <p>Country: Germany (DE). This example uses the same address for billing and shipping.</p>
+          <label>Shipping <select name="shipping" required></select></label>
+          <p>Total: <output id="total">€24.80</output></p>
+          <button type="submit">Continue to Google Pay</button>
+        </fieldset>
+      </form>
+      <button id="edit" type="button" hidden>Edit checkout details</button>
+      <div id="wallet"></div>
+      <p id="status" role="status" aria-live="polite">Loading configuration …</p>
+      <button id="check-status" type="button">Check payment status</button>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
   </body>
-  <script type="module" src="src/main.ts"></script>
 </html>

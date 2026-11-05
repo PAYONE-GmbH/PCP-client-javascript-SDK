@@ -48,7 +48,8 @@ export function loadWalletScript(id: string, src: string): Promise<void> {
     if (!existing) {
       script.id = id;
       script.async = true;
-      script.crossOrigin = 'anonymous';
+      // Classic wallet scripts (notably Google pay.js) do not require CORS.
+      // crossorigin="anonymous" would reject providers without Access-Control-Allow-Origin.
       script.src = src;
       ownerDocument.head.appendChild(script);
     }
