@@ -10,3 +10,10 @@ export interface ExpressPaymentReference {
   checkoutId?: string;
   paymentId?: string;
 }
+
+export interface ExpressCallbacks {
+  /** Also receives pending and requires-action: do not display these as payment success. */
+  resultCallback?: (result: ExpressPaymentResult) => void;
+  cancelCallback?: () => void;
+  errorCallback?: (error: Error) => void;
+}
