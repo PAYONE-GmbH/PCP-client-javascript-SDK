@@ -34,25 +34,33 @@ The default quote is local to `pricing.ts`. To add an async server quote later, 
 
 `createExpressCheckout(options)` returns `Promise<CheckoutHandle>`. It wraps the public SDK's `create(config, { selector })`; the handle exposes `destroy()`. All page/backend dependencies are injected through the same `GoogleCheckoutOptions` used by Standard.
 
-Minimal use in another TypeScript/Vite page (inside `src/`):
+For your own application, import the published SDK directly. `createExpressCheckout`, `GoogleCheckoutOptions` and `checkoutPage` are local demo helpers, not package exports. Your application supplies the request described above and its pricing/backend callbacks:
 
 ```typescript
-import { createExpressCheckout } from './checkout';
-import { checkoutPage } from './page';
+import { PCPGooglePayExpress, type PCPGooglePayExpressConfig } from 'pcp-client-javascript-sdk';
 
-// The host page supplies #wallet, #status and #check-status elements.
-const page = checkoutPage();
-if (page) {
-  const checkout = await createExpressCheckout({
-    ...page.options,
-    buttonType: 'buy',
-    buttonColor: 'black',
-  });
-  window.addEventListener('pagehide', () => checkout.destroy(), { once: true });
-}
+// Application-owned request: merchant/gateway IDs, card tokenization, totals,
+// contacts, shipping options and callbackIntents as listed above.
+declare const paymentRequest: PCPGooglePayExpressConfig['paymentRequest'];
+declare const updateQuote: PCPGooglePayExpressConfig['paymentDataChangedCallback'];
+declare const submitOrder: PCPGooglePayExpressConfig['processPaymentCallback'];
+declare const displayResult: PCPGooglePayExpressConfig['resultCallback'];
+declare const displayError: PCPGooglePayExpressConfig['errorCallback'];
+
+const checkout = await PCPGooglePayExpress.create({
+  environment: 'TEST',
+  paymentRequest,
+  buttonOptions: { buttonType: 'buy', buttonColor: 'black', buttonLocale: 'de' },
+  paymentDataChangedCallback: updateQuote,
+  processPaymentCallback: submitOrder,
+  resultCallback: displayResult,
+  cancelCallback: () => { /* Restore your checkout UI. */ },
+  errorCallback: displayError,
+}, { selector: '#wallet' });
+window.addEventListener('pagehide', () => checkout.destroy(), { once: true });
 ```
 
-Options include environment, distinct PAYONE/Google merchant IDs, merchant name, button locale, selector and appearance, plus `submit(payment, optionId)`, `onResult`, `onCancel` and `onError`. Express defaults to button type `buy`; see the [Standard option table](STANDARD_CHECKOUT.md#factory-api) for the shared contract. `checkoutPage()` implements `submit` with `googleInput()`, final-contact mapping and the shared `CommerceBackend`.
+The local demo factory's options include environment, distinct PAYONE/Google merchant IDs, merchant name, button locale, selector and appearance, plus `submit(payment, optionId)`, `onResult`, `onCancel` and `onError`. That factory defaults to button type `buy`; see the [Standard option table](STANDARD_CHECKOUT.md#factory-api) for its shared contract. The local `checkoutPage()` implements `submit` with `googleInput()`, final-contact mapping and `CommerceBackend`.
 
 Destroy the instance before replacing its container. The SDK owns its button, prevents concurrent loads, caches duplicate authorization callbacks during the sheet session and suppresses late callbacks after destruction. The page entry also handles unload while asynchronous SDK initialization is still in flight. Cancellation restores the default local shipping choice for the next opening, but does not cancel a payment already sent to the backend. The backend adapter's stored attempt prevents a second order across both pages/reloads.
 
