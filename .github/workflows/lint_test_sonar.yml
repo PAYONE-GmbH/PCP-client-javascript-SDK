@@ -26,8 +26,10 @@ jobs:
         run: npm ci
       - name: Run Linting
         run: npm run lint
-      # Google Pay and PayPal will be re-enabled with their respective integrations.
-      - name: Run Apple Pay and tokenizer tests
+      - name: Install Google Pay demo dependencies
+        run: npm --prefix googlepay-demo ci
+      # PayPal will be re-enabled with its integration.
+      - name: Run Apple Pay, Google Pay and tokenizer tests
         run: >-
           npm run test:coverage --
           src/tests/PCPApplePaySession.spec.ts
@@ -38,12 +40,14 @@ jobs:
           src/tests/tokenizer-demos.spec.ts
           src/tests/express-checkout.spec.ts
           applepay-demo/src/
-          --testNamePattern='^(?!Google Pay Express|PayPal Express)'
+          googlepay-demo/src/
+          --testNamePattern='^(?!PayPal Express)'
           --coverage.include=src/lib/PCPApplePaySession.ts
           --coverage.include=src/lib/loadWalletScript.ts
           --coverage.include=src/lib/PCPCreditCardTokenizer.ts
           --coverage.include=src/lib/PCPFingerprintingTokenizer.ts
           --coverage.include=src/lib/loadTokenizerResource.ts
+          --coverage.include=src/lib/PCPGooglePayExpress.ts
       - name: Build public SDK
         run: npm run build
       - name: Build Apple Pay Standard and Express demos
@@ -56,6 +60,8 @@ jobs:
           npm --prefix creditcard-tokenizer-demo run build
           npm --prefix fingerprinting-tokenizer-demo ci
           npm --prefix fingerprinting-tokenizer-demo run build
+      - name: Build Google Pay Standard and Express demos
+        run: npm --prefix googlepay-demo run build
       - name: Run SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v8
         env:

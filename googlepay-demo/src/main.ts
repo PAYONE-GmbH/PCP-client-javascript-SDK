@@ -1,135 +1,97 @@
-// see https://github.com/google-pay/google-pay-button for more examples
-import GooglePayButton, { type ReadyToPayChangeResponse } from '@google-pay/button-element';
+import { createStandardCheckout, type CheckoutHandle } from './checkout';
+import { checkoutPage } from './page';
+import { money, quote, shippingOptions } from './pricing';
+import { show, showError } from './ui';
+import './style.css';
 
-class MyGooglePayButton extends HTMLElement {
-  constructor() {
-    super();
-
-    const shadow = this.attachShadow({ mode: 'open' });
-    const button = new GooglePayButton();
-    button.environment = 'TEST';
-    button.buttonLocale = 'de';
-    button.buttonType = 'pay';
-    button.paymentRequest = {
-      apiVersion: 2,
-      apiVersionMinor: 0,
-      shippingAddressRequired: true,
-      shippingOptionRequired: true,
-      shippingOptionParameters: {
-        shippingOptions: [
-          {
-            id: 'standard',
-            label: 'Standard Shipping',
-            description: 'Arrives in 5-7 days',
-          },
-          {
-            id: 'express',
-            label: 'Express Shipping',
-            description: 'Arrives in 2-3 days',
-          },
-        ],
-        defaultSelectedOptionId: 'standard',
-      },
-      allowedPaymentMethods: [
-        {
-          type: 'CARD',
-          parameters: {
-            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-            allowedCardNetworks: ['MASTERCARD', 'VISA'],
-            billingAddressParameters: {
-              format: 'FULL',
-            },
-          },
-          tokenizationSpecification: {
-            type: 'PAYMENT_GATEWAY',
-            parameters: {
-              gateway: 'payonegmbh', // used to get test credit cards for payone in test environment
-              gatewayMerchantId: 'exampleGatewayMerchantId',
-            },
-          },
-        },
-      ],
-      merchantInfo: {
-        merchantId: '12345678901234567890',
-        merchantName: 'Demo Merchant',
-      },
-      transactionInfo: {
-        totalPriceStatus: 'FINAL',
-        totalPriceLabel: 'Total',
-        totalPrice: '100.00',
-        currencyCode: 'EUR',
+function main() {
+  const page = checkoutPage();
+  const form = document.querySelector<HTMLFormElement>('#checkout')!;
+  const fields = form.querySelector<HTMLFieldSetElement>('fieldset')!;
+  if (!page) {
+    fields.disabled = true;
+    return;
+  }
+  const select = form.querySelector<HTMLSelectElement>('[name=shipping]')!;
+  select.replaceChildren(
+    ...shippingOptions.map(
+      (option) => new Option(`${option.label} · €${money(option.cents)}`, option.id),
+    ),
+  );
+  const updateTotal = () => {
+    document.querySelector('#total')!.textContent = `€${money(quote('DE', select.value).total)}`;
+  };
+  select.addEventListener('change', updateTotal);
+  updateTotal();
+  const edit = document.querySelector<HTMLButtonElement>('#edit')!;
+  let instance: CheckoutHandle | undefined;
+  let preparing = false;
+  let disposed = false;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (preparing || !form.reportValidity()) return;
+    preparing = true;
+    const data = new FormData(form);
+    const value = (key: string) => String(data.get(key) ?? '').trim();
+    fields.disabled = true;
+    void createStandardCheckout(
+      page.options,
+      {
+        name: `${value('givenName')} ${value('familyName')}`,
+        phoneNumber: value('phone'),
+        address1: value('street'),
+        address2: '',
+        address3: '',
+        sortingCode: '',
+        administrativeArea: '',
+        postalCode: value('postalCode'),
+        locality: value('city'),
         countryCode: 'DE',
       },
-      callbackIntents: ['PAYMENT_AUTHORIZATION', 'SHIPPING_ADDRESS', 'SHIPPING_OPTION'],
-    };
-    button.onLoadPaymentData = this.onLoadPaymentData;
-    button.onPaymentDataChanged = this.onPaymentDataChanged;
-    button.onPaymentAuthorized = this.onPaymentAuthorized;
-    button.onReadyToPayChange = this.onReadyToPayChange;
-    button.onCancel = this.onCancel;
-    button.onError = this.onError;
-    button.onClick = this.onClick;
-    shadow.appendChild(button);
-  }
-
-  onLoadPaymentData(paymentData: google.payments.api.PaymentData) {
-    // This is where you would typically send the payment data to your server for processing
-    console.log('load payment data', paymentData);
-  }
-
-  onPaymentDataChanged(
-    paymentDataChange: google.payments.api.IntermediatePaymentData,
-  ): google.payments.api.PaymentDataRequestUpdate {
-    // This is where you can handle changes to the payment data, such as shipping address, options or coupon codes
-    console.log('payment data changed', paymentDataChange);
-    return {
-      newTransactionInfo: {
-        totalPriceStatus: 'FINAL' as google.payments.api.TotalPriceStatus,
-        totalPriceLabel: 'Total',
-        totalPrice: '100.00',
-        currencyCode: 'EUR',
-        countryCode: 'DE',
-      },
-    };
-  }
-
-  onPaymentAuthorized(paymentData: google.payments.api.PaymentData) {
-    // This is where you would typically handle the payment authorization with your server
-    console.log('payment authorized', paymentData);
-    return {
-      transactionState: 'SUCCESS' as google.payments.api.TransactionState,
-    };
-    // Uncomment the following lines to simulate an error response
-    // return {
-    //   error: {
-    //     reason: 'PAYMENT_DATA_INVALID' as google.payments.api.ErrorReason,
-    //     message:
-    //       'There was an error processing your payment. Please try again later.',
-    //     intent: 'PAYMENT_AUTHORIZATION' as google.payments.api.CallbackIntent,
-    //   },
-    //   transactionState: 'ERROR' as google.payments.api.TransactionState,
-    // };
-  }
-
-  onReadyToPayChange(result: ReadyToPayChangeResponse) {
-    // This is where you can handle changes to the readiness of the payment method
-    console.log('Ready to pay:', result);
-  }
-
-  onCancel(reason: google.payments.api.PaymentsError) {
-    // Handle cancellation of the payment process
-    console.log('Payment cancelled:', reason);
-  }
-
-  onError(error: Error | google.payments.api.PaymentsError) {
-    // Handle errors here
-    console.error('Error occurred:', error);
-  }
-
-  onClick(event: Event) {
-    // Handle button click
-    console.log('Button clicked:', event);
-  }
+      value('email'),
+      value('shipping'),
+    )
+      .then((checkout) => {
+        if (disposed) {
+          checkout.destroy();
+          return;
+        }
+        instance = checkout;
+        edit.hidden = false;
+        show('Checkout details confirmed. Choose Google Pay to authorize payment.');
+      })
+      .catch((error) => {
+        fields.disabled = false;
+        showError(error);
+      })
+      .finally(() => {
+        preparing = false;
+      });
+  });
+  edit.addEventListener('click', () => {
+    if (page.backend.getAttempt()) {
+      show('An order was already submitted. Check payment status before starting again.');
+      return;
+    }
+    instance?.destroy();
+    instance = undefined;
+    fields.disabled = false;
+    edit.hidden = true;
+    show('Update checkout details and continue again.');
+  });
+  window.addEventListener(
+    'pagehide',
+    () => {
+      disposed = true;
+      instance?.destroy();
+    },
+    { once: true },
+  );
+  show('Enter billing/shipping details and choose shipping before opening Google Pay.');
 }
 
-customElements.define('my-google-pay-button', MyGooglePayButton);
+try {
+  main();
+} catch (error) {
+  showError(error);
+}
