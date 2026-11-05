@@ -1,6 +1,7 @@
 export * from './PCPApplePay.interfaces.js';
 export * from './PCPCreditCardTokenizer.interfaces.js';
 export * from './PCPExpressCheckout.interfaces.js';
+export * from './PCPGooglePayExpress.interfaces.js';
 /** @description Object containing billing address details */
 export interface Address {
   /**
