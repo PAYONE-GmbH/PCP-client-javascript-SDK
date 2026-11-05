@@ -20,7 +20,8 @@ describe('wallet script lifecycle', () => {
     await Promise.resolve();
     expect(loaded).not.toHaveBeenCalled();
     const script = document.getElementById('shared-wallet') as HTMLScriptElement;
-    expect(script.crossOrigin).toBe('anonymous');
+    expect(script.hasAttribute('crossorigin')).toBe(false);
+    expect(script.type).not.toBe('module');
     script.dispatchEvent(new Event('load'));
     await first;
     expect(loaded).toHaveBeenCalledOnce();

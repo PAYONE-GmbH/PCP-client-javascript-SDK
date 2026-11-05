@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   PCPApplePaySession,
+  PCPGooglePayExpress,
   type PCPApplePaySessionConfig,
+  type PCPGooglePayExpressConfig,
   type ExpressPaymentResult,
 } from '../index.js';
 
@@ -179,5 +181,152 @@ describe('Apple Pay Express', () => {
     document.getElementById('failed-apple')!.dispatchEvent(new Event('error'));
     await expect(promise).rejects.toThrow('Failed to load wallet script');
     expect(document.querySelector('apple-pay-button')).toBeNull();
+  });
+});
+
+describe('Google Pay Express', () => {
+  let callbacks: any;
+  let click: () => void;
+  let config: PCPGooglePayExpressConfig;
+  let load: ReturnType<typeof vi.fn>;
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="google"></div>';
+    load = vi.fn(async () => {
+      await callbacks.onPaymentAuthorized({ email: 'final@example.test' });
+      return {};
+    });
+    class Client {
+      constructor(options: any) {
+        callbacks = options.paymentDataCallbacks;
+      }
+      isReadyToPay = async () => ({ result: true });
+      createButton = (options: any) => {
+        click = options.onClick;
+        return document.createElement('button');
+      };
+      loadPaymentData = load;
+    }
+    vi.stubGlobal('google', { payments: { api: { PaymentsClient: Client } } });
+    config = {
+      environment: 'TEST',
+      paymentRequest: {
+        apiVersion: 2,
+        apiVersionMinor: 0,
+        allowedPaymentMethods: [],
+        merchantInfo: { merchantName: 'Demo', merchantId: 'test' },
+        shippingAddressRequired: true,
+        callbackIntents: ['PAYMENT_AUTHORIZATION', 'SHIPPING_ADDRESS'],
+        transactionInfo: { currencyCode: 'EUR', totalPriceStatus: 'FINAL', totalPrice: '24.80' },
+      },
+      paymentDataChangedCallback: vi
+        .fn()
+        .mockResolvedValue({ newTransactionInfo: { totalPrice: '24.80' } }),
+      processPaymentCallback: vi.fn().mockResolvedValue(success),
+      resultCallback: vi.fn(),
+      cancelCallback: vi.fn(),
+      errorCallback: vi.fn(),
+    };
+  });
+  it('updates the redacted contact without authorizing', async () => {
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    const redacted = { shippingAddress: { countryCode: 'DE' } };
+    expect(await callbacks.onPaymentDataChanged(redacted)).toEqual({
+      newTransactionInfo: { totalPrice: '24.80' },
+    });
+    expect(config.paymentDataChangedCallback).toHaveBeenCalledWith(redacted);
+    expect(config.processPaymentCallback).not.toHaveBeenCalled();
+  });
+  it('waits for backend success and reports the result after the sheet closes', async () => {
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    click();
+    await vi.waitFor(() => expect(config.resultCallback).toHaveBeenCalledWith(success));
+    expect(config.processPaymentCallback).toHaveBeenCalledWith({ email: 'final@example.test' });
+  });
+  it('does not authorize twice for duplicate callbacks', async () => {
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    await Promise.all([callbacks.onPaymentAuthorized({}), callbacks.onPaymentAuthorized({})]);
+    expect(config.processPaymentCallback).toHaveBeenCalledOnce();
+  });
+  it('returns authorization errors for rejected backend requests', async () => {
+    vi.mocked(config.processPaymentCallback).mockRejectedValue(new Error('offline'));
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    expect(await callbacks.onPaymentAuthorized({})).toMatchObject({ transactionState: 'ERROR' });
+    expect(config.errorCallback).toHaveBeenCalledOnce();
+  });
+  it('returns a native authorization error for an explicit backend decline', async () => {
+    vi.mocked(config.processPaymentCallback).mockResolvedValue({
+      status: 'failed',
+      code: 'DECLINED',
+      message: 'Declined by issuer',
+    });
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    expect(await callbacks.onPaymentAuthorized({})).toMatchObject({
+      transactionState: 'ERROR',
+      error: { message: 'Declined by issuer' },
+    });
+  });
+  it.each(['pending', 'requires-action'] as const)(
+    'preserves a backend %s result rather than reporting paid',
+    async (status) => {
+      const result: ExpressPaymentResult =
+        status === 'pending' ? { status } : { status, redirectUrl: 'https://issuer.test/' };
+      vi.mocked(config.processPaymentCallback).mockResolvedValue(result);
+      await PCPGooglePayExpress.create(config, { selector: '#google' });
+      click();
+      await vi.waitFor(() => expect(config.resultCallback).toHaveBeenCalledWith(result));
+    },
+  );
+  it('rejects a configuration missing Express callback intents', async () => {
+    config.paymentRequest.callbackIntents = ['PAYMENT_AUTHORIZATION'];
+    await expect(PCPGooglePayExpress.create(config, { selector: '#google' })).rejects.toThrow(
+      'Express requires',
+    );
+  });
+  it('reports SDK download failures without submitting a payment', async () => {
+    vi.stubGlobal('google', undefined);
+    const promise = PCPGooglePayExpress.create(config, { selector: '#google' });
+    document.getElementById('google-pay-sdk')!.dispatchEvent(new Event('error'));
+    await expect(promise).rejects.toThrow('Failed to load wallet script');
+    expect(config.processPaymentCallback).not.toHaveBeenCalled();
+  });
+  it('returns a shipping error if recalculation fails', async () => {
+    vi.mocked(config.paymentDataChangedCallback).mockRejectedValue(new Error('invalid country'));
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    expect(await callbacks.onPaymentDataChanged({})).toMatchObject({
+      error: { intent: 'SHIPPING_ADDRESS' },
+    });
+  });
+  it('reports user cancellation without reporting success', async () => {
+    load.mockRejectedValue({ statusCode: 'CANCELED' });
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    click();
+    await vi.waitFor(() => expect(config.cancelCallback).toHaveBeenCalledOnce());
+    expect(config.resultCallback).not.toHaveBeenCalled();
+  });
+  it('removes its button and prevents further sheets on destroy', async () => {
+    const instance = await PCPGooglePayExpress.create(config, { selector: '#google' });
+    instance.destroy();
+    click();
+    expect(load).not.toHaveBeenCalled();
+    expect(document.querySelector('#google')!.children).toHaveLength(0);
+  });
+  it('suppresses late shipping and authorization errors after destroy', async () => {
+    let reject!: (reason: Error) => void;
+    vi.mocked(config.processPaymentCallback).mockReturnValue(
+      new Promise((_resolve, fail) => {
+        reject = fail;
+      }),
+    );
+    const instance = await PCPGooglePayExpress.create(config, { selector: '#google' });
+    const authorization = callbacks.onPaymentAuthorized({});
+    instance.destroy();
+    reject(new Error('late network failure'));
+    expect(await authorization).toMatchObject({ transactionState: 'ERROR' });
+    expect(await callbacks.onPaymentDataChanged({})).toMatchObject({
+      error: { intent: 'SHIPPING_ADDRESS' },
+    });
+    expect(config.paymentDataChangedCallback).not.toHaveBeenCalled();
+    expect(config.errorCallback).not.toHaveBeenCalled();
+    expect(config.resultCallback).not.toHaveBeenCalled();
   });
 });
