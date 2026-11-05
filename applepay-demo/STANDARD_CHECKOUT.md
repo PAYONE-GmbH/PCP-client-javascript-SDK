@@ -14,48 +14,57 @@ For installation, endpoint parameters, backend contract, shared options and Appl
 
 **Edit checkout details** destroys the prepared wallet button/session and unlocks the form, allowing a fresh configuration. Once an order attempt exists, editing cannot start another payment; first reconcile the existing order. Wallet cancellation preserves the prepared merchant checkout so it can be retried if no order was submitted.
 
-## Reuse the factory
+## Integrate the public SDK
+
+Import the published SDK directly. `createStandardCheckout` and `AppleCheckoutOptions` in [`src/checkout.ts`](src/checkout.ts) are local demo helpers, not package exports. Your application supplies its own backend/UI callbacks and validated checkout snapshot:
 
 ```ts
-import { createStandardCheckout } from './src/checkout';
-import type { AppleCheckoutOptions } from './src/checkout';
+import { PCPApplePaySession, type PCPApplePaySessionConfig } from 'pcp-client-javascript-sdk';
 
 // These callbacks belong to the host application's existing backend/UI.
-declare const submitOrder: AppleCheckoutOptions['submit'];
-declare const displayResult: AppleCheckoutOptions['onResult'];
-declare const displayError: AppleCheckoutOptions['onError'];
+declare const submitOrder: NonNullable<PCPApplePaySessionConfig['processPaymentCallback']>;
+declare const displayResult: PCPApplePaySessionConfig['resultCallback'];
+declare const displayError: PCPApplePaySessionConfig['errorCallback'];
 
-const instance = await createStandardCheckout(
-  {
-    validateMerchantURL: 'https://shop.example/validate-merchant',
-    label: 'My shop',
-    button: {
-      selector: '#wallet',
-      config: { buttonstyle: 'black', type: 'buy', locale: 'en-GB' },
-    },
-    submit: submitOrder,
-    onResult: displayResult,
-    onCancel: () => { /* Keep merchant checkout details available. */ },
-    onError: displayError,
-  },
-  {
-    givenName: 'Example',
-    familyName: 'Buyer',
-    emailAddress: 'buyer@example.com',
-    phoneNumber: '+49301234567',
-    addressLines: ['Example Street 1'],
-    postalCode: '10115',
-    locality: 'Berlin',
-    countryCode: 'DE',
-  },
-  'standard', // or 'express'
-);
+const contact: ApplePayJS.ApplePayPaymentContact = {
+  givenName: 'Example',
+  familyName: 'Buyer',
+  emailAddress: 'buyer@example.com',
+  phoneNumber: '+49301234567',
+  addressLines: ['Example Street 1'],
+  postalCode: '10115',
+  locality: 'Berlin',
+  countryCode: 'DE',
+};
+const address = structuredClone(contact);
+const instance = await PCPApplePaySession.create({
+  applePayVersion: 4,
+  validateMerchantURL: 'https://shop.example/validate-merchant',
+  countryCode: 'DE',
+  currencyCode: 'EUR',
+  merchantCapabilities: ['supports3DS'],
+  supportedNetworks: ['visa', 'masterCard', 'girocard'],
+  total: { label: 'My shop', amount: '24.80', type: 'final' },
+  lineItems: [
+    { label: 'Item (tax included)', amount: '19.90' },
+    { label: 'Standard shipping', amount: '4.90' },
+  ],
+  processPaymentCallback: (payment) => submitOrder({
+    ...payment, billingContact: address, shippingContact: address,
+  }),
+  resultCallback: displayResult,
+  cancelCallback: () => { /* Keep merchant checkout details available. */ },
+  errorCallback: displayError,
+}, {
+  selector: '#wallet',
+  config: { buttonstyle: 'black', type: 'buy', locale: 'en-GB' },
+});
 
 // When your application removes this checkout:
 // instance.destroy();
 ```
 
-The factory snapshots the contact rather than retaining the mutable form object. `submit(payment, shippingMethodId)` receives the Apple token with the merchant's snapshot in both `billingContact` and `shippingContact`. This is intentional: the merchant checkout owns these details in this example. If your application supports separate addresses, adapt the factory signature/mapping to pass each separately.
+This example snapshots the contact rather than retaining the mutable form object. `submitOrder(payment)` receives the Apple token with the merchant's snapshot in both `billingContact` and `shippingContact`. Keep the selected shipping method and backend cart consistent with the displayed total. If your application supports separate addresses, pass each snapshot separately.
 
 ## SDK request
 
