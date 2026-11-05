@@ -2,6 +2,8 @@ export * from './PCPApplePay.interfaces.js';
 export * from './PCPCreditCardTokenizer.interfaces.js';
 export * from './PCPExpressCheckout.interfaces.js';
 export * from './PCPGooglePayExpress.interfaces.js';
+export * from './PCPPayPalExpress.interfaces.js';
+export * from './PCPPaymentIntent.interfaces.js';
 /** @description Object containing billing address details */
 export interface Address {
   /**
@@ -1905,6 +1907,10 @@ export interface RedirectPaymentMethodSpecificOutput {
 
 /** @description Object containing specific input required for PayPal payments (Payment product ID 840) */
 export interface RedirectPaymentProduct840SpecificInput {
+  javaScriptSdkFlow?: boolean;
+  /** Correlates the final order with the previously approved PaymentIntent. */
+  paymentId?: string;
+  fraudNetId?: string;
   /**
    *  @description Indicates whether to use PayPal Express Checkout Shortcut.
    *      * true = When shortcut is enabled, the consumer can select a shipping address during PayPal checkout.

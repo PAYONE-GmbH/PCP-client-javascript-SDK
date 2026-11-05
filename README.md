@@ -40,12 +40,13 @@ Welcome to the PAYONE Commerce Platform Client JavaScript SDK for the PAYONE Com
     - [5. Apple Pay Button Configuration](#5-apple-pay-button-configuration)
     - [6. Integrating the Apple Pay Session](#6-integrating-the-apple-pay-session)
   - [PayPal Integration](#paypal-integration)
-    - [1. Install Dependencies](#1-install-paypal-dependencies)
+    - [1. Install PayPal Dependencies](#1-install-paypal-dependencies)
     - [2. Add the PayPal Button Container](#2-add-the-paypal-button-container)
     - [3. Load the PayPal JavaScript SDK](#3-load-the-paypal-javascript-sdk)
     - [4. Configure and Render PayPal Buttons](#4-configure-and-render-paypal-buttons)
-    - [5. Handle Payment Processing](#5-handle-payment-processing)
+    - [5. Integration with PAYONE Commerce Platform](#5-integration-with-payone-commerce-platform)
     - [6. Customize Button Appearance](#6-customize-button-appearance)
+    - [PayPal Checkout Demos](#paypal-checkout-demos)
   - [Google Pay Integration](#google-pay-integration)
     - [Setup Google Pay Integration](#setup-google-pay-integration-web-component-example)
       - [1. Install Dependencies](#1-install-dependencies)
@@ -695,11 +696,27 @@ For further information see: https://docs.payone.com/payment-methods/apple-pay
 
 ### PayPal Integration
 
-The PAYONE Commerce Platform Client JavaScript SDK provides a demonstration project for PayPal integration. The integration uses the official PayPal JavaScript SDK, which allows for a seamless checkout experience.
+Integrate PayPal into your checkout using this client SDK and the official PayPal JavaScript SDK where applicable. This guide assumes that payment operations are handled through a PAYONE Commerce Platform Server SDK. Choose one of these flows:
+
+| Flow | Browser integration | PAYONE configuration |
+| --- | --- | --- |
+| Standard Checkout | Collect customer and delivery data in your shop, then navigate to the returned redirect URL. | Product `840`, `javaScriptSdkFlow: false`, `addressSelectionAtPayPal: false`. |
+| SDK Checkout | Render the official PayPal JavaScript SDK button and handle its popup callbacks. | Product `840`, `javaScriptSdkFlow: true`; complete the order after the provider callback. |
+| Express Checkout | Create a PaymentIntent, redirect to PayPal, retrieve and review its address, then submit the linked order. | Product `840`, `javaScriptSdkFlow: false`; address selection is `true` on the intent and `false` on the final order. |
+
+For Standard and Express, the browser needs no PayPal SDK client/account IDs. For SDK Checkout, use the **PAYONE-provided client ID** for your environment and the matching **PayPal merchant/account ID**. These public SDK identifiers are different from your backend's PAYONE API merchant ID and credentials. Configure them through your application's own configuration mechanism.
+
+`requiresApproval: false` requests automatic capture; `true` requires a later server-side Deliver/Capture. In SDK Checkout, match this flag to the SDK's `intent` (`capture` or `authorize`). Always provide an absolute `redirectionData.returnUrl`, including in SDK flow, with a maximum length of 200 characters.
+
+The public `PCPPayPalExpress` class is available from `pcp-client-javascript-sdk`. Its `start()`, `resume(context)`, `confirm()` and `cancel()` methods orchestrate the redirect lifecycle. Supply callbacks that connect your application's Server SDK integration, persistence, navigation and result handling.
+
+A redirect return, SDK approval or PaymentIntent approval is not payment success. Reconcile the checkout status and server-side capture webhook, and retain correlation for uncertain submissions rather than automatically retrying a financial POST.
+
+The following steps describe SDK Checkout using the official PayPal library directly. The illustrative `/api/paypal/...` URLs connect the browser to your application's PAYONE Server SDK integration; adapt these URLs and response handling to your application.
 
 #### 1. Install PayPal Dependencies
 
-To start using PayPal, install one of the following packages based on your needs:
+For the browser integration, install the official loader:
 
 **Standard JavaScript:**
 
@@ -757,8 +774,8 @@ Use the PayPal JS package to dynamically load the SDK:
 import { loadScript } from '@paypal/paypal-js';
 
 loadScript({
-  clientId: 'YOUR_PAYPAL_CLIENT_ID',
-  merchantId: 'YOUR_PAYPAL_MERCHANT_ID',
+  clientId: 'PAYONE_CLIENT_ID_FOR_YOUR_ENVIRONMENT',
+  merchantId: 'YOUR_MATCHING_PAYPAL_MERCHANT_ID',
   currency: 'EUR',
   intent: 'authorize', // Or 'capture' for immediate payment
   locale: 'de_DE', // Set to your preferred locale
@@ -797,84 +814,101 @@ The rest of this documentation focuses on integration using ES Modules. For comp
 
 #### 4. Configure and Render PayPal Buttons
 
-After loading the SDK, configure and render the PayPal buttons:
+The following example loads the SDK and renders into the HTML container above. Order creation returns `{ orderID }`; completion returns a reconciled `{ status }`. One rendered button represents one payment attempt, with duplicate callbacks reusing the same creation/completion promise.
 
 ```typescript
-paypal
-  .Buttons({
-    // Create order via your server that communicates with PAYONE Commerce Platform
-    async createOrder() {
-      const response = await fetch('YOUR_SERVER_ENDPOINT/create-paypal-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Optional: You can pass additional data needed for order creation
-        body: JSON.stringify({
-          checkoutId: 'YOUR_CHECKOUT_ID', // If already created
-        }),
-      });
+import { loadScript } from '@paypal/paypal-js';
 
-      // Your server should return the PayPal OrderID (or payPalTransactionId) from PAYONE Commerce Platform
-      const order = await response.json();
-      return order.id;
-    },
+const intent = 'authorize'; // Matches requiresApproval: true in the Server SDK order request.
+const paypal = await loadScript({
+  clientId: 'PAYONE_CLIENT_ID_FOR_YOUR_ENVIRONMENT',
+  merchantId: 'YOUR_MATCHING_PAYPAL_MERCHANT_ID',
+  currency: 'EUR',
+  intent,
+  locale: 'de_DE',
+  commit: true,
+  vault: false,
+  components: ['buttons'],
+});
+if (!paypal?.Buttons) throw new Error('PayPal SDK could not be loaded.');
 
-    // Handle payment approval
-    onApprove: async (data, actions) => {
-      // Notify your server about the approved payment
-      const response = await fetch(
-        'YOUR_SERVER_ENDPOINT/process-paypal-payment',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderID: data.orderID,
-          }),
-        },
-      );
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`Payment backend HTTP ${response.status}`);
+  return response.json();
+}
 
-      if (!response.ok) {
-        throw new Error(
-          `Server responded with ${response.status}: ${response.statusText}`,
-        );
-      }
+type PaymentResult = { status: 'succeeded' | 'pending' | 'failed' };
+let order: Promise<{ orderID: string }> | undefined;
+let completion: Promise<PaymentResult> | undefined;
+const show = (message: string) => {
+  document.querySelector('#message')!.textContent = message;
+};
+const report = (error: unknown) => {
+  document.querySelector('#error')!.textContent =
+    error instanceof Error ? error.message : String(error);
+};
+async function complete(callbackOrderID?: string) {
+  if (!order) return; // No order was created, so nothing can be completed.
+  const saved = await order;
+  if (callbackOrderID && callbackOrderID !== saved.orderID)
+    throw new Error('PayPal callback orderID mismatch.');
+  completion ??= post<PaymentResult>(
+    `/api/paypal/orders/${encodeURIComponent(saved.orderID)}/complete`, {},
+  );
+  const payment = await completion;
+  show(`Payment ${payment.status}`); // Server-reconciled status, not the browser event.
+}
 
-      const responseData = await response.json();
-      console.log('Payment processed successfully:', responseData);
+const buttons = paypal.Buttons({
+  fundingSource: paypal.FUNDING?.PAYPAL,
+  createOrder: () => {
+    order ??= post<{ orderID: string }>('/api/paypal/orders', {
+      intent,
+      returnUrl: new URL('/checkout/paypal/return', location.origin).href,
+    });
+    return order.then((saved) => saved.orderID);
+  },
+  onApprove: (data) => complete(data.orderID),
+  onCancel: () => complete(),
+  onError: (error) => {
+    report(error);
+    void complete().catch(report);
+  },
+  style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
+});
+await buttons.render('#paypal-button-container');
 
-      // Update UI or redirect to success page
-    },
-
-    // Handle errors
-    onError: (error) => {
-      console.error('PayPal error:', error);
-      document.getElementById('error').textContent = error.message;
-    },
-
-    // Handle cancellations
-    onCancel: () => {
-      console.log('Payment cancelled');
-      document.getElementById('message').textContent =
-        'Payment cancelled by user';
-    },
-
-    // Button style
-    style: {
-      layout: 'vertical',
-      color: 'gold',
-      shape: 'rect',
-      label: 'paypal',
-    },
-  })
-  .render('#paypal-button-container');
+// Register buttons.close() with your application's unmount/cleanup lifecycle.
 ```
 
 #### 5. Integration with PAYONE Commerce Platform
 
-The PayPal integration with the PAYONE Commerce Platform follows this flow:
+Use your PAYONE Server SDK for CommerceCase/Checkout, Order, PaymentIntent and Complete Order operations. The relevant handoffs for the browser are:
+
+- **SDK order ID:** `createOrder` returns **`paymentOutput.redirectPaymentMethodSpecificOutput.payPalTransactionId`**, not PAYONE's `payment.id`.
+- **SDK completion:** after approval, cancellation or error of a known order, use Complete Order with the following input, then display the reconciled checkout status. Authorization awaiting capture remains `pending`.
+
+```json
+{
+  "completePaymentMethodSpecificInput": {
+    "paymentProduct840SpecificInput": {
+      "javaScriptSdkFlow": true,
+      "action": "CONFIRM_ORDER_STATUS"
+    }
+  }
+}
+```
+
+- **Standard redirect:** navigate to `checkout.paymentResponse.merchantAction.redirectData.redirectURL` and reconcile the checkout after return.
+- **Express review:** retain the intent's `paymentIntentId` and `paymentId`, navigate to its redirect URL, then retrieve the intent after return. Show the returned address for review. The final order uses the original `paymentId` and the same `requiresApproval` setting. A changed amount can require another redirect; do not create another order on that return. Time-critical intent reads may be retried for at most two seconds.
+
+**SDK processing sequence:**
 
 1. **Create a Checkout**: First, create a checkout using the PAYONE Commerce Platform Server SDK (either together with a Commerce Case or in distinct calls).
 
@@ -882,7 +916,7 @@ The PayPal integration with the PAYONE Commerce Platform follows this flow:
 
 3. **Handle Customer Selection**: When a customer selects the PayPal button, the SDK triggers a callback to your server.
 
-4. **Generate PayPal OrderID**: Your server communicates with the PAYONE Commerce Platform using the previously created Checkout to retrieve a payPalTransactionId (also referred to as OrderID).
+4. **Generate PayPal OrderID**: The Server SDK order response provides the payPalTransactionId (also referred to as OrderID) for the button's `createOrder` callback.
 
 5. **Authenticate and Approve**: The PayPal JavaScript SDK opens a popup window where the customer logs in and approves the payment.
 
@@ -891,9 +925,9 @@ The PayPal integration with the PAYONE Commerce Platform follows this flow:
    - `onCancel`: Customer canceled the payment
    - `onError`: An error occurred during payment processing
 
-7. **Update Order Status**: Based on the callback received, send a request to the PAYONE Commerce Platform to update the order status.
+7. **Update Order Status**: For a known order, send Complete Order with `javaScriptSdkFlow: true` and `action: 'CONFIRM_ORDER_STATUS'` after approval, cancellation or error, then reconcile checkout status. Browser approval alone does not establish capture.
 
-8. **Finalize Process**: Once payment is confirmed, initialize the delivery process to capture the amount and deliver goods or services.
+8. **Finalize Process**: For `requiresApproval: true`, use Deliver/Capture through the Server SDK when appropriate. For automatic capture, delivery is a separate fulfillment step.
 
 #### 6. Customize Button Appearance
 
@@ -912,7 +946,14 @@ For more information about PayPal integration, refer to:
 
 - [PayPal JavaScript SDK Configuration](https://developer.paypal.com/sdk/js/configuration/)
 - [PayPal JavaScript SDK Reference](https://developer.paypal.com/sdk/js/reference/)
-- [PAYONE Commerce Platform PayPal SDK Documentation](https://docs.payone.com/pcp/commerce-platform-payment-methods/paypal/paypal-sdk)
+
+#### PayPal Checkout Demos
+
+The demos factories, environment variables and backend adapter are demo-local and are not part of the published SDK API. Setup instructions for running those applications are in their own guides:
+
+- [Standard Checkout demo](./paypal-demo/STANDARD_CHECKOUT.md)
+- [SDK Checkout demo](./paypal-demo/SDK_CHECKOUT.md)
+- [Express Checkout demo](./paypal-demo/EXPRESS_CHECKOUT.md)
 
 **[back to top](#table-of-contents)**
 
