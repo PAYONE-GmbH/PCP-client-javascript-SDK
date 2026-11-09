@@ -3,6 +3,9 @@ dist/
 .DS_Store
 coverage/
 **/infrastructure/
+.env
+.env.*
+!.env.example
 **/*.env.local
 **/*.pem
 
