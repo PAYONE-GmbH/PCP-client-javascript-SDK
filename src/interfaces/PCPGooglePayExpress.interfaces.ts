@@ -9,7 +9,7 @@ export interface PCPGooglePayExpressConfig extends ExpressCallbacks {
   paymentDataChangedCallback: (
     data: google.payments.api.IntermediatePaymentData,
   ) => Promise<google.payments.api.PaymentDataRequestUpdate>;
-  /** Submit once, using the final full address and token. Never return success merely on approval. */
+  /** Submit final contacts/token within 30 seconds. ERROR allows another callback; guard orders in your backend. */
   processPaymentCallback: (data: google.payments.api.PaymentData) => Promise<ExpressPaymentResult>;
   buttonOptions?: Omit<google.payments.api.ButtonOptions, 'onClick'>;
 }
