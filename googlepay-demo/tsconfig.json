@@ -1,4 +1,5 @@
 {
+  // Demo TypeScript configuration: type-check browser code; Vite emits the runnable bundles.
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,

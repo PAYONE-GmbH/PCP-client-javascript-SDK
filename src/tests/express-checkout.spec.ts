@@ -253,6 +253,19 @@ describe('Google Pay Express', () => {
     expect(await callbacks.onPaymentAuthorized({})).toMatchObject({ transactionState: 'ERROR' });
     expect(config.errorCallback).toHaveBeenCalledOnce();
   });
+  it('allows corrected validation after ERROR while sharing concurrent callbacks', async () => {
+    vi.mocked(config.processPaymentCallback)
+      .mockRejectedValueOnce(new Error('invalid contact'))
+      .mockResolvedValue(success);
+    await PCPGooglePayExpress.create(config, { selector: '#google' });
+    expect(await callbacks.onPaymentAuthorized({})).toMatchObject({ transactionState: 'ERROR' });
+    const results = await Promise.all([
+      callbacks.onPaymentAuthorized({}),
+      callbacks.onPaymentAuthorized({}),
+    ]);
+    expect(results).toEqual([{ transactionState: 'SUCCESS' }, { transactionState: 'SUCCESS' }]);
+    expect(config.processPaymentCallback).toHaveBeenCalledTimes(2);
+  });
   it('returns a native authorization error for an explicit backend decline', async () => {
     vi.mocked(config.processPaymentCallback).mockResolvedValue({
       status: 'failed',
