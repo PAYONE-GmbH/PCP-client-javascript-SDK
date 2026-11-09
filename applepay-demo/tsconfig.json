@@ -1,3 +1,4 @@
+// Type-check browser entries and colocated tests; Vite emits the bundles.
 {
   "compilerOptions": {
     "target": "ES2020",
