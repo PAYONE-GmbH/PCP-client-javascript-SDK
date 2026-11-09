@@ -21,7 +21,7 @@ export class PCPGooglePayExpress {
     button: GooglePayButton,
   ): Promise<PCPGooglePayExpress> {
     const container = document.querySelector(button.selector);
-    if (!container) throw new Error(`Button Selector ${button.selector} does not exist.`);
+    if (!container) { throw new Error(`Button Selector ${button.selector} does not exist.`); }
     const intents = config.paymentRequest.callbackIntents ?? [];
     if (
       !intents.includes('PAYMENT_AUTHORIZATION') ||
@@ -41,12 +41,12 @@ export class PCPGooglePayExpress {
       paymentDataCallbacks: {
         onPaymentDataChanged: async (data) => {
           try {
-            if (instance.destroyed) throw new Error('Google Pay instance was destroyed.');
+            if (instance.destroyed) { throw new Error('Google Pay instance was destroyed.'); }
             const update = await config.paymentDataChangedCallback(data);
-            if (instance.destroyed) throw new Error('Google Pay instance was destroyed.');
+            if (instance.destroyed) { throw new Error('Google Pay instance was destroyed.'); }
             return update;
           } catch (error) {
-            if (!instance.destroyed) config.errorCallback?.(error as Error);
+            if (!instance.destroyed) { config.errorCallback?.(error as Error); }
             return {
               error: {
                 reason: 'OTHER_ERROR',
@@ -58,7 +58,14 @@ export class PCPGooglePayExpress {
         },
         onPaymentAuthorized: (data) => {
           instance.authorization ??= instance.authorize(data);
-          return instance.authorization;
+          const current = instance.authorization;
+          void current.then((result) => {
+            // Allow corrected validation/card after ERROR; the merchant guards submitted orders.
+            if (result.transactionState === 'ERROR' && instance.authorization === current) {
+              instance.authorization = undefined;
+            }
+          });
+          return current;
         },
       },
     });
@@ -67,7 +74,7 @@ export class PCPGooglePayExpress {
       apiVersionMinor: config.paymentRequest.apiVersionMinor,
       allowedPaymentMethods: config.paymentRequest.allowedPaymentMethods,
     });
-    if (!ready.result) throw new Error('Google Pay is not available.');
+    if (!ready.result) { throw new Error('Google Pay is not available.'); }
     instance.button = instance.client.createButton({
       ...config.buttonOptions,
       onClick: () => {
@@ -82,7 +89,8 @@ export class PCPGooglePayExpress {
     data: google.payments.api.PaymentData,
   ): Promise<google.payments.api.PaymentAuthorizationResult> {
     try {
-      if (this.destroyed) throw new Error('Google Pay instance was destroyed.');
+      if (this.destroyed) { throw new Error('Google Pay instance was destroyed.'); }
+      this.result = undefined;
       this.result = await this.config.processPaymentCallback(data);
       if (this.result.status === 'failed') {
         return {
@@ -96,7 +104,7 @@ export class PCPGooglePayExpress {
       }
       return { transactionState: 'SUCCESS' };
     } catch (error) {
-      if (!this.destroyed) this.config.errorCallback?.(error as Error);
+      if (!this.destroyed) { this.config.errorCallback?.(error as Error); }
       return {
         transactionState: 'ERROR',
         error: {
@@ -109,18 +117,19 @@ export class PCPGooglePayExpress {
   }
 
   private async start(): Promise<void> {
-    if (this.active || this.destroyed) return;
+    if (this.active || this.destroyed) { return; }
     this.active = true;
     this.authorization = undefined;
     this.result = undefined;
     try {
       await this.client.loadPaymentData(this.config.paymentRequest);
-      if (!this.destroyed && this.result) this.config.resultCallback?.(this.result);
+      if (!this.destroyed && this.result) { this.config.resultCallback?.(this.result); }
     } catch (error) {
-      if (this.destroyed) return;
-      if ((error as { statusCode?: string }).statusCode === 'CANCELED')
+      if (this.destroyed) { return; }
+      if ((error as { statusCode?: string }).statusCode === 'CANCELED') {
         this.config.cancelCallback?.();
-      else this.config.errorCallback?.(error as Error);
+      }
+      else { this.config.errorCallback?.(error as Error); }
     } finally {
       this.active = false;
     }

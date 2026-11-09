@@ -1,5 +1,6 @@
+/** Mapping tests: original UTF-8 token encoding and final customer/address conversion. */
 import { expect, it } from 'vitest';
-import { googleContact, googleCustomer, googleInput } from './payment';
+import { googleContact, googleCustomer, googleInput } from './utils';
 
 it('Base64-encodes the original Google token exactly once including UTF-8', () => {
   const token = '{"encrypted":"ä€"}';
