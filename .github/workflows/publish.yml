@@ -1,6 +1,10 @@
 name: Publish package to npm
 on:
   workflow_dispatch:
+
+permissions:
+  id-token: write # Required for authentication with npm using OIDC
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -8,13 +12,13 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Setup .npmrc file to publish to GitHub Packages
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version-file: ".nvmrc"
+          node-version: "26.x"
           registry-url: "https://registry.npmjs.org"
-          # Defaults to the user or organization that owns the workflow file
+          package-manager-cache: false # never use caching in release builds
           scope: "@payone"
       - run: npm ci
       - run: npm publish --access public
