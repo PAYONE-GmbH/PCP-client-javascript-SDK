@@ -1,6 +1,10 @@
+# Local demo outputs and merchant certificate material.
 /bin/
 /node_modules/
 /dist/
 /certificates/
 .env.local
+.env.*.local
 .env
+.env.*
+!.env.example

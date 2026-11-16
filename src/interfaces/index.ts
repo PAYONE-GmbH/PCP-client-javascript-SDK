@@ -1,5 +1,9 @@
 export * from './PCPApplePay.interfaces.js';
 export * from './PCPCreditCardTokenizer.interfaces.js';
+export * from './PCPExpressCheckout.interfaces.js';
+export * from './PCPGooglePayExpress.interfaces.js';
+export * from './PCPPayPalExpress.interfaces.js';
+export * from './PCPPaymentIntent.interfaces.js';
 /** @description Object containing billing address details */
 export interface Address {
   /**
@@ -1151,7 +1155,8 @@ export interface MobilePaymentMethodSpecificInput {
   publicKeyHash?: string;
   /** @description Ephemeral Key A unique generated key used by Apple to encrypt data. */
   ephemeralKey?: string;
-  paymentProduct302SpecificInput?: PaymentProduct320SpecificInput;
+  paymentProduct302SpecificInput?: PaymentProduct302SpecificInput;
+  threeDSecure?: { redirectionData?: RedirectionData };
 }
 
 /** @description Object containing the mobile payment method details. */
@@ -1612,6 +1617,13 @@ export interface PaymentProduct320SpecificInput {
   token?: ApplePaymentDataTokenInformation;
 }
 
+/** Apple Pay product 302. The historical PaymentProduct320SpecificInput name remains available. */
+export interface PaymentProduct302SpecificInput extends PaymentProduct320SpecificInput {
+  integrationType?: 'MERCHANT_CERTIFICATE' | 'MASS_ENABLEMENT';
+  domainName?: string;
+  displayName?: string;
+}
+
 /**
  * @example GIROCARD
  */
@@ -1895,6 +1907,10 @@ export interface RedirectPaymentMethodSpecificOutput {
 
 /** @description Object containing specific input required for PayPal payments (Payment product ID 840) */
 export interface RedirectPaymentProduct840SpecificInput {
+  javaScriptSdkFlow?: boolean;
+  /** Correlates the final order with the previously approved PaymentIntent. */
+  paymentId?: string;
+  fraudNetId?: string;
   /**
    *  @description Indicates whether to use PayPal Express Checkout Shortcut.
    *      * true = When shortcut is enabled, the consumer can select a shipping address during PayPal checkout.

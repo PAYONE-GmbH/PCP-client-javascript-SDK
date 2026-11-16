@@ -4,6 +4,7 @@ export interface SubmitButtonConfig {
 }
 
 export interface UIConfig {
+  customPaddingTermText?: string;
   formBgColor?: string;
   formMarginLeft?: string;
   formMarginRight?: string;
@@ -49,6 +50,8 @@ export interface UIConfig {
 }
 
 export interface FontStyle {
+  maskFontSize?: string;
+  maskFontSizeMobile?: string;
   fontSize?: string;
   fontWeight?: string;
   fontSizeMobile?: string;
@@ -56,9 +59,9 @@ export interface FontStyle {
 
 export interface IframeConfig {
   iframeWrapperId: string;
-  height?: number;
-  width?: number;
-  zIndex?: number;
+  height?: number | string;
+  width?: number | string;
+  zIndex?: number | string;
 }
 
 /**
@@ -128,8 +131,8 @@ export interface CTPConfig {
   enableCTP: boolean;
   /** Set to true to enable customer onboarding on the scheme. */
   enableCustomerOnboarding: boolean;
-  /** Configuration specific to each supported card scheme. */
-  schemeConfig: SchemeConfig;
+  /** Scheme configuration. Omit entirely to retrieve it from PAYONE (vendor SDK 1.5+). */
+  schemeConfig?: SchemeConfig;
   /** Amount details to be paid by the end user. */
   transactionAmount: TransactionAmount;
   /** Optional UI customization for the CTP component. */
@@ -268,12 +271,11 @@ export type CardScheme =
   | 'unionpay';
 
 export interface Config {
-  iframe: {
-    iframeWrapperId: string;
-    height?: number | 'auto';
-    width?: number;
-    zIndex?: number;
-  };
+  iframe: IframeConfig;
+  /** Mask the security-code field (Hosted Tokenization SDK 1.6.0). */
+  isSecurityCodeMasked?: boolean;
+  /** Vendor rendering/readiness events; string statuses are also emitted. */
+  paymentPageCallback?: (statusCode: number | string, response: unknown) => void;
   uiConfig?: UIConfig;
   locale?: string;
   token: string;
