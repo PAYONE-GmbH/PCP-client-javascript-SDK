@@ -1,3 +1,4 @@
+# Demo housekeeping: exclude dependencies, generated builds, local settings and editor artifacts.
 # Logs
 logs
 *.log
