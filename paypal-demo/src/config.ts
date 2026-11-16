@@ -1,24 +1,46 @@
-export interface PayPalSdkConfig {
-  clientId: string;
-  merchantId: string;
-  intent: 'capture' | 'authorize';
-  locale: string;
+/** Public demo settings. PAYONE credentials and merchant routing belong on the server. */
+const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL?.trim();
+const shippingOptionId = import.meta.env.VITE_SHIPPING_OPTION?.trim();
+const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID?.trim();
+const merchantId = import.meta.env.VITE_PAYPAL_MERCHANT_ID?.trim();
+const intent = import.meta.env.VITE_PAYPAL_INTENT?.trim();
+const locale = import.meta.env.VITE_PAYPAL_LOCALE?.trim();
+
+function required(name: string, value: string | undefined): string {
+  if (!value) {
+    throw new Error(`Missing ${name} in .env.local.`);
+  }
+  return value;
 }
 
-/** Public SDK settings only; environment and PAYONE merchant routing remain server-side. */
-export function paypalConfig(
-  href: string,
-  env: Record<string, string | undefined>,
-): PayPalSdkConfig {
-  const params = new URL(href).searchParams;
-  const value = (query: string, variable: string, fallback = '') =>
-    (params.get(query) ?? env[variable] ?? fallback).trim();
-  const clientId = value('clientId', 'VITE_PAYPAL_CLIENT_ID');
-  const merchantId = value('merchantId', 'VITE_PAYPAL_MERCHANT_ID');
-  const intent = value('intent', 'VITE_PAYPAL_INTENT', 'capture');
-  if (!clientId || !merchantId)
-    throw new Error('Set PayPal clientId and merchantId for the SDK button.');
-  if (intent !== 'capture' && intent !== 'authorize')
-    throw new Error('PayPal intent must be capture or authorize.');
-  return { clientId, merchantId, intent, locale: value('locale', 'VITE_PAYPAL_LOCALE', 'de_DE') };
+export class ConfigService {
+  public readonly backendUrl = required('VITE_BACKEND_BASE_URL', backendUrl);
+  public readonly shippingOptionId = required('VITE_SHIPPING_OPTION', shippingOptionId);
+
+  constructor() {
+    if (this.shippingOptionId !== 'standard' && this.shippingOptionId !== 'express') {
+      throw new Error('VITE_SHIPPING_OPTION must be standard or express.');
+    }
+  }
+
+  // SDK-only settings are validated when the SDK page accesses them.
+  get clientId(): string {
+    return required('VITE_PAYPAL_CLIENT_ID', clientId);
+  }
+
+  get merchantId(): string {
+    return required('VITE_PAYPAL_MERCHANT_ID', merchantId);
+  }
+
+  get intent(): 'capture' | 'authorize' {
+    const value = required('VITE_PAYPAL_INTENT', intent);
+    if (value !== 'capture' && value !== 'authorize') {
+      throw new Error('VITE_PAYPAL_INTENT must be capture or authorize.');
+    }
+    return value;
+  }
+
+  get locale(): string {
+    return required('VITE_PAYPAL_LOCALE', locale);
+  }
 }

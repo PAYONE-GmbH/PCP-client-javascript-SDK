@@ -1,3 +1,4 @@
+// Build the three independent PayPal demo pages and serve them on port 5174.
 import { defineConfig } from 'vite';
 
 export default defineConfig({

@@ -1,30 +1,25 @@
-import { expect, it } from 'vitest';
-import { paypalConfig } from './config';
+/** Env-only configuration; SDK settings are required only for the official button page. */
+import { afterEach, expect, it, vi } from 'vitest';
 
-const env = { VITE_PAYPAL_CLIENT_ID: 'client', VITE_PAYPAL_MERCHANT_ID: 'merchant' };
-it('requires public SDK IDs, with capture and German locale defaults', () => {
-  expect(paypalConfig('https://demo.test/sdk.html', env)).toEqual({
-    clientId: 'client',
-    merchantId: 'merchant',
-    intent: 'capture',
-    locale: 'de_DE',
-  });
-  expect(() => paypalConfig('https://demo.test/', {})).toThrow('clientId and merchantId');
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.resetModules();
 });
-it('accepts trimmed URL overrides and rejects mismatched SDK intent configuration', () => {
-  expect(
-    paypalConfig(
-      'https://demo.test/?clientId=other&merchantId=other-merchant&intent=authorize&locale=en_US',
-      env,
-    ),
-  ).toEqual({
-    clientId: 'other',
-    merchantId: 'other-merchant',
-    intent: 'authorize',
-    locale: 'en_US',
-  });
-  expect(() => paypalConfig('https://demo.test/?intent=sale', env)).toThrow('capture or authorize');
-  expect(() => paypalConfig('https://demo.test/?clientId=', env)).toThrow(
-    'clientId and merchantId',
-  );
+
+it('requires base settings without hidden defaults', async () => {
+  vi.stubEnv('VITE_BACKEND_BASE_URL', '');
+  const { ConfigService } = await import('./config');
+  expect(() => new ConfigService()).toThrow('Missing VITE_BACKEND_BASE_URL');
+});
+
+it('allows redirect pages without SDK IDs and validates SDK intent on access', async () => {
+  vi.stubEnv('VITE_BACKEND_BASE_URL', ' https://api.test/ ');
+  vi.stubEnv('VITE_SHIPPING_OPTION', 'express');
+  vi.stubEnv('VITE_PAYPAL_CLIENT_ID', '');
+  vi.stubEnv('VITE_PAYPAL_INTENT', 'invalid');
+  const { ConfigService } = await import('./config');
+  const config = new ConfigService();
+  expect(config.backendUrl).toBe('https://api.test/');
+  expect(() => config.clientId).toThrow('Missing VITE_PAYPAL_CLIENT_ID');
+  expect(() => config.intent).toThrow('capture or authorize');
 });
