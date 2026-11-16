@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Standard demo shell: merchant contact form, wallet container and status controls; main.ts wires them up. -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -22,7 +23,7 @@
           <label>Postal code <input name="postalCode" autocomplete="postal-code" pattern="[0-9]{5}" required /></label>
           <label>City <input name="city" autocomplete="address-level2" required /></label>
           <p>Country: Germany (DE). This example uses the same address for billing and shipping.</p>
-          <label>Shipping <select name="shipping" required></select></label>
+           <label>Shipping <select name="shipping" required><option value="standard">Standard €4.90</option><option value="express">Express €9.90</option></select></label>
           <p>Total: <output id="total">€24.80</output></p>
           <button type="submit">Continue to Google Pay</button>
         </fieldset>

@@ -977,11 +977,31 @@ npm install @google-pay/button-angular
 
 #### Google Pay Configuration
 
+The [Google Pay demo](./googlepay-demo/README.md) provides two independent entry pages with shared, typed configuration and payment mapping:
+
+- [Standard Checkout](./googlepay-demo/STANDARD_CHECKOUT.md): merchant-owned address and shipping form, followed by the official `@google-pay/button-element` payment button.
+- [Express Checkout](./googlepay-demo/EXPRESS_CHECKOUT.md): `PCPGooglePayExpress` requests address, email and shipping selection directly inside Google Pay and updates the total via callbacks.
+
 Configure Google Pay API v2 with gateway `payonegmbh`, `gatewayMerchantId` (the PAYONE gateway merchant ID), Visa/Mastercard and the authentication methods supported by your merchant setup. `CRYPTOGRAM_3DS` requires a compatible device/card; enable `PAN_ONLY` only where supported by your PAYONE configuration. For `PRODUCTION`, also provide the separate Google `merchantId` and complete Google's production onboarding.
 
 For Standard Checkout, collect customer and shipping data in your shop and supply the final amount to the Google Pay button. For Express Checkout, `PCPGooglePayExpress` collects the requested contacts and shipping selection in the payment sheet and updates the amount through callbacks.
 
 Encode the original Google token as UTF-8/Base64 exactly once for PAYONE product **320**. Use the PAYONE Server SDK to process the payment with the appropriate authorization mode (`SALE` for immediate capture) and a 3DS return URL. Opening or closing the Google sheet is not confirmation of capture; reconcile the payment status after any required redirect.
+
+Run the demos from the repository root:
+
+```bash
+npm ci
+npm run build
+npm --prefix googlepay-demo ci
+cp googlepay-demo/.env.example googlepay-demo/.env.local
+# Configure the public merchant settings in googlepay-demo/.env.local.
+npm --prefix googlepay-demo run dev
+```
+
+Open `/index.html` for Standard or `/express.html` for Express. Configure the backend URL, PAYONE gateway merchant ID and public Google settings in `.env.local` as documented in the [demo setup](./googlepay-demo/README.md#public-configuration).
+
+The demo documentation includes Commerce request/response mapping, 3DS/status handling and manual test steps. Authentication methods are configured explicitly in `.env.local`; see the demo's setup issues before enabling `PAN_ONLY` for desktop tests.
 
 - [Customize your Google Pay button](https://developers.google.com/pay/api/web/guides/resources/customize)
 - [Google Pay Button Element Documentation](https://github.com/google-pay/google-pay-button)

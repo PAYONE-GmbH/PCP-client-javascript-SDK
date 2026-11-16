@@ -1,13 +1,8 @@
-const defineConfig = {
-  optimizeDeps: {
-    include: [],
-  },
+// Build both independent Apple Pay demo pages.
+import { defineConfig } from 'vite';
+
+export default defineConfig({
   build: {
     rollupOptions: { input: { main: 'index.html', express: 'express.html' } },
-    commonjsOptions: {
-      include: [/node_modules/],
-    },
   },
-};
-
-export default defineConfig;
+});
